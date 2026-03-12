@@ -1,9 +1,0 @@
-curl -X POST http://localhost:3210/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "productId": "PharmOutcomes",
-    "scriptId": "CovidSiteCount",
-    "envEncBase64": "'"$(cat env.b64)"'",
-    "passphrase": "your-passphrase-here",
-    "options": { "human": true }
-  }'
