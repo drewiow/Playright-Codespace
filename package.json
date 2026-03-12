@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "description": "A Playwright-enabled Codespaces repo with a basic application and test harness in place. Useful for workshops and as starter template.",
   "main": "index.js",
+  "type": "module",
   "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.37.1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "playwright": "^1.58.2"
   }
 }
