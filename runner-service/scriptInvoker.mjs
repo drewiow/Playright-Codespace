@@ -1,5 +1,7 @@
 // runner-service/scriptInvoker.mjs
 import path from "path";
+import { pathToFileURL } from "url";
+import fs from "fs";
 
 export async function invokeScript(job) {
   const {
@@ -18,17 +20,22 @@ export async function invokeScript(job) {
   process.env.ENV_PASSPHRASE = passphrase;
 
   const scriptPath = path.resolve(
-    "../Scripts",
-    productId,
-    scriptId,
-    "index.mjs"
-  );
+  "../Scripts",
+  productId,
+  scriptId,
+  "index.mjs"
+);
 
-  logger(`▶️ Launching script: ${scriptPath}`);
+if (!fs.existsSync(scriptPath)) {
+  throw new Error(`Script not found on disk: ${scriptPath}`);
+}
 
-  const { default: run } = await import(scriptPath);
+logger(`▶️ Launching script: ${scriptPath}`);
 
-  await run({ logger });
+const scriptUrl = pathToFileURL(scriptPath).href;
+const { default: run } = await import(scriptUrl);
+
+await run({ logger });
 
   logger("✅ Script finished");
 }

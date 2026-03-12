@@ -9,6 +9,10 @@ const JOB_ROOT = path.resolve(".runner-jobs");
 if (!fs.existsSync(JOB_ROOT)) fs.mkdirSync(JOB_ROOT);
 
 export async function createJob(payload) {
+
+    console.log("DEBUG typeof envEncBase64:", typeof payload.envEncBase64);
+    console.log("DEBUG envEncBase64 constructor:", payload.envEncBase64?.constructor?.name);
+
   const {
     productId,
     scriptId,
