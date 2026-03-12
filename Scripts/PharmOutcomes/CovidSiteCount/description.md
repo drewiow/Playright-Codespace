@@ -1,0 +1,8 @@
+- Loads a list of regions from regions.json
+- Logs into PharmOutcomes for each region using the provided credentials
+- Impersonates the commissioner account
+- Opens the COVID Vaccination 2025/26 accreditation list
+- Counts how many providers are accredited in that region
+- Writes the results to CovidCount.csv
+- Tracks total accredited sites across all regions
+- Logs progress, timings, and status updates throughout the run

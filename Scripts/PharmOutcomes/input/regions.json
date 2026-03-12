@@ -1,0 +1,14 @@
+[
+  { "name": "Primary", "odscode": "PRIM" },
+  { "name": "Covid A", "odscode": "COVIDA" },
+  { "name": "Covid B", "odscode": "COVIDB" },
+  { "name": "Covid C", "odscode": "COVIDC" },
+  { "name": "Covid D", "odscode": "COVIDD" },
+  { "name": "Covid E", "odscode": "COVIDE" },
+  { "name": "Covid F", "odscode": "COVIDF" },
+  { "name": "Covid G", "odscode": "COVIDG" },
+  { "name": "Covid H", "odscode": "COVIDH" },
+  { "name": "Covid I", "odscode": "COVIDI" },
+  { "name": "Covid J", "odscode": "COVIDJ" },
+  { "name": "Covid K", "odscode": "COVIDK" }
+]

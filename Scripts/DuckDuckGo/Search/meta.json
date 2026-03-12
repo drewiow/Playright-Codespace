@@ -1,0 +1,13 @@
+{
+    "name": "Search Google",
+    "description": "Opens google and searches a term entered by the user",
+    "inputs": [
+        {
+            "key": "term",
+            "label": "Search Term",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. Building"
+        }
+    ]
+}
