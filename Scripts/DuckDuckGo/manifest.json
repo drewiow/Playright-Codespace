@@ -1,0 +1,18 @@
+{
+    "id": "DuckDuckGo",
+    "title": "Duck Duck Go",
+    "description": "Automation script for searching for something in DDG",
+    "logo": "/images/duck-logo.svg",
+    "scripts": [
+        {
+            "id": "Search",
+            "name": "Search Term",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": false,
+            "optionalEnvFile": false
+        }
+    ]
+}

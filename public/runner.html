@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Automation Runner</title>
+    <link rel="stylesheet" href="./styles/runner.css" />
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="header-left">
+            <a href="/index.html">
+                <img class="logo" src="./images/optum-logo.png" alt="Optum">
+            </a>
+        </div>
+
+        <div class="header-center" id="breadcrumb">Automation Runner</div>
+
+        <div class="header-right">
+            <a href="/env-builder.html">Create env.enc</a>
+        </div>
+    </header>
+
+    <div class="statusbar" id="runStatus">Ready</div>
+
+    <main class="runner-layout">
+
+        <aside class="left-column">
+            <h1 id="scriptTitle" class="script-title"></h1>
+
+            <section class="card">
+                <details id="scriptDescription">
+                    <summary>What does this script do?</summary>
+                    <div id="descriptionContent"></div>
+                </details>
+            </section>
+
+            <section class="card">
+                <h2>Script Settings</h2>
+
+                <form id="run-form">
+
+                    <div class="field">
+                        <label>CSV File</label>
+                        <input type="file" id="csvFile" accept=".csv" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Encrypted Details File</label>
+                        <input type="file" id="envFile" accept=".enc" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Decrypt Password</label>
+                        <input type="password" id="decryptPassword" required>
+                    </div>
+
+                    <div class="field" id="scriptInputs"></div>
+
+                    <details class="options-panel">
+                        <summary>Options</summary>
+                        <div class="options-group">
+                            <h3>Automation</h3>
+                            <label><input type="checkbox" id="humanMode"> Human mode</label>
+                            <label><span>Human intensity</span><input type="range" id="humanIntensity" min="1" max="5"
+                                    value="3"></label>
+                            <label><input type="checkbox" id="showBrowser" checked> Show browser</label>
+                        </div>
+
+                        <div class="options-group">
+                            <h3>Recording</h3>
+                            <label><input type="checkbox" id="recordVideo"> Record video</label>
+                            <label><input type="checkbox" id="recordTrace" checked> Record trace</label>
+                        </div>
+
+                        <div class="options-group">
+                            <h3>Advanced</h3>
+                            <label><input type="checkbox" id="autoScrollLogs" checked> Auto‑scroll logs</label>
+                            <label><input type="checkbox" id="clearLogsOnRun" checked> Clear logs on run</label>
+                        </div>
+                    </details>
+
+                    <div class="flex justify-end mt-6 col-span-full">
+
+                        <button type="submit"
+                            class="button-primary px-8 py-3 bg-blue-600 text-white font-bold rounded-md shadow-md hover:bg-blue-700 transition">
+                            Run
+                        </button>
+                    </div>
+
+                </form>
+            </section>
+        </aside>
+
+        <section class="right-column">
+            <h1 class="script-title">Logs</h1>
+            <section class="card">
+
+                <div id="logContainer" class="log-viewer"></div>
+            </section>
+
+            <section class="card hidden">
+                <h2>Run Artifacts</h2>
+                <ul id="artifactList"></ul>
+            </section>
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="./scripts/runner.js" type="module"></script>
+
+</body>
+
+</html>

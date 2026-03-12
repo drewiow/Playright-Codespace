@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Automation Runner – Home</title>
+    <link rel="stylesheet" href="./styles/styles.css" />
+</head>
+
+<body>
+    <div class="app">
+
+        <header class="header">
+            <img class="logo" src="./images/optum-logo.png" alt="Optum">
+
+            <div class="title" id="breadcrumb">
+                Automation Runner → Choose a Product
+            </div>
+
+            <a href="/env-builder.html">Create env.enc</a>
+        </header>
+
+
+        <!-- Main Content -->
+        <main class="layout.landing">
+
+            <h1 class="page-title">Choose a Product</h1>
+
+            <!-- Dynamic product cards will be injected here -->
+            <div class="product-grid"></div>
+
+            <!-- Script Panels -->
+            <div class="script-panels">
+                <div id="scriptPicker" class="hidden">
+                    <h2>Select a script</h2>
+                    <div id="scriptGrid" class="script-grid"></div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Load all logic from landing.js -->
+    <script src="./scripts/landing.js" type="module"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("breadcrumb").textContent =
+                "Automation Runner → Choose a Product";
+        });
+    </script>
+</body>
+
+</html>

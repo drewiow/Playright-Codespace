@@ -1,0 +1,18 @@
+{
+    "id": "14Fish",
+    "title": "14 Fish",
+    "description": "Automation script for 14Fish adding of users",
+    "logo": "/images/14Fish-logo.png",
+    "scripts": [
+        {
+            "id": "AddUser",
+            "name": "Add User",
+            "requiresCsv": true,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true
+        }
+    ]
+}

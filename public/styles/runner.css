@@ -1,0 +1,252 @@
+/* -------------------------------------------------------
+   Base
+------------------------------------------------------- */
+body {
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f7f7f8;
+    color: #222;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* -------------------------------------------------------
+   Unified Header (shared with landing)
+------------------------------------------------------- */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e2e2;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.app-header .logo {
+    height: 36px;
+    width: auto;
+}
+
+
+.header-right a {
+    color: #0055a5;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.header-right a:hover {
+    text-decoration: underline;
+}
+
+/* -------------------------------------------------------
+   Status Bar
+------------------------------------------------------- */
+.statusbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e2e2;
+    padding: 0.6rem 2rem;
+    font-size: 0.95rem;
+    color: #444;
+}
+
+/* -------------------------------------------------------
+   Layout
+------------------------------------------------------- */
+.runner-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2rem;
+    padding: 2rem 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* -------------------------------------------------------
+   Cards
+------------------------------------------------------- */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+/* -------------------------------------------------------
+   Left Column
+------------------------------------------------------- */
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.field label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+}
+
+.field input {
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+}
+
+/* Options Panel */
+.options-panel summary {
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.options-group {
+    margin-top: 1rem;
+}
+
+.options-group h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.options-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+}
+
+/* -------------------------------------------------------
+   Primary Button
+------------------------------------------------------- */
+.button-primary {
+    margin-top: 1rem;
+    padding: 0.8rem 1.2rem;
+    background: #ff7f32;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    width: 100%;
+}
+
+.button-primary:hover {
+    background: #e86f28;
+}
+
+.button-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* -------------------------------------------------------
+   Right Column
+------------------------------------------------------- */
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Logs */
+.log-line {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0;
+    font-family: Consolas, monospace;
+}
+
+.log-timestamp {
+    color: #888;
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.log-message {
+    white-space: pre-wrap;
+}
+
+.log-viewer {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
+    padding: 1rem;
+    height: 420px;
+    overflow-y: auto;
+    font-family: Consolas, monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Artifacts */
+#artifactList {
+    list-style: none;
+    padding: 0;
+}
+
+#artifactList li {
+    padding: 0.6rem 0.4rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+}
+
+#artifactList li:last-child {
+    border-bottom: none;
+}
+
+#artifactList a {
+    color: #0055a5;
+    font-weight: 500;
+}
+
+/* -------------------------------------------------------
+   Responsive
+------------------------------------------------------- */
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.header-center {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.crumb-sep {
+    color: #999;
+    margin: 0 0.2rem;
+}
+
+.col-span-full {
+    grid-column: 1 / -1;
+    text-align: right;
+}

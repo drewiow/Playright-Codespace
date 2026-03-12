@@ -1,0 +1,48 @@
+{
+    "name": "Send a system announcement",
+    "description": "Creates a system announcement, and if selected applies to all regions",
+    "inputs": [
+        {
+            "key": "from",
+            "label": "From",
+            "type": "date",
+            "required": true,
+            "placeholder": "e.g. 14/01/2026"
+        },
+        {
+            "key": "until",
+            "label": "Until",
+            "type": "date",
+            "required": true,
+            "placeholder": "e.g. 21/01/2026"
+        },
+        {
+            "key": "to",
+            "label": "To",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. P, V, C"
+        },
+        {
+            "key": "title",
+            "label": "Title",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. 2My Announcement"
+        },
+        {
+            "key": "body",
+            "label": "Body",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. This is my announcement"
+        },
+        {
+            "key": "primary",
+            "label": "Just Primary?",
+            "type": "checkbox",
+            "required": true,
+            "placeholder": ""
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+{
+    "name": "Send a system announcement",
+    "description": "Creates a system announcement, and if selected applies to all regions",
+    "inputs": [
+        {
+            "key": "start",
+            "label": "Srart Date",
+            "type": "date",
+            "required": true,
+            "placeholder": "e.g. 14/01/2026"
+        },
+        {
+            "key": "end",
+            "label": "End Date",
+            "type": "date",
+            "required": true,
+            "placeholder": "e.g. 21/01/2026"
+        }
+    ]
+}

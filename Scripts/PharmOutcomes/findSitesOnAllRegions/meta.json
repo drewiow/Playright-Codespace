@@ -1,0 +1,13 @@
+{
+    "name": "Finds a site on all Regions",
+    "description": "Searched for a ods Code on all regions.",
+    "inputs": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. PSMR01"
+        }
+    ]
+}

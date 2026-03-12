@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Automation Runner – Home</title>
+    <link rel="stylesheet" href="./styles/styles.css" />
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="/index.html"><img class="logo" src="./images/optum-logo.png" alt="Optum"><a></a>
+            <a href="/env-builder.html">Create env.enc</a>
+
+
+            <div class="title">Automation Runner</div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="layout">
+
+        <!-- LEFT COLUMN -->
+        <div class="left-column">
+
+            <h1 class="page-title">Encrypt your variables</h1>
+
+            <form id="envForm">
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Your username for logging into your website" required>
+                </div>
+
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Your password for loggin into your website"
+                        required>
+                </div>
+
+                <div class="field">
+                    <label>6 letter Security Word</label>
+                    <input type="password" id="securityWord"
+                        placeholder="Pharmoutcomes specific, leave blank for 14Fidh">
+                </div>
+
+                <div class="field">
+                    <label>Secret MFA Key</label>
+                    <input type="text" id="secretKey"
+                        placeholder="You might need to request this from engineering, or use the code for 'manual' entry"
+                        required>
+                </div>
+
+                <div class="field">
+                    <label>Master Decrypt Password</label>
+                    <input type="password" id="masterPassword"
+                        placeholder="Make this a secure password different to anything else" required>
+                </div>
+
+
+                <button type="submit" class="button-primary">Generate env.enc</button>
+            </form>
+
+            <p id="status"></p>
+        </div>
+    </main>
+
+
+    <script>
+        document.getElementById("envForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const status = document.getElementById("status");
+            status.textContent = "Encrypting…";
+
+            const payload = {
+                USERNAME: document.getElementById("username").value,
+                PASSWORD: document.getElementById("password").value,
+                SECURITY_WORD: document.getElementById("securityWord").value,
+                SECRET_KEY: document.getElementById("secretKey").value,
+                MASTER_PASSWORD: document.getElementById("masterPassword").value
+
+            };
+
+            const res = await fetch("/api/env/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                status.textContent = "❌ Failed to create env.enc";
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "env.enc";
+            a.click();
+
+            status.textContent = "✅ env.enc created and downloaded";
+        });
+    </script>
+
+</body>
+
+</html>
