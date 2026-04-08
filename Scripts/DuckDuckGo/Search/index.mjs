@@ -1,7 +1,6 @@
 import { fileURLToPath } from "url";
 import path from "path";
-import { setupContext } from "../helpers.mjs";
-import { decryptEnv } from "../../common/common.mjs";
+import { createBrowserContext } from "../../common/common.mjs";
 import process from "process";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,9 +22,6 @@ function defaultLogger(...args) {
 export default async function run({ logger = defaultLogger } = {}) {
     logger("RUN STARTED");
 
-
-
-    // 🔥 NOW env vars exist — validate them
     const term = process.env.TERM;
 
     if (!term) throw new Error("Missing TERM");
@@ -36,10 +32,11 @@ export default async function run({ logger = defaultLogger } = {}) {
 
     try {
         logger("🔧 setupContext starting");
-        ({ browser, context, page } = await setupContext({
+        ({ browser, context, page } = await createBrowserContext({
             headless: process.env.CONFIG_HEADLESS === "true",
             human: process.env.CONFIG_HUMAN === "true"
         }));
+
         logger("✅ Browser/context/page created");
 
         await page.goto("https://duckduckgo.com/");
@@ -58,7 +55,6 @@ export default async function run({ logger = defaultLogger } = {}) {
 
     } finally {
         logger("__RUN_COMPLETE__");
-
     }
 }
 

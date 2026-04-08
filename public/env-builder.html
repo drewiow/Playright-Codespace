@@ -4,24 +4,28 @@
 <head>
     <meta charset="UTF-8" />
     <title>Automation Runner – Home</title>
-    <link rel="stylesheet" href="./styles/styles.css" />
+    <link rel="stylesheet" href="./styles/runner.css" />
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="header">
-        <a href="/index.html"><img class="logo" src="./images/optum-logo.png" alt="Optum"><a></a>
+    <header class="app-header">
+        <div class="header-left">
+            <a href="/index.html">
+                <img class="logo" src="./images/optum-logo.png" alt="Optum">
+            </a>
+        </div>
+
+        <div class="header-center" id="breadcrumb">Automation Runner</div>
+
+        <div class="header-right">
             <a href="/env-builder.html">Create env.enc</a>
-
-
-            <div class="title">Automation Runner</div>
+        </div>
     </header>
-
     <!-- Main Content -->
-    <main class="layout">
+    <main class="layout.landing">
 
         <!-- LEFT COLUMN -->
-        <div class="left-column">
+        <div class="left-column" style="width:500px">
 
             <h1 class="page-title">Encrypt your variables</h1>
 
@@ -56,14 +60,12 @@
                         placeholder="Make this a secure password different to anything else" required>
                 </div>
 
-
                 <button type="submit" class="button-primary">Generate env.enc</button>
             </form>
 
             <p id="status"></p>
         </div>
     </main>
-
 
     <script>
         document.getElementById("envForm").addEventListener("submit", async (e) => {
@@ -78,7 +80,6 @@
                 SECURITY_WORD: document.getElementById("securityWord").value,
                 SECRET_KEY: document.getElementById("secretKey").value,
                 MASTER_PASSWORD: document.getElementById("masterPassword").value
-
             };
 
             const res = await fetch("/api/env/create", {

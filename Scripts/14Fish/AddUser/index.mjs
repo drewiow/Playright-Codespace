@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import process from "process";
-
 import { login, setupContext, addJobRole } from "../helpers.mjs";
 import { validateRow, writeFailuresCsv } from "../csvValidationHelper.mjs";
 import { decryptEnv } from "../../common/common.mjs";
@@ -173,7 +172,7 @@ export default async function run({ logger = defaultLogger } = {}) {
 
             logger(`\n👤 Processing user: ${firstname} ${lastname} (${email})`);
 
-            // Duplicate detection
+            // Duplicate detection (Per run)
             if (email) {
                 if (seenEmails.has(email)) {
                     failures.push({ row, reasons: ["Duplicate email in input"] });
