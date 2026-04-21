@@ -12,7 +12,8 @@
             "showOptionsPanel": true,
             "descriptionFile": "description.md",
             "requiresEnvFile": false,
-            "optionalEnvFile": false
+            "optionalEnvFile": false,
+            "advanced": true
         }
     ]
 }

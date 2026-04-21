@@ -19,6 +19,17 @@ export async function setupContext(options = {}) {
   return await createBrowserContext(options);
 }
 
+export function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines[0].split(",").map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const cols = line.split(",").map(c => c.replace(/^"|"$/g, "").trim());
+    const row = {};
+    headers.forEach((h, i) => (row[h] = cols[i]));
+    return row;
+  });
+}
+
 export async function login(page, username, password, odscode) {
   const secret = process.env.SECRET_KEY;
   const token = authenticator.generate(secret);

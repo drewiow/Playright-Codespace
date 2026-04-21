@@ -1,6 +1,8 @@
 import { fileURLToPath } from "url";
 import path from "path";
 import { createBrowserContext } from "../../common/common.mjs";
+import { parseAdvancedSteps, resolveCsvTokens } from "../../advanced/parseAdvancedSteps.mjs";
+import { executeAdvancedSteps } from "../../advanced/executeAdvancedSteps.mjs";
 import process from "process";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +24,10 @@ function defaultLogger(...args) {
 export default async function run({ logger = defaultLogger } = {}) {
     logger("RUN STARTED");
 
+    const advancedStepsText = process.env.ADVANCED_STEPS || "";
+    const steps = parseAdvancedSteps(advancedStepsText);
+    logger(`[Advanced] Parsed ${steps.length} step(s)`);
+
     const term = process.env.TERM;
 
     if (!term) throw new Error("Missing TERM");
@@ -29,6 +35,7 @@ export default async function run({ logger = defaultLogger } = {}) {
     let browser = null;
     let context = null;
     let page = null;
+
 
     try {
         logger("🔧 setupContext starting");
@@ -46,8 +53,33 @@ export default async function run({ logger = defaultLogger } = {}) {
         await page.keyboard.press("Enter");
         logger("✅ Searched for term : " + term);
 
-        logger("🕒 Browser will remain open...");
-        await new Promise(() => { }); // keep alive
+        await page.waitForSelector('a[data-testid="result-title-a"]', {
+            timeout: 5000
+        });
+
+        //Do the advanced script
+        const resolvedStepsText = resolveCsvTokens(
+            advancedStepsText,
+            row
+        );
+
+        const resolvedSteps = parseAdvancedSteps(resolvedStepsText);
+
+        if (steps.length > 0) {
+            logger(`🚀 Executing advanced steps`);
+            await executeAdvancedSteps({
+                steps: resolvedSteps,
+                page,
+                rowIndex: 1, // no row index in this script, but keeping for consistency
+                log: logger
+            });
+        }
+
+        if (process.env.CONFIG_HUMAN === "true") {
+            logger("🕒 Browser will remain open...");
+            await new Promise(() => { });
+        }
+
 
     } catch (err) {
         logger("❌ Run error:", err?.stack || err);

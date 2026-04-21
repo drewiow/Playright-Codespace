@@ -5,6 +5,20 @@
     "logo": "/images/pharmoutcomes-logo.jpg",
     "scripts": [
         {
+            "id": "advancedScript",
+            "title": "Advanced Script",
+            "requiresCsv": true,
+            "requiresPassword": false,
+            "showOptionsPanel": false,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Loops through a list of ODS Codes and then requires manual scripting to perform actions",
+            "icon": "🔁",
+            "animation": "pulse",
+            "advanced": true
+        },
+        {
             "id": "updateMESH",
             "title": "Update MESH",
             "requiresCsv": true,
@@ -15,7 +29,8 @@
             "optionalEnvFile": true,
             "description": "Will take an ODS code, then login and update the MESH username & password for that provider.",
             "icon": "🔁",
-            "animation": "pulse"
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "AddSuperUser",
@@ -27,7 +42,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take an ODS code and add a superuser to it for cross login purposes.",
-            "icon": "👑"
+            "icon": "👑",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "ChangeODS",
@@ -39,7 +56,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take an ODS code, login and update it to the newly provded one..",
-            "icon": "🔢"
+            "icon": "🔢",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "CheckCovidSiteExists",
@@ -51,7 +70,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take an ODS code and log into every region to see if it exists, it will log the region(s) it's found on",
-            "icon": "🩺"
+            "icon": "🩺",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "CovidSiteCount",
@@ -63,7 +84,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "Logs into every region and counts the sites accredeted to the Covid service, output to CSV",
-            "icon": "📊"
+            "icon": "📊",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "EditProvider",
@@ -75,7 +98,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "Logs into the system and nabvigates to the edit provider screen",
-            "icon": "🏥"
+            "icon": "🏥",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "FindAllSitesFromCSV",
@@ -86,7 +111,10 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
-            "icon": "📁"
+            "icon": "📁",
+            "description": "This will loop through a CSV of ODS Codes and find out if they have a COV site and report on what region they are on.",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "findSitesOnAllRegions",
@@ -97,7 +125,10 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
-            "icon": "🗺️"
+            "icon": "🗺️",
+            "description": "This will loop through all regions find out if they have a site and report on what region they are on.",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "LinkAccounts",
@@ -108,7 +139,10 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
-            "icon": "🔗"
+            "icon": "🔗",
+            "description": "",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "LinkHeadOffice",
@@ -119,7 +153,10 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
-            "icon": "🏢"
+            "icon": "🏢",
+            "description": "This will take an ODS code and link it to a head office ODS code",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "Login",
@@ -131,7 +168,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "Simply logs into the system with the given Region code (e.g. CovidA)",
-            "icon": "🔐"
+            "icon": "🔐",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "makeSiteDormant",
@@ -143,7 +182,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will use an ODS code to login into the right region nd make the necessary changes to make the dormant.",
-            "icon": "💤"
+            "icon": "💤",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "NewProvider",
@@ -155,7 +196,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take all of the details needed to make a new provider in Primary",
-            "icon": "➕🏥"
+            "icon": "➕🏥",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "nhsEmailCheck",
@@ -167,11 +210,13 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will log into all regions and check the status of the NHS mail lock, and unlock of it is,",
-            "icon": "✉️🔒"
+            "icon": "✉️🔒",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "poUdates",
-            "title": "PO Updates",
+            "title": "Purchase Order Updates",
             "requiresCsv": false,
             "requiresPassword": true,
             "showOptionsPanel": true,
@@ -179,7 +224,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take an old Purchase Order Number, and update to a new one.",
-            "icon": "🧾"
+            "icon": "🧾",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "sendNotification",
@@ -191,7 +238,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take all details needed for a notification to be added to all regions",
-            "icon": "🔔"
+            "icon": "🔔",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "sendSystemAnnouncement",
@@ -203,7 +252,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will take all details needed for a system announcement to be added to selected regions",
-            "icon": "📣"
+            "icon": "📣",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "checkodsforcovsite",
@@ -215,7 +266,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "This will loop through a CSV of ODS COdes and find out if they have a COV site and report on what region they are on.",
-            "icon": "🗺️"
+            "icon": "🗺️",
+            "animation": "pulse",
+            "advanced": false
         },
         {
             "id": "UpdateCDB",
@@ -227,7 +280,9 @@
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
             "description": "Takes an ODS code and a CDB and will login and update it",
-            "icon": "🗄️"
+            "icon": "🗄️",
+            "animation": "pulse",
+            "advanced": false
         }
     ]
 }

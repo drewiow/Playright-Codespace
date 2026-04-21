@@ -58,6 +58,95 @@
 
                     <div class="field" id="scriptInputs"></div>
 
+                    <!-- Inline Advanced Steps -->
+                    <div class="advanced-steps">
+                        <label for="advancedSteps">
+                            Advanced Steps
+                            <button type="button" id="openAdvancedEditor" aria-label="Open advanced editor">
+                                🔍
+                            </button>
+                        </label>
+
+                        <textarea id="advancedSteps" rows="4" placeholder="click #save
+wait 500"></textarea>
+                    </div>
+
+                    <!-- Pop-out Modal -->
+                    <div id="advancedEditorModal" class="modal hidden">
+                        <div class="modal-overlay"></div>
+                        <div class="modal-content">
+                            <header class="modal-header">
+                                <h2>Advanced Steps Editor</h2>
+                                <button type="button" id="closeAdvancedEditor" aria-label="Close editor">
+                                    ✖
+                                </button>
+                            </header>
+
+                            <section class="modal-body">
+                                <!-- Advanced Help Panel -->
+                                <div id="advanced-help-panel" class="advanced-help-panel hidden" aria-hidden="true">
+                                    <div class="advanced-help-header">
+                                        <h3>Advanced Mode Help</h3>
+                                        <button type="button" id="advanced-help-close" class="icon-button"
+                                            aria-label="Close help panel">
+                                            ✕
+                                        </button>
+                                    </div>
+
+                                    <div id="advanced-help-content" class="advanced-help-content">
+                                        <!-- Content injected by runner.js -->
+                                    </div>
+                                </div>
+
+                                <div class="advanced-authoring">
+
+                                    <!-- Templates -->
+                                    <div class="advanced-templates">
+                                        <label>
+                                            <strong>Templates</strong>
+                                            <button type="button" id="advanced-help-toggle" class="advanced-help-icon">
+                                                ℹ
+                                            </button>
+                                            <select id="advancedTemplateSelect">
+                                                <option value="">— Choose a template —</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="advanced-actions">
+                                        <strong>Actions</strong>
+
+                                        <!-- Dynamic content injected here -->
+                                        <div id="advancedActions"></div>
+                                    </div>
+                                    <div class="advanced-tokens">
+                                        <strong>Tokens</strong>
+                                        <div class="token-list" id="advancedTokenList">
+                                            <!-- tokens injected here -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Main editor -->
+                                <div class="editor-wrapper">
+                                    <pre id="advancedEditorHighlight" aria-hidden="true"></pre>
+
+                                    <textarea id="advancedEditorTextarea" rows="14" spellcheck="false"
+                                        placeholder="Advanced steps will appear here...">
+                                    </textarea>
+                                </div>
+                            </section>
+
+                            <footer class="modal-footer">
+                                <button type="button" id="applyAdvancedSteps">
+                                    Apply & Close
+                                </button>
+                            </footer>
+                        </div>
+                    </div>
+                    </div>
+
                     <details class="options-panel">
                         <summary>Options</summary>
                         <div class="options-group">
@@ -82,7 +171,6 @@
                     </details>
 
                     <div class="flex justify-end mt-6 col-span-full">
-
                         <button type="submit"
                             class="button-primary px-8 py-3 bg-blue-600 text-white font-bold rounded-md shadow-md hover:bg-blue-700 transition">
                             Run

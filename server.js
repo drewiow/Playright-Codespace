@@ -136,6 +136,11 @@ app.post("/api/run/:product/:scriptId",
                 childEnv.ENV_PASSPHRASE = passphrase;
             }
 
+            // ✅ Advanced steps (optional)
+            if (req.body.advancedSteps) {
+                childEnv.ADVANCED_STEPS = req.body.advancedSteps;
+            }
+
             childEnv.RUN_DIR = runDir;
             childEnv.REGION = req.body.region;   // REQUIRED
 
@@ -179,34 +184,66 @@ app.post("/api/run/:product/:scriptId",
                 stdio: ["ignore", "pipe", "pipe"]
             });
 
-            console.log("DEBUG: spawned child", { pid: child.pid, scriptPath, runDir });
-
             // Log files
             const stdoutPath = path.join(runDir, "stdout.log");
             const stderrPath = path.join(runDir, "stderr.log");
             const outStream = fs.createWriteStream(stdoutPath, { flags: "a", mode: 0o600 });
             const errStream = fs.createWriteStream(stderrPath, { flags: "a", mode: 0o600 });
 
+            let stdoutBuffer = "";
+
             child.stdout.on("data", chunk => {
                 const text = chunk.toString();
                 outStream.write(text);
-                logEmitter.emit("log", {
-                    runId,
-                    time: new Date().toISOString(),
-                    line: text,
-                    stream: "stdout"
-                });
+
+                stdoutBuffer += text;
+
+                const lines = stdoutBuffer.split(/\r?\n/);
+                stdoutBuffer = lines.pop(); // keep incomplete line
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+
+                        logEmitter.emit("log", {
+                            runId,
+                            time: new Date().toISOString(),
+                            line,
+                            stream: "stdout"
+                        });
+                    }
+                    ``
+                }
             });
+
+            let stderrBuffer = "";
 
             child.stderr.on("data", chunk => {
                 const text = chunk.toString();
                 errStream.write(text);
-                logEmitter.emit("log", {
-                    runId,
-                    time: new Date().toISOString(),
-                    line: text,
-                    stream: "stderr"
-                });
+
+                stderrBuffer += text;
+
+                const lines = stderrBuffer.split(/\r?\n/);
+                stderrBuffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+
+                        logEmitter.emit("log", {
+                            runId,
+                            time: new Date().toISOString(),
+                            line,
+                            stream: "stderr"
+                        });
+                    }
+                    ``
+                }
             });
 
             child.on("exit", (code, signal) => {
@@ -226,7 +263,6 @@ app.post("/api/run/:product/:scriptId",
 
 // SSE log stream for the new runner
 app.get("/api/run/:product/:scriptId/logs", (req, res) => {
-    console.log("LOGS ROUTE HIT", req.originalUrl);
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");

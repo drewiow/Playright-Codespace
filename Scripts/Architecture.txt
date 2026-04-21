@@ -1,0 +1,232 @@
+
+Architecture Notes
+Purpose: This file is the single source of truth for high‑level architectural decisions. It is intended to survive refactors, Copilot chat resets, and team changes. Update this file at the end of every refactor step.
+Current Direction (Authoritative)
+
+runner.js is the canonical frontend runner UINew work must go into the runner model
+app.js is legacy and should not receive new features
+Single mental modelUser starts a run
+Logs stream in real time
+Status updates are event‑driven
+Artifacts become available when the run completes
+Frontend should not care about queuingThe backend may queue internally
+The UI only cares that a run has started
+
+
+
+
+Execution Model
+
+Preferred log transport: Server‑Sent Events (SSE) 
+
+Real‑time log streaming
+No client polling loops
+One log stream per run
+Polling modelPresent only in legacy code (app.js)
+Will be removed over time
+
+
+
+
+Script Configuration
+
+Manifest‑drivenProducts expose a manifest
+Scripts declare requirements and metadata
+Inputs are defined by script meta
+Avoid global config objects such as: window.scriptConfig
+window.scriptFolder
+
+
+State Management
+
+Do not store runtime state on window
+Use explicit state objects passed between functions
+Example intent:
+const state = {
+  product,
+  script,
+  runId,
+  meta
+};
+
+
+
+
+UI Responsibilities
+
+runner UI owns:
+
+Run submission
+Log rendering
+Run status
+Artifact listing
+Backend owns:Execution
+Queuing
+File generation
+Advanced Mode Editor UX (Planned)
+
+The runner UI may provide an expand / pop‑out control for the Advanced Steps editor.
+The pop‑out view:Displays a larger textarea suitable for longer advanced workflows.
+May include inline hints, examples, or templates for copy‑paste.
+Shares the same underlying value as the inline Advanced Steps field.
+Behaviour:The pop‑out is a pure UI affordance.
+No change to submission format or execution semantics.
+Opening or closing the pop‑out must not mutate step content.
+Design intent:Reduce friction for longer advanced workflows.
+Support discovery without constraining power users.
+Keep the executor and backend completely unchanged.
+Advanced Mode Authoring Model (Planned)
+Advanced steps are authored using two complementary UI concepts, both of which resolve to plain advanced‑step text before execution.
+
+Advanced TemplatesRepresent full, ready‑to‑run workflows.
+Typically multi‑step and opinionated.
+Selecting a template replaces the entire Advanced Steps editor contents.
+Intended as starting points that users may optionally tweak.
+Examples: Save and Exit, Save → Refresh → Exit.
+Advanced ActionsRepresent atomic or conceptual helper operations.
+May expand to multiple advanced steps internally (e.g. a complete logout sequence).
+Actions are inserted at the cursor position (or appended) within the editor.
+Intended to be composable building blocks for user‑authored workflows.
+Examples: Save page, Logout, Open customer info.
+Design rules:
+
+Templates define a workflow; actions build workflows.
+Both templates and actions are UI‑level affordances only.
+The backend, parser, and executor remain unchanged and unaware of templates or actions.
+All execution continues to operate on the final advanced‑step text supplied at run submission.
+
+
+Legacy Code
+
+app.jsRepresents the old queued/polling runner
+Considered legacy
+To be removed once functionality is migrated
+
+
+
+
+Refactor Log
+Add an entry every time a refactor step is completed.
+Example:
+2026‑04‑16
+- Decision: standardize on runner.js
+- Action: added ARCHITECTURE‑NOTES.txt
+- Next: move artifact rendering into runner UI
+
+
+2026‑04‑16
+
+Action: moved artifact rendering fully into the runner model
+
+Result: artifacts are now rendered by runner.js on run completion
+app.js artifact rendering is legacy and no longer extended
+2026‑04‑16
+
+Action: removed remaining artifact-related calls and logic from app.js
+Result: app.js now only handles legacy run submission, queue display, polling, and status text
+Alignment: artifact ownership is fully confined to runner model
+2026‑04‑16
+
+Action: retired queue UI and polling logic from app.js
+Result: app.js no longer tracks run lifecycle, queue position, or job status
+Alignment: frontend no longer models queuing or polling; runner.js fully owns execution lifecycle
+2026‑04‑16
+
+Action: hard-deleted app.js
+Reason: legacy runner fully superseded by runner.js
+Result: single canonical frontend execution path remains
+Architecture: runner.js is now the only runner UI
+2026‑04‑16
+
+Decision: defined Advanced Step Executor design (backend)
+Scope: manifest-gated advanced mode with post-row execution
+Behaviour: advanced steps run once per CSV row, after core script logic
+Semantics: failures are logged and execution continues
+
+Architecture: advanced steps are script-agnostic and reusable across all runners
+2026‑04‑16
+
+Decision: Advanced Steps support CSV token substitution
+Tokens use {{COLUMN_NAME}} syntax and are resolved per CSV row at runtime
+Token discovery occurs in the runner UI by parsing CSV headers on file selection
+Token authoring UX includes visual highlighting and an insert-at-cursor Token Panel
+Backend and executor are unchanged; tokens resolve to plain text before execution
+2026‑04‑16
+
+Decision: OTP generation implemented using native Node.js crypto
+Reason: restricted environment without npm or build tooling
+Outcome: vendoring source-only libraries avoided; minimal auditable TOTP helper used instead
+Architecture: OTP logic is runtime-only and does not affect runner UI or executor contracts
+
+
+Working Agreement (Important)
+
+No refactor or feature is considered complete until this file is updated
+Architecture Notes record decisions and intent, not just implementation details
+When starting a new Copilot chat, this document should be treated as authoritative
+
+2026-04-20
+
+Decision: Conditional env decryption
+Details:
+- decryptEnv is only invoked when ENV_ENC_PATH is present
+- Providing ENV_ENC_PATH without ENV_PASSPHRASE is a hard error
+- optionalEnvFile scripts must run without attempting decryption
+Rationale:
+- Allows true optional env support
+- Prevents invalid crypto invocation
+- Makes runner → script contract explicit
+
+2026-04-20
+
+Decision: Backend emits line-oriented logs
+Details:
+- stdout/stderr are buffered and split on newline before emission
+- each emitted event represents one logical log line
+- runner UI does not attempt to reconstruct lines
+Rationale:
+- stdout chunks are not line-safe
+- ensures clean, readable real-time logs
+- keeps UI rendering simple
+2026-04-20
+
+Decision: Advanced Actions are data-driven
+Details:
+- Advanced Actions are defined in a central registry
+- UI dynamically renders action buttons from data
+- No hard-coded HTML elements for individual actions
+Rationale:
+- Prevent UI duplication
+- Simplify extension and maintenance
+- Keep Advanced Mode declarative and scalable
+
+2026‑04‑20
+Decision: Advanced Steps token validation is UI‑only and CSV‑scoped
+Details:
+
+The Advanced Steps editor performs live, non‑blocking token validation.
+Token syntax is {{TOKEN_NAME}}.
+A token is considered supported if and only if its name matches a column header in the selected CSV.
+Tokens not present in the CSV are visually highlighted in the editor.
+Highlighting updates:
+
+on every editor input (typing, paste, delete)
+when CSV selection changes
+when steps are inserted programmatically (actions, templates, token buttons)
+
+
+
+Scope & Behaviour:
+
+Highlighting is a pure UI affordance.
+No validation errors are emitted to the backend.
+No execution is blocked or altered by invalid tokens.
+Backend, parser, and executor remain unaware of token highlighting.
+Highlighting does not mutate editor content; it is rendered via a visual overlay only.
+
+Rationale:
+
+Provides immediate feedback for common authoring mistakes (typos, missing CSV columns).
+Keeps execution semantics unchanged and predictable.
+Reinforces the mental model that Advanced Steps resolve against CSV row data.
+Aligns with the principle that the runner UI owns authoring UX while the backend remains deterministic.

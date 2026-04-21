@@ -21,9 +21,11 @@ dotenv.config();
 
     await login(page, process.env.USERNAME, process.env.PASSWORD, odscode);
     await editProvider(page, odscode);
-    await deaccredit(page, PIDService);
+
 
     // Make site dormant
+    await deaccredit(page, PIDService);
+
     const input = await page.$("#inAccountRef");
     const currentValue = await input.inputValue();
 
