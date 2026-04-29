@@ -24,6 +24,17 @@ function defaultLogger(...args) {
   console.log(...args);
 }
 
+process.on("SIGTERM", async () => {
+  console.log("🛑 Stop requested — cleaning up…");
+
+  try { if (page && !page.isClosed()) await page.close(); } catch { }
+  try { if (context) await context.close(); } catch { }
+  try { if (browser) await browser.close(); } catch { }
+
+  console.log("__RUN_STOPPED__");
+  process.exit(0);
+});
+
 export default async function run({ logger = defaultLogger } = {}) {
   logger("RUN STARTED");
 
@@ -33,10 +44,22 @@ export default async function run({ logger = defaultLogger } = {}) {
 
   if (!username) throw new Error("Missing USERNAME");
   if (!password) throw new Error("Missing PASSWORD");
-
+  // Config flags
+  const human = process.env.CONFIG_HUMAN === "true" || process.env.HUMAN === "true";
+  const intensity = Number(process.env.CONFIG_INTENSITY || 1);
+  const headless = process.env.CONFIG_HEADLESS === "true" || process.env.HEADLESS === "true";
+  const recordVideo = process.env.CONFIG_RECORD_VIDEO === "true";
+  const recordTrace = process.env.CONFIG_RECORD_TRACE === "true";
   const advancedStepsText = process.env.ADVANCED_STEPS || "";
   const steps = parseAdvancedSteps(advancedStepsText);
+  logger("CONFIG → human:", human);
+  logger("CONFIG → intensity:", intensity);
+  logger("CONFIG → headless:", headless);
+  logger("CONFIG → recordVideo:", recordVideo);
+  logger("CONFIG → recordTrace:", recordTrace);
   logger(`[Advanced] Parsed ${steps.length} step(s)`);
+
+  const runDir = process.env.RUN_DIR
 
   // CSV input path from runner
   const csvPath = process.env.CSV_PATH;
@@ -67,12 +90,14 @@ export default async function run({ logger = defaultLogger } = {}) {
     logger("🔧 setupContext starting");
     ({ browser, context, page } = await setupContext({
       headless: process.env.CONFIG_HEADLESS === "true",
-      human: process.env.CONFIG_HUMAN === "true"
+      human: process.env.CONFIG_HUMAN === "true",
+      runDir: process.env.RUN_DIR
     }));
     logger("✅ Browser/context/page created");
 
     const startTime = Date.now();
     const steps = parseAdvancedSteps(advancedStepsText);
+    const DRY_RUN = process.env.DRY_RUN === "true";
 
     for (let i = 0; i < rows.length; i++) {
 
@@ -92,13 +117,21 @@ export default async function run({ logger = defaultLogger } = {}) {
         logger(`❌ Login failed for ${odsCode}: ${err?.message}`);
         continue;
       }
-
-      try {
-        await editProvider(page, odsCode);
-      } catch (err) {
-        logger(`❌ editProvider failed for ${odsCode}: ${err?.message}`);
-        continue;
-      }
+      /*
+            try {
+              await editProvider(page, odsCode);
+            } catch (err) {
+              logger(`❌ editProvider failed for ${odsCode}: ${err?.message}`);
+              continue;
+            }
+      
+             Guard example
+            if (!DRY_RUN) {
+              await page.click(selector);
+            } else {
+              logger(`[DRY RUN] Would click: ${selector}`);
+            }
+            */
 
       //Do the advanced script
       const resolvedStepsText = resolveCsvTokens(
@@ -127,7 +160,20 @@ export default async function run({ logger = defaultLogger } = {}) {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger(`⏱️ Script completed in ${duration} seconds`);
 
-    if (process.env.CONFIG_HUMAN === "true") {
+    // Video
+    logger(`Record video? : ${recordVideo}`);
+    logger(`save video? : ${page.saveVideo}`);
+    if (recordVideo && page.saveVideo) {
+      await page.saveVideo(`run-${Date.now()}`);
+    }
+
+    // Trace
+    if (recordTrace) {
+      const tracePath = path.join(runDir, "trace.zip");
+      await context.tracing.stop({ path: tracePath });
+    }
+
+    if (human) {
       logger("🕒 Browser will remain open...");
       await new Promise(() => { });
     }

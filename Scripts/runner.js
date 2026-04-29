@@ -10,12 +10,36 @@ const script = params.get("script");
 
 let lastLogLength = 0;
 
+async function checkAuth() {
+    try {
+        const res = await fetch("/api/session/me", {
+            credentials: "include"
+        });
+
+        if (!res.ok) {
+            // Not logged in → show login modal
+            showLoginModal();
+            return null;
+        }
+
+        const user = await res.json();
+        hideLoginModal();
+        return user;
+
+    } catch (err) {
+        console.error("Auth check failed:", err);
+        showLoginModal();
+        return null;
+    }
+}
+
 function startLogStream(product, scriptId) {
     const logContainer = document.getElementById("logContainer");
 
     const source = new EventSource(`/api/run/${product}/${scriptId}/logs`);
 
-    source.onmessage = (event) => {
+    // LOG EVENTS
+    source.addEventListener("log", (event) => {
         let entry;
 
         try {
@@ -31,15 +55,23 @@ function startLogStream(product, scriptId) {
         const div = document.createElement("div");
         div.className = `log-line log-${entry.stream}`;
 
-        div.innerHTML = `<span class="log-timestamp">${timestamp}</span>
-        <span class="log-message">${message}</span>`;
+        div.innerHTML = `
+            <span class="log-timestamp">${timestamp}</span>
+            <span class="log-message">${message}</span>
+        `;
 
         logContainer.appendChild(div);
 
         if (document.getElementById("autoScrollLogs").checked) {
             logContainer.scrollTop = logContainer.scrollHeight;
         }
-    };
+    });
+
+    source.addEventListener("run:finished", () => {
+        console.log("Run finished — hiding Stop button");
+        document.getElementById("stopRunContainer").style.display = "none";
+        source.close();
+    });
 
     source.onerror = () => {
         console.warn("Log stream disconnected");
@@ -697,8 +729,25 @@ function setupRunForm(product, script) {
         recordVideo: document.getElementById("recordVideo").checked,
         recordTrace: document.getElementById("recordTrace").checked,
         autoScrollLogs: document.getElementById("autoScrollLogs").checked,
-        clearLogsOnRun: document.getElementById("clearLogsOnRun").checked
+        clearLogsOnRun: document.getElementById("clearLogsOnRun").checked,
+        dryRun: document.getElementById("dryRunCheckbox").checked
     };
+
+    document.getElementById("stopRunButton").addEventListener("click", async () => {
+        if (!currentRunId) return;
+
+        const btn = document.getElementById("stopRunButton");
+        btn.disabled = true;
+        btn.textContent = "Stopping…";
+
+        await fetch(`/api/run/${currentRunId}/stop`, {
+            method: "POST",
+            credentials: "include"
+        });
+
+        // UI feedback
+        btn.textContent = "Stopping…";
+    });
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -732,7 +781,6 @@ function setupRunForm(product, script) {
         const passphrase =
             document.getElementById("decryptPassword")?.value || "";
 
-
         if (passphrase) {
             formData.append("passphrase", passphrase);
         }
@@ -751,26 +799,36 @@ function setupRunForm(product, script) {
         try {
             const res = await fetch(`/api/run/${encodeURIComponent(product)}/${encodeURIComponent(script.id)}`, {
                 method: "POST",
-                body: formData
+                body: formData,
+                credentials: "include"
             });
 
             const data = await res.json().catch(() => ({}));
+
             if (!res.ok) {
                 status.textContent = data.error || "Run failed to start.";
                 console.error("Run start error:", data);
+
+                // Hide stop button because run never started
+                document.getElementById("stopRunContainer").style.display = "none";
             } else {
                 status.textContent = data.message || "Run started.";
-                // Optionally show runId or wire UI to subscribe to logs/artifacts
+
                 if (data.runId) {
-                    // Example: store current run id for later use
                     window.currentRunId = data.runId;
+
+                    // SHOW stop button only when run actually starts
+                    document.getElementById("stopRunContainer").style.display = "block";
                 }
             }
         } catch (err) {
             console.error("Run failed:", err);
             status.textContent = "Run failed.";
+
+            // Hide stop button because run never started
+            document.getElementById("stopRunContainer").style.display = "none";
         } finally {
-            // Clear sensitive input from the page
+            // Clear sensitive input only
             const passEl = document.getElementById("decryptPassword");
             if (passEl) passEl.value = "";
         }

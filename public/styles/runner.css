@@ -560,3 +560,21 @@ body {
     z-index: 1;
     /* ✅ BELOW highlight */
 }
+
+.stop-run-btn {
+    background: #f36c21;
+    /* Optum orange */
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 60%;
+    max-width: 300px;
+}
+
+.stop-run-btn:hover {
+    background: #d85f1d;
+}

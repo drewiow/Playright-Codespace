@@ -70,11 +70,22 @@ export async function login(page, username, password, odscode) {
       }
     } catch {
       console.log("Element did not appear within 3 seconds.");
-      await page.getByText("Other", { exact: true }).click();
     }
-
     if (!matched) {
       await page.getByText("Other", { exact: true }).click();
+      console.log(`ODS ${odscode} is not on a region`);
+    } else {
+
+      const group = await page.locator("#odsinstancecontainer .odsinstanceinfo")
+        .filter({ hasText: "Group:" })
+        .innerText();
+
+      const match = group.match(/Group:\s*(cvd[a-z])/i);
+      const groupCode = match ? match[1] : null;
+      const regionLetter = groupCode ? groupCode.slice(-1).toUpperCase() : "?";
+      const regionName = `COVD ${regionLetter}`;
+
+      console.log(`ODS ${odscode} is on region ${regionName}`);
     }
   }
 

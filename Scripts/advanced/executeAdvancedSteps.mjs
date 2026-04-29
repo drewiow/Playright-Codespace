@@ -22,10 +22,16 @@ export async function executeAdvancedSteps({ steps, page, rowIndex, log }) {
 
     for (const step of steps) {
         const { command, args, raw } = step;
+        const DRY_RUN = process.env.DRY_RUN === "true";
+        const isGuarded = step.raw.trim().startsWith("guard ");
 
         log(`[Advanced] row ${rowIndex}: ${raw}`);
 
         try {
+            if (DRY_RUN) {
+                log(`[DRY RUN] Would execute: ${step.action} ${step.selector || ""} ${step.value || ""}`);
+                continue;
+            }
             const handler = commandHandlers[command];
 
             if (!handler) {

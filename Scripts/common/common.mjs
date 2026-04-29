@@ -165,7 +165,7 @@ export async function createBrowserContext(options = {}) {
         ? options.recordTrace
         : process.env.CONFIG_RECORD_TRACE === "true";
 
-    const runDir = options.runDir || "runs/manual-run";
+    const runDir = options.runDir;
     const videoDir = `${runDir}/videos`;
     if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
@@ -210,8 +210,9 @@ export async function createBrowserContext(options = {}) {
         const video = page.video();
         if (!video) return;
         const filePath = path.join(videoDir, `${name}.webm`);
-        await page.close();
         await video.saveAs(filePath);
+        await page.close();
+
     };
 
     return { browser, context, page, effectiveHeadless, recordTrace };

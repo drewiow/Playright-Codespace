@@ -57,7 +57,12 @@
                     </div>
 
                     <div class="field" id="scriptInputs"></div>
-
+                    <div class="option-row">
+                        <label class="option-label">
+                            <input type="checkbox" id="dryRunCheckbox" checked="checked">
+                            Dry Run (no changes made)
+                        </label>
+                    </div>
                     <!-- Inline Advanced Steps -->
                     <div class="advanced-steps">
                         <label for="advancedSteps">
@@ -159,8 +164,8 @@ wait 500"></textarea>
 
                         <div class="options-group">
                             <h3>Recording</h3>
-                            <label><input type="checkbox" id="recordVideo"> Record video</label>
-                            <label><input type="checkbox" id="recordTrace" checked> Record trace</label>
+                            <label><input type="checkbox" id="recordVideo" checked> Record video</label>
+                            <label><input type="checkbox" id="recordTrace"> Record trace</label>
                         </div>
 
                         <div class="options-group">
@@ -187,7 +192,11 @@ wait 500"></textarea>
 
                 <div id="logContainer" class="log-viewer"></div>
             </section>
-
+            <div id="stopRunContainer" style="display:none; margin-top: 20px; text-align:center;">
+                <button id="stopRunButton" class="stop-run-btn">
+                    🛑 Stop Run
+                </button>
+            </div>
             <section class="card hidden">
                 <h2>Run Artifacts</h2>
                 <ul id="artifactList"></ul>

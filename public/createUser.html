@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Automation Runner – Home</title>
+    <link rel="stylesheet" href="./styles/runner.css" />
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="header-left">
+            <a href="/index.html">
+                <img class="logo" src="./images/optum-logo.png" alt="Optum">
+            </a>
+        </div>
+
+        <div class="header-center" id="breadcrumb">Automation Runner</div>
+
+        <div class="header-right">
+            <a href="/env-builder.html">Create env.enc</a>
+        </div>
+    </header>
+
+    <main class="layout.landing">
+
+        <div class="left-column" style="width:500px">
+
+            <h1 class="page-title">Encrypt your variables</h1>
+
+            <form id="envForm">
+
+                <!-- NEW: Identity fields -->
+                <div class="field">
+                    <label>User ID</label>
+                    <input type="text" id="userId" placeholder="e.g. drew.clarke" required>
+                </div>
+
+                <div class="field">
+                    <label>Display Name</label>
+                    <input type="text" id="displayName" placeholder="e.g. Drew Clarke" required>
+                </div>
+
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="e.g. drew.clarke@optum.com" required>
+                </div>
+
+                <div class="field">
+                    <label>Roles (comma separated)</label>
+                    <input type="text" id="roles" placeholder="e.g. admin,user" required>
+                </div>
+
+                <!-- Existing fields -->
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Your username for logging into your website" required>
+                </div>
+
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Your password for loggin into your website"
+                        required>
+                </div>
+
+                <div class="field">
+                    <label>6 letter Security Word</label>
+                    <input type="password" id="securityWord"
+                        placeholder="Pharmoutcomes specific, leave blank for 14Fidh">
+                </div>
+
+                <div class="field">
+                    <label>Secret MFA Key</label>
+                    <input type="text" id="secretKey"
+                        placeholder="You might need to request this from engineering, or use the code for 'manual' entry"
+                        required>
+                </div>
+
+                <div class="field">
+                    <label>Master Decrypt Password</label>
+                    <input type="password" id="masterPassword"
+                        placeholder="Make this a secure password different to anything else" required>
+                </div>
+
+                <button type="submit" class="button-primary">Generate env.enc</button>
+            </form>
+
+            <p id="status"></p>
+        </div>
+    </main>
+    <script src="./scripts/createUser.js" type="module"></script>
+
+</body>
+
+</html>

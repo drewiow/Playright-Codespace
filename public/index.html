@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <title>Automation Runner – Home</title>
-    <link rel="stylesheet" href="./styles/styles.css" />
+    <link rel="stylesheet" href="./styles/index.css" />
+    <link rel="stylesheet" href="./styles/header.css" />
 </head>
 
 <body>
@@ -14,8 +15,44 @@
             <div class="title" id="breadcrumb">
                 Automation Runner → Choose a Product
             </div>
-            <a href="/env-builder.html">Create env.enc</a>
+            <div id="userMenu" class="user-menu hidden">
+                <button id="userDisplay" class="user-display">
+                    <div id="userAvatar" class="user-avatar"></div>
+                    <span id="userNameLabel">Drew (admin)</span>
+                    <span class="chevron">▾</span>
+                </button>
+
+                <div id="userDropdown" class="user-dropdown hidden">
+                    <a href="/createUser.html" class="dropdown-item">
+                        <span class="item-icon">➕</span> Create User
+                    </a>
+                    <a href="/runHistory.html" class="dropdown-item">
+                        <span class="item-icon">📜</span> Run History
+                    </a>
+                    <button id="logoutBtn" class="dropdown-item logout">
+                        <span class="item-icon">🚪</span> Logout
+                    </button>
+                </div>
+            </div>
         </header>
+
+        <div id="loginModal" class="modal">
+            <div class="modal-content">
+
+                <h2>Unlock Environment</h2>
+
+                <label for="envFile">Encrypted Credentials (.enc)</label>
+                <input type="file" id="envFile" accept=".enc" />
+
+                <label for="passphrase">Passphrase</label>
+                <input type="password" id="passphrase" autocomplete="off" />
+
+                <button id="unlockBtn">Unlock</button>
+
+                <div id="loginError" class="error" style="display:none;"></div>
+
+            </div>
+        </div>
 
         <!-- Main Content -->
         <main class="layout.landing">
@@ -37,8 +74,7 @@
 
     </div>
 
-    <!-- Load all logic from landing.js -->
-    <script src="./scripts/landing.js" type="module"></script>
+    <script src="./scripts/index.js" type="module"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("breadcrumb").textContent =

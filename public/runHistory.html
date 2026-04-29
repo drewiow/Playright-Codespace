@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Run History</title>
+    <link rel="stylesheet" href="/styles/runHistory.css" />
+</head>
+
+<body>
+    <header class="header">
+        <img class="logo" src="./images/optum-logo.png" alt="Optum">
+        <div class="title" id="breadcrumb">
+            Automation Runner → Choose a Product
+        </div>
+        <div id="userMenu" class="user-menu hidden">
+            <button id="userDisplay" class="user-display">
+                <div id="userAvatar" class="user-avatar"></div>
+                <span id="userNameLabel">Drew (admin)</span>
+                <span class="chevron">▾</span>
+            </button>
+
+            <div id="userDropdown" class="user-dropdown hidden">
+                <a href="/createUser.html" class="dropdown-item">
+                    <span class="item-icon">➕</span> Create User
+                </a>
+                <a href="/runHistory.html" class="dropdown-item">
+                    <span class="item-icon">📜</span> Run History
+                </a>
+                <button id="logoutBtn" class="dropdown-item logout">
+                    <span class="item-icon">🚪</span> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="history-container">
+        <h2>Run History</h2>
+
+        <table id="runHistoryTable" class="history-table">
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Product</th>
+                    <th>Script</th>
+                    <th>User</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- JS populates rows here -->
+            </tbody>
+        </table>
+    </main>
+
+    <div id="runDetailModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closeRunModal" class="modal-close">×</button>
+
+            <h2 id="runModalTitle">Run Details</h2>
+
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="summaryTab">Summary</button>
+                <button class="tab-btn" data-tab="auditTab">Audit</button>
+                <button class="tab-btn" data-tab="logsTab">Logs</button>
+                <button class="tab-btn" data-tab="artifactsTab">Artifacts</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="summaryTab" class="tab-panel active"></div>
+
+                <div id="auditTab" class="tab-panel"></div>
+
+                <div id="logsTab" class="tab-panel">
+                    <div class="log-tabs">
+                        <button class="subtab-btn active" data-log="stdout">stdout</button>
+                        <button class="subtab-btn" data-log="stderr">stderr</button>
+                    </div>
+
+                    <pre id="stdoutLog" class="log-viewer active"></pre>
+                    <pre id="stderrLog" class="log-viewer"></pre>
+                </div>
+
+                <div id="artifactsTab" class="tab-panel">
+                    <ul id="artifactList" class="artifact-list"></ul>
+                </div>
+
+                <div id="videosTab" class="tab-panel hidden">
+                    <ul id="videoList" class="artifact-list"></ul>
+
+                    <div id="videoPlayerContainer" class="hidden">
+                        <video id="videoPlayer" controls
+                            style="width:100%; max-height:400px; margin-top:16px; border-radius:6px; background:#000;"></video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/scripts/runHistory.js"></script>
+</body>
+
+</html>

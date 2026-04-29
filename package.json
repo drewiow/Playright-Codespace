@@ -12,9 +12,12 @@
     "@playwright/test": "^1.37.1"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "fsp": "^0.1.2",
     "multer": "^2.1.1",
+    "otplib": "^10.2.3",
     "playwright": "^1.58.2"
   }
 }
