@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import process from "process";
 
-import { login, editProvider, setupContext } from "../helpers.mjs";
+import { login, editProvider, setupContext, parseCSV } from "../helpers.mjs";
 import { decryptEnv } from "../../common/common.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,22 +23,6 @@ function defaultLogger(...args) {
 }
 
 // ------------------------------------------------------------
-// CSV PARSER
-// ------------------------------------------------------------
-function parseCSV(csvText) {
-  const lines = csvText.trim().split("\n");
-  const headers = lines[0].split(",").map(h => h.trim());
-
-  return lines.slice(1).map(line => {
-    const values = line
-      .match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)
-      .map(v => v.replace(/^"|"$/g, "").trim());
-
-    return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
-  });
-}
-
-// ------------------------------------------------------------
 // LOG WRAPPER
 // ------------------------------------------------------------
 async function logAction(actionDesc, fn, logger) {
@@ -53,7 +37,6 @@ async function logAction(actionDesc, fn, logger) {
     throw err;
   }
 }
-
 // ------------------------------------------------------------
 // MAIN RUN FUNCTION
 // ------------------------------------------------------------
@@ -83,12 +66,14 @@ export default async function run({ logger = defaultLogger } = {}) {
   const headless = process.env.CONFIG_HEADLESS === "true" || process.env.HEADLESS === "true";
   const recordVideo = process.env.CONFIG_RECORD_VIDEO === "true";
   const recordTrace = process.env.CONFIG_RECORD_TRACE === "true";
+  const DRY_RUN = process.env.DRY_RUN === "true";
 
   logger("CONFIG → human:", human);
   logger("CONFIG → intensity:", intensity);
   logger("CONFIG → headless:", headless);
   logger("CONFIG → recordVideo:", recordVideo);
   logger("CONFIG → recordTrace:", recordTrace);
+  logger("CONFIG → DRY_RUN:", DRY_RUN);
 
   let browser = null;
   let context = null;
@@ -165,59 +150,72 @@ export default async function run({ logger = defaultLogger } = {}) {
         logger
       );
 
-      await logAction("Click New User", () =>
-        page.locator('a.full-lock[href^="/o4h/admin/users?new"]').click(),
-        logger
-      );
-
-      await logAction("Fill username", () =>
-        page.fill("#inUserName", computedUsername),
-        logger
-      );
-
-      await logAction("Fill full name", () =>
-        page.fill("#inKnownName", fullName),
-        logger
-      );
-
-      await logAction("Fill email", () =>
-        page.fill("#inContactEmail", email),
-        logger
-      );
-
-      await logAction("Save user (first save)", () =>
-        page.click('input[type="submit"][name="update"]'),
-        logger
-      );
-
-      if (i > 1) {
-        await logAction("Uncheck Reset Password", () =>
-          page.uncheck('input[name="inResetPassword"]'),
-          logger
-        );
-
-        await logAction("Uncheck Cross Login", () =>
-          page.uncheck('input[name="inCrossLogin"]'),
-          logger
-        );
-      }
-
-      await logAction("Tick all permissions", () =>
-        page.click('input[type="button"][value="Tick all"]'),
-        logger
-      );
-
-      await logAction("Save user (permissions save)", () =>
-        page.click('input[type="submit"][name="update"]'),
-        logger
-      );
-
+      // if the primary user, check if they exist before trying to create
+      let exists = false;
       if (i === 0) {
         baseUser = { username: computedUsername, odsCode };
         logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
+
+        const row = page.locator(`tr:has(span:has-text("(${baseUser.username})"))`);
+        exists = await row.count() > 0;
       }
 
-      created.push({ username: computedUsername, odsCode, fullName, email });
+      if (exists) {
+        logger(`⚠️ Base user ${baseUser.username} already exists! Will skip creation and attempt linking directly.`);
+        created.push(baseUser);
+      }
+      else {
+
+        await logAction("Click New User", () =>
+          page.locator('a.full-lock[href^="/o4h/admin/users?new"]').click(),
+          logger
+        );
+
+        await logAction("Fill username", () =>
+          page.fill("#inUserName", computedUsername),
+          logger
+        );
+
+        await logAction("Fill full name", () =>
+          page.fill("#inKnownName", fullName),
+          logger
+        );
+
+        await logAction("Fill email", () =>
+          page.fill("#inContactEmail", email),
+          logger
+        );
+
+        await logAction("Save user (first save)", () =>
+          page.click('input[type="submit"][name="update"]'),
+          logger
+        );
+
+        if (i > 1) {
+          await logAction("Uncheck Reset Password", () =>
+            page.uncheck('input[name="inResetPassword"]'),
+            logger
+          );
+
+          await logAction("Uncheck Cross Login", () =>
+            page.uncheck('input[name="inCrossLogin"]'),
+            logger
+          );
+        }
+
+        await logAction("Tick all permissions", () =>
+          page.click('input[type="button"][value="Tick all"]'),
+          logger
+        );
+
+        await logAction("Save user (permissions save)", () =>
+          page.click('input[type="submit"][name="update"]'),
+          logger
+        );
+
+        created.push({ username: computedUsername, odsCode, fullName, email });
+      }
+
     }
 
     logger("🎉 Finished creating all accounts");
