@@ -1,7 +1,6 @@
 // landing.js
 document.addEventListener("DOMContentLoaded", () => {
 
-
     checkAuth();
 });
 
