@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-document.getElementById("loginForm").addEventListener("submit", async () => {
+unlockBtn.addEventListener("click", async () => {
     await fetch("/api/logout", {
         method: "POST",
         credentials: "include"
@@ -75,7 +75,8 @@ async function checkAuth() {
     }
 }
 
-unlockBtn.addEventListener("click", async () => {
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
     console.log("logging in");
     loginError.style.display = "none";
     loginError.textContent = "";
