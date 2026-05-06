@@ -23,6 +23,19 @@ import { chromium } from "playwright";
 const ALGO = "aes-256-gcm";
 const PBKDF2_ITERATIONS = 310000;
 
+export async function logAction(actionDesc, fn, logger) {
+    const start = Date.now();
+    logger(`➡️ ${actionDesc}`);
+    try {
+        const result = await fn();
+        logger(`✅ ${actionDesc} completed in ${Date.now() - start}ms`);
+        return result;
+    } catch (err) {
+        logger(`❌ ${actionDesc} failed: ${err.message}`);
+        throw err;
+    }
+}
+
 export async function encryptEnv(plaintext, password) {
     if (!password) throw new Error("Missing master password");
 

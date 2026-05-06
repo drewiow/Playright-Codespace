@@ -1,0 +1,93 @@
+.create-user-page {
+    padding: 2rem 1rem;
+}
+
+.page-container {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+/* Titles */
+h1 {
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+/* Sections */
+.form-section {
+    margin-top: 2rem;
+}
+
+.form-section:first-child {
+    margin-top: 0;
+}
+
+.form-section h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.25rem;
+}
+
+/* Fields */
+.field {
+    margin-bottom: 1.25rem;
+}
+
+.field input {
+    height: 40px;
+}
+
+/* Roles */
+.role-list {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Actions */
+.form-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Success state */
+.success-header {
+    margin-bottom: 1.25rem;
+}
+
+.success-artifact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+    font-size: 0.95rem;
+}
+
+.success-actions {
+    margin-bottom: 1rem;
+}
+
+.secondary-actions {
+    margin-top: 1.5rem;
+}
+
+/* Link-style button */
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #2563eb;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.link-button:hover {
+    text-decoration: underline;
+}

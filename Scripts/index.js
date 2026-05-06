@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     checkAuth();
 });
+
 // --- Login Modal Elements ---
 const loginModal = document.getElementById("loginModal");
 const envFileInput = document.getElementById("envFile");

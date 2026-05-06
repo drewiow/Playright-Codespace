@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import process from "process";
 
 import { login, editProvider, setupContext, parseCSV } from "../helpers.mjs";
-import { decryptEnv } from "../../common/common.mjs";
+import { decryptEnv, logAction } from "../../common/common.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,35 +23,10 @@ function defaultLogger(...args) {
 }
 
 // ------------------------------------------------------------
-// LOG WRAPPER
-// ------------------------------------------------------------
-async function logAction(actionDesc, fn, logger) {
-  const start = Date.now();
-  logger(`➡️ ${actionDesc}`);
-  try {
-    const result = await fn();
-    logger(`✅ ${actionDesc} completed in ${Date.now() - start}ms`);
-    return result;
-  } catch (err) {
-    logger(`❌ ${actionDesc} failed: ${err.message}`);
-    throw err;
-  }
-}
-// ------------------------------------------------------------
 // MAIN RUN FUNCTION
 // ------------------------------------------------------------
 export default async function run({ logger = defaultLogger } = {}) {
   logger("RUN STARTED");
-
-  // 🔐 decrypt env.enc
-  try {
-    logger("🔐 decryptEnv starting...");
-    await decryptEnv(process.env.ENV_ENC_PATH, process.env.ENV_PASSPHRASE);
-    logger("🔐 decryptEnv complete");
-  } catch (err) {
-    logger("❌ decryptEnv failed:", err?.stack || err);
-    throw err;
-  }
 
   // Validate required env vars
   const username = process.env.USERNAME;
@@ -82,19 +57,13 @@ export default async function run({ logger = defaultLogger } = {}) {
   try {
     logger("🚀 Starting script...");
 
-    const runDir = process.env.RUN_DIR
-      ? process.env.RUN_DIR
-      : path.resolve(__dirname, "runs", "manual-run");
-
-    const inputCsvPath = process.env.INPUT_CSV_PATH;
-    if (!inputCsvPath) throw new Error("INPUT_CSV_PATH not provided");
-
-    logger("📂 Run directory:", runDir);
-    logger("📁 CSV path:", inputCsvPath);
-
+    const runDir = process.env.RUN_DIR;
     if (!fs.existsSync(runDir)) {
       fs.mkdirSync(runDir, { recursive: true });
     }
+
+    const inputCsvPath = process.env.INPUT_CSV_PATH;
+    if (!inputCsvPath) throw new Error("INPUT_CSV_PATH not provided");
 
     // Load CSV
     let accounts;
