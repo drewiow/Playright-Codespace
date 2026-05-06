@@ -2,6 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     // --- Login Modal Elements ---
     const loginModal = document.getElementById("loginModal");
+    const loginBackdrop = document.getElementById("loginBackdrop");
     const envFileInput = document.getElementById("envFile");
     const passphraseInput = document.getElementById("passphrase");
     const unlockBtn = document.getElementById("unlockBtn");
@@ -129,11 +130,15 @@ unlockBtn.addEventListener("click", async () => {
 // Show modal
 function showLoginModal() {
     loginModal.classList.remove("hidden");
+    loginBackdrop.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
 }
 
 // Hide modal
 function hideLoginModal() {
     loginModal.classList.add("hidden");
+    loginBackdrop.classList.add("hidden");
+    document.body.style.overflow = "";
 }
 
 
