@@ -1,16 +1,17 @@
 // landing.js
 document.addEventListener("DOMContentLoaded", () => {
+    // --- Login Modal Elements ---
+    const loginModal = document.getElementById("loginModal");
+    const envFileInput = document.getElementById("envFile");
+    const passphraseInput = document.getElementById("passphrase");
+    const unlockBtn = document.getElementById("unlockBtn");
+    const loginError = document.getElementById("loginError");
+
     checkAuth();
 });
 
-// --- Login Modal Elements ---
-const loginModal = document.getElementById("loginModal");
-const envFileInput = document.getElementById("envFile");
-const passphraseInput = document.getElementById("passphrase");
-const unlockBtn = document.getElementById("unlockBtn");
-const loginError = document.getElementById("loginError");
 
-document.getElementById("logoutBtn").addEventListener("click", async () => {
+document.getElementById("loginForm").addEventListener("submit", async () => {
     await fetch("/api/logout", {
         method: "POST",
         credentials: "include"
@@ -61,11 +62,8 @@ async function checkAuth() {
         }
 
         const user = await res.json();
-        console.log("Hiding Login");
         hideLoginModal();
-        console.log("Showing Menu for user : " + user);
         updateUserMenu(user);
-        console.log("Loading Products");
         loadProducts();
         return user;
 
@@ -130,12 +128,12 @@ unlockBtn.addEventListener("click", async () => {
 });
 // Show modal
 function showLoginModal() {
-    loginModal.style.display = "flex";   // assuming modal uses flexbox
+    loginModal.classList.remove("hidden");
 }
 
 // Hide modal
 function hideLoginModal() {
-    loginModal.style.display = "none";
+    loginModal.classList.add("hidden");
 }
 
 
