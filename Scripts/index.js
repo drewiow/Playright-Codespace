@@ -9,17 +9,83 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginError = document.getElementById("loginError");
 
     checkAuth();
-});
 
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        console.log("logging in");
+        loginError.style.display = "none";
+        loginError.textContent = "";
 
-unlockBtn.addEventListener("click", async () => {
-    await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"
+        const file = envFileInput.files[0];
+        const passphrase = passphraseInput.value.trim();
+
+        if (!file) {
+            loginError.textContent = "Please select an encrypted .enc file.";
+            loginError.style.display = "block";
+            return;
+        }
+
+        if (!passphrase) {
+            loginError.textContent = "Please enter your passphrase.";
+            loginError.style.display = "block";
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append("envFile", file);
+            formData.append("passphrase", passphrase);
+
+            const res = await fetch("/api/login", {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ error: "Login failed" }));
+                loginError.textContent = err.error || "Login failed";
+                loginError.style.display = "block";
+
+                // 🔥 IMPORTANT FIX: reset file input so FormData is rebuilt next click
+                envFileInput.value = "";
+
+                return;
+            }
+
+            // Success
+            checkAuth();
+            console.log("Logged in successfully");
+
+        } catch (err) {
+            console.error("Login error:", err);
+            loginError.textContent = "Unexpected error during login.";
+            loginError.style.display = "block";
+        }
     });
+    // Show modal
+    function showLoginModal() {
+        loginModal.classList.remove("hidden");
+        loginBackdrop.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+    }
 
-    // Force fresh auth check
-    showLoginModal();
+    // Hide modal
+    function hideLoginModal() {
+        loginModal.classList.add("hidden");
+        loginBackdrop.classList.add("hidden");
+        document.body.style.overflow = "";
+    }
+
+    unlockBtn.addEventListener("click", async () => {
+        await fetch("/api/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        // Force fresh auth check
+        showLoginModal();
+    });
 });
 
 function setUserAvatar(name) {
@@ -74,74 +140,6 @@ async function checkAuth() {
         return null;
     }
 }
-
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    console.log("logging in");
-    loginError.style.display = "none";
-    loginError.textContent = "";
-
-    const file = envFileInput.files[0];
-    const passphrase = passphraseInput.value.trim();
-
-    if (!file) {
-        loginError.textContent = "Please select an encrypted .enc file.";
-        loginError.style.display = "block";
-        return;
-    }
-
-    if (!passphrase) {
-        loginError.textContent = "Please enter your passphrase.";
-        loginError.style.display = "block";
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        formData.append("envFile", file);
-        formData.append("passphrase", passphrase);
-
-        const res = await fetch("/api/login", {
-            method: "POST",
-            body: formData,
-            credentials: "include"
-        });
-
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: "Login failed" }));
-            loginError.textContent = err.error || "Login failed";
-            loginError.style.display = "block";
-
-            // 🔥 IMPORTANT FIX: reset file input so FormData is rebuilt next click
-            envFileInput.value = "";
-
-            return;
-        }
-
-        // Success
-        checkAuth();
-        console.log("Logged in successfully");
-
-    } catch (err) {
-        console.error("Login error:", err);
-        loginError.textContent = "Unexpected error during login.";
-        loginError.style.display = "block";
-    }
-});
-// Show modal
-function showLoginModal() {
-    loginModal.classList.remove("hidden");
-    loginBackdrop.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
-}
-
-// Hide modal
-function hideLoginModal() {
-    loginModal.classList.add("hidden");
-    loginBackdrop.classList.add("hidden");
-    document.body.style.overflow = "";
-}
-
 
 // Toggle script info popovers
 document.addEventListener("click", (e) => {
