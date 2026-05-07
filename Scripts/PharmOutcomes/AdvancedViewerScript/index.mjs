@@ -4,7 +4,7 @@ import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
 import { initExecution } from "../../common/initExecution.mjs";
-import { login, editProvider, setupContext, parseCSV } from "../helpers.mjs";
+import { login, editViewer, setupContext, parseCSV } from "../helpers.mjs";
 import { parseAdvancedSteps, resolveCsvTokens } from "../../advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "../../advanced/executeAdvancedSteps.mjs";
 
@@ -117,14 +117,14 @@ export default async function run({ logger = defaultLogger } = {}) {
         logger(`❌ Login failed for ${odsCode}: ${err?.message}`);
         continue;
       }
+
+      try {
+        await editViewer(page, odsCode);
+      } catch (err) {
+        logger(`❌ editViewer failed for ${odsCode}: ${err?.message}`);
+        continue;
+      }
       /*
-            try {
-              await editProvider(page, odsCode);
-            } catch (err) {
-              logger(`❌ editProvider failed for ${odsCode}: ${err?.message}`);
-              continue;
-            }
-      
              Guard example
             if (!DRY_RUN) {
               await page.click(selector);

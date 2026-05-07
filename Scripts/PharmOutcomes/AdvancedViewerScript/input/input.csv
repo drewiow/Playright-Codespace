@@ -1,0 +1,4 @@
+firstname,lastname,email,deanery,jobroles
+Alice,Smith,alice@example.com,RCPsych Test Deanery,"Educational Supervisor,Psychiatric Supervisor"
+Alicia,Smith,alice@example.com,RCPsych Test Deanery,"Educational Supervisor,Psychiatric Supervisor"
+Dave,Smith,dave'@example.com,RCPsych Test Deanery,"Educational Supervisor,Psychiatric Supervisor"
