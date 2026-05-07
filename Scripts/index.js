@@ -245,9 +245,9 @@ function showScriptPicker(product, scripts) {
             <button class="open-btn">Open</button>
         `;
 
-        card.querySelector(".open-btn").onclick = () => {
+        card.addEventListener("click", (e) => {
             window.location.href = `/run/${product}/${script.id}`;
-        };
+        });
 
         grid.appendChild(card);
     });
