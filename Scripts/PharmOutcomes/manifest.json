@@ -14,7 +14,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Loops through a list of ODS Codes and then navigates to the Provider edit screen to then perform manual scripting to perform actions",
-            "icon": "🔁",
+            "icon": "🏥",
             "animation": "pulse",
             "advanced": true
         },
@@ -28,7 +28,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Loops through a list of ODS Codes and then navigates to the Commissioner edit screen to then perform manual scripting to perform actions",
-            "icon": "🔁",
+            "icon": "📋",
             "animation": "pulse",
             "advanced": true
         },
@@ -42,23 +42,9 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Loops through a list of ODS Codes and then navigates to the Viewer edit screen to then perform manual scripting to perform actions",
-            "icon": "🔁",
+            "icon": "👁️",
             "animation": "pulse",
             "advanced": true
-        },
-        {
-            "id": "updateMESH",
-            "title": "Update MESH",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Will take an ODS code, then login and update the MESH username & password for that provider.",
-            "icon": "🔁",
-            "animation": "pulse",
-            "advanced": false
         },
         {
             "id": "AddSuperUser",
@@ -71,20 +57,6 @@
             "descriptionFile": "description.md",
             "description": "This will take an ODS code and add a superuser to it for cross login purposes.",
             "icon": "👑",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "ChangeODS",
-            "title": "Change ODS Code",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will take an ODS code, login and update it to the newly provded one..",
-            "icon": "🔢",
             "animation": "pulse",
             "advanced": false
         },
@@ -113,20 +85,6 @@
             "descriptionFile": "description.md",
             "description": "Logs into every region and counts the sites accredeted to the Covid service, output to CSV",
             "icon": "📊",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "EditProvider",
-            "title": "Edit Provider",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "Logs into the system and nabvigates to the edit provider screen",
-            "icon": "🏥",
             "animation": "pulse",
             "advanced": false
         },
@@ -183,20 +141,6 @@
             "descriptionFile": "description.md",
             "icon": "🏢",
             "description": "This will take an ODS code and link it to a head office ODS code",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "Login",
-            "title": "Login",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "Simply logs into the system with the given Region code (e.g. CovidA)",
-            "icon": "🔐",
             "animation": "pulse",
             "advanced": false
         },
@@ -295,20 +239,6 @@
             "descriptionFile": "description.md",
             "description": "This will loop through a CSV of ODS COdes and find out if they have a COV site and report on what region they are on.",
             "icon": "🗺️",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "UpdateCDB",
-            "title": "Update CDB",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "Takes an ODS code and a CDB and will login and update it",
-            "icon": "🗄️",
             "animation": "pulse",
             "advanced": false
         }
