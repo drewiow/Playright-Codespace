@@ -121,12 +121,3 @@
     background: #eee;
     margin: 6px 0;
 }
-
-/* Logout */
-.logout {
-    color: #b00020;
-}
-
-.logout:hover {
-    background: #ffe5e5;
-}
