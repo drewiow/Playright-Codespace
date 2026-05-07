@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     loadRunHistory();
     setupModalControls();
+    document.getElementById("breadcrumb").innerHTML = "Automation Runner → Run History"
 });
 
 /* -------------------------------------------------------
@@ -19,12 +20,17 @@ async function loadRunHistory() {
             return;
         }
 
+        runs.sort((a, b) => {
+            const timeA = new Date(a.timestamp).getTime() || 0;
+            const timeB = new Date(b.timestamp).getTime() || 0;
+            return timeB - timeA;
+        });
+
         runs.forEach(run => {
             const tr = document.createElement("tr");
 
             tr.innerHTML = `
     <td>${run.runId}</td>
-    <td>${run.product || "—"}</td>
     <td>${run.script}</td>
     <td>${run.user?.displayName || run.user?.userId || "unknown"}</td>
     <td>${run.timestamp ? new Date(run.timestamp).toLocaleString() : "—"}</td>
