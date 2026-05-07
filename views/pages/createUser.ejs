@@ -1,0 +1,138 @@
+<main class="create-user-page">
+
+    <div class="page-container">
+
+        <h1>Create a New User</h1>
+        <p class="page-subtitle">
+            Generate an encrypted env.enc file for automation access.
+        </p>
+
+        <!-- FORM CARD -->
+        <section id="createUserFormCard" class="form-card">
+
+            <form id="envForm">
+
+                <div class="form-section">
+                    <h2>Login Credentials</h2>
+
+                    <div class="field">
+                        <label>Username</label>
+                        <input type="text" id="username" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Password</label>
+                        <input type="password" id="password" required />
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Security & MFA</h2>
+
+                    <div class="field">
+                        <label>Security Word</label>
+                        <input type="password" id="securityWord" />
+                    </div>
+
+                    <div class="field">
+                        <label>MFA Secret</label>
+                        <input type="text" id="secretKey" required />
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Identity & Access</h2>
+
+                    <div class="field">
+                        <label>User ID</label>
+                        <input type="text" id="userId" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Email</label>
+                        <input type="email" id="userEmail" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Display Name</label>
+                        <input type="text" id="userDisplayName" required />
+                    </div>
+
+                    <div class="field">
+                        <label>Roles</label>
+                        <div class="role-list">
+                            <label><input type="checkbox" value="admin"> Admin</label>
+                            <label><input type="checkbox" value="runner"> Runner</label>
+                            <label><input type="checkbox" value="viewer"> Viewer</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="button-primary">
+                        Review & Secure User
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+        <!-- SUCCESS STATE -->
+        <section id="createUserSuccess" class="form-card hidden">
+
+            <div class="success-header">
+                <h2>✅ User Created Successfully</h2>
+                <p>
+                    <strong id="successUserName"></strong> has been created as an automation user.
+                </p>
+            </div>
+
+            <div class="success-artifact">
+                <span class="file-icon">📄</span>
+                <span id="successFileName"></span>
+            </div>
+
+            <div class="success-actions">
+                <button id="downloadAgainBtn" class="button-primary">
+                    ⬇ Download File
+                </button>
+            </div>
+
+            <p class="help-text">
+                Send this file securely. It is required to access the Automation Runner.
+            </p>
+
+            <div class="secondary-actions">
+                <button id="createAnotherBtn" class="link-button">
+                    Create another user
+                </button>
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+<!-- FINALISE MODAL -->
+<div id="finalizeUserModal" class="modal hidden">
+    <h2 class="modal-title">🔐 Secure This User</h2>
+
+    <p class="modal-subtitle">
+        Enter the master passphrase used to encrypt this file.
+    </p>
+
+    <div class="field">
+        <label>Master Passphrase</label>
+        <input type="password" id="masterPassphrase" required />
+    </div>
+
+    <div class="modal-actions">
+        <button id="cancelFinalize">Cancel</button>
+        <button id="confirmGenerate" class="button-primary">
+            Generate encrypted file
+        </button>
+    </div>
+</div>
+
+<script type="module" src="/scripts/createUser.js"></script>

@@ -1,7 +1,4 @@
-/* -------------------------------------------------------
-   Login Modal
-------------------------------------------------------- */
-.modal {
+.login-modal {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -15,21 +12,21 @@
     z-index: 1001;
 }
 
-.modal-backdrop {
+.login-modal-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
     z-index: 1000;
 }
 
-.modal-title {
-    margin: 0;
+.login-modal-title {
     font-size: 1.4rem;
     font-weight: 600;
 }
 
-.modal-subtitle {
-    margin: 8px 0 20px;
+.login-modal-subtitle {
+    margin-top: 6px;
+    margin-bottom: 16px;
     font-size: 0.9rem;
     color: #666;
 }

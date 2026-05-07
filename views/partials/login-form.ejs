@@ -1,0 +1,34 @@
+<div id="loginModal" class="modal hidden">
+    <h2 class="modal-title">🔐 Secure Login</h2>
+
+    <p class="modal-subtitle">
+        Unlock the Automation Runner using your encrypted environment file.
+    </p>
+
+    <form id="loginForm">
+
+        <div class="field">
+            <label for="envFile">Encrypted environment file</label>
+            <input type="file" id="envFile" accept=".enc" required />
+            <small class="help-text">
+                Select the env.enc file provided to you.
+            </small>
+        </div>
+
+        <div class="field">
+            <label for="passphrase">Passphrase</label>
+            <input type="password" id="passphrase" placeholder="Enter your passphrase" required
+                autocomplete="current-password" />
+            <small class="help-text">
+                This passphrase is required to decrypt your credentials.
+            </small>
+        </div>
+
+        <button type="submit" class="button-primary" id="unlockBtn">
+            Unlock
+        </button>
+
+        <div id="loginError" class="error hidden"></div>
+
+    </form>
+</div>

@@ -1,0 +1,189 @@
+<div class="statusbar" id="runStatus">Ready</div>
+
+<main class="runner-layout">
+
+    <!-- LEFT COLUMN -->
+    <aside class="left-column">
+
+        <h1 id="scriptTitle" class="script-title"></h1>
+
+        <section class="card">
+            <details id="scriptDescription">
+                <summary>What does this script do?</summary>
+                <div id="descriptionContent"></div>
+            </details>
+        </section>
+
+        <section class="card">
+            <h2>Script Settings</h2>
+
+            <form id="run-form">
+
+                <!-- CSV -->
+                <div class="field">
+                    <label>CSV File</label>
+                    <input type="file" id="csvFile" accept=".csv">
+                </div>
+
+                <!-- ENV -->
+                <div class="field">
+                    <label>Encrypted Details File</label>
+                    <input type="file" id="runnerEnvFile" name="runnerEnvFile">
+                </div>
+
+                <!-- Password -->
+                <div class="field">
+                    <label>Decrypt Password</label>
+                    <input type="password" id="decryptPassword">
+                </div>
+
+                <!-- Dynamic script inputs -->
+                <div class="field" id="scriptInputs"></div>
+
+                <!-- Dry Run -->
+                <div class="option-row">
+                    <label class="option-label">
+                        <input type="checkbox" id="dryRunCheckbox" checked="checked">
+                        Dry Run (no changes made)
+                    </label>
+                </div>
+
+                <!-- Advanced Steps -->
+                <div class="advanced-steps">
+                    <label for="advancedSteps">
+                        Advanced Steps
+                        <button type="button" id="openAdvancedEditor" aria-label="Open advanced editor">🔍</button>
+                    </label>
+
+                    <textarea id="advancedSteps" rows="4" placeholder="click #save
+wait 500"></textarea>
+                </div>
+
+                <!-- Advanced Editor Modal -->
+                <div id="advancedEditorModal" class="modal hidden">
+                    <div class="modal-overlay"></div>
+                    <div class="modal-content">
+
+                        <header class="modal-header">
+                            <h2>Advanced Steps Editor</h2>
+                            <button type="button" id="closeAdvancedEditor" aria-label="Close editor">✖</button>
+                        </header>
+
+                        <section class="modal-body">
+
+                            <!-- Help Panel -->
+                            <div id="advanced-help-panel" class="advanced-help-panel hidden" aria-hidden="true">
+                                <div class="advanced-help-header">
+                                    <h3>Advanced Mode Help</h3>
+                                    <button type="button" id="advanced-help-close" class="icon-button"
+                                        aria-label="Close help panel">✕</button>
+                                </div>
+
+                                <div id="advanced-help-content" class="advanced-help-content"></div>
+                            </div>
+
+                            <div class="advanced-authoring">
+
+                                <!-- Templates -->
+                                <div class="advanced-templates">
+                                    <label>
+                                        <strong>Templates</strong>
+                                        <button type="button" id="advanced-help-toggle"
+                                            class="advanced-help-icon">ℹ</button>
+                                        <select id="advancedTemplateSelect">
+                                            <option value="">— Choose a template —</option>
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="advanced-actions">
+                                    <strong>Actions</strong>
+                                    <div id="advancedActions"></div>
+                                </div>
+
+                                <!-- Tokens -->
+                                <div class="advanced-tokens">
+                                    <strong>Tokens</strong>
+                                    <div class="token-list" id="advancedTokenList"></div>
+                                </div>
+
+                            </div>
+
+                            <!-- Editor -->
+                            <div class="editor-wrapper">
+                                <pre id="advancedEditorHighlight" aria-hidden="true"></pre>
+                                <textarea id="advancedEditorTextarea" rows="14" spellcheck="false"
+                                    placeholder="Advanced steps will appear here..."></textarea>
+                            </div>
+
+                        </section>
+
+                        <footer class="modal-footer">
+                            <button type="button" id="applyAdvancedSteps">Apply & Close</button>
+                        </footer>
+
+                    </div>
+                </div>
+
+                <!-- Options Panel -->
+                <details class="options-panel">
+                    <summary>Options</summary>
+
+                    <div class="options-group">
+                        <h3>Automation</h3>
+                        <label><input type="checkbox" id="humanMode"> Human mode</label>
+                        <label><span>Human intensity</span><input type="range" id="humanIntensity" min="1" max="5"
+                                value="3"></label>
+                        <label><input type="checkbox" id="showBrowser" checked> Show browser</label>
+                    </div>
+
+                    <div class="options-group">
+                        <h3>Recording</h3>
+                        <label><input type="checkbox" id="recordVideo" checked> Record video</label>
+                        <label><input type="checkbox" id="recordTrace"> Record trace</label>
+                    </div>
+
+                    <div class="options-group">
+                        <h3>Advanced</h3>
+                        <label><input type="checkbox" id="autoScrollLogs" checked> Auto‑scroll logs</label>
+                        <label><input type="checkbox" id="clearLogsOnRun" checked> Clear logs on run</label>
+                    </div>
+                </details>
+
+                <div class="flex justify-end mt-6 col-span-full">
+                    <button type="submit"
+                        class="button-primary px-8 py-3 bg-blue-600 text-white font-bold rounded-md shadow-md hover:bg-blue-700 transition">
+                        Run
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+    </aside>
+
+    <!-- RIGHT COLUMN -->
+    <section class="right-column">
+
+        <h1 class="script-title">Logs</h1>
+
+        <section class="card">
+            <div id="logContainer" class="log-viewer"></div>
+        </section>
+
+        <div id="stopRunContainer" style="display:none; margin-top: 20px; text-align:center;">
+            <button id="stopRunButton" class="stop-run-btn">🛑 Stop Run</button>
+        </div>
+
+        <section class="card hidden">
+            <h2>Run Artifacts</h2>
+            <ul id="artifactList"></ul>
+        </section>
+
+    </section>
+
+</main>
+
+<!-- Runner JS -->
+<script type="module" src="/scripts/runner.js"></script>

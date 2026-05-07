@@ -14,7 +14,9 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "ejs": "^5.0.2",
     "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
     "fsp": "^0.1.2",
     "multer": "^2.1.1",
     "otplib": "^10.2.3",

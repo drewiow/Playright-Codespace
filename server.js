@@ -11,6 +11,8 @@ import { EventEmitter } from "events";
 import { encryptEnv, decryptEnv } from "./Scripts/common/common.mjs";
 import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./Scripts/advanced/parseAdvancedSteps.mjs";
+import expressLayouts from "express-ejs-layouts";
+
 
 
 console.log("SERVER INSTANCE STARTED", Date.now());
@@ -29,6 +31,16 @@ const runningProcesses = {};
 const app = express();
 const port = 3000;
 
+// 1. View engine MUST be set before layouts
+app.set("view engine", "ejs");
+app.set("views", path.join(process.cwd(), "views"));
+app.set("layout", "layouts/main");
+console.log("CURRENT LAYOUT:", app.get("layout"));
+
+// 2. Layouts MUST be loaded after view engine
+app.use(expressLayouts);
+
+// 3. Everything else AFTER layouts
 app.use(cookieParser());
 app.use(cors());
 app.use(express.json());
@@ -45,13 +57,14 @@ const uploadMemory = multerMemory({
     limits: { fileSize: 5_000_000 }
 });
 
-function requireAuth(req, res, next) {
+function requireAuthAPI(req, res, next) {
     const sessionId = req.cookies?.session;
     const session = sessions.get(sessionId);
 
     console.log(req.cookies);
     console.log(session);
     console.log(sessionId);
+
 
     if (!sessionId) {
         return res.status(401).json({ error: "No session cookie" });
@@ -65,7 +78,58 @@ function requireAuth(req, res, next) {
     next();
 }
 
-app.get("/api/session/me", requireAuth, (req, res) => {
+function requireAuthPage(req, res, next) {
+    const sessionId = req.cookies?.session;
+    const session = sessions.get(sessionId);
+
+    if (!sessionId || !session) {
+        return res.redirect("/login");
+    }
+
+    req.user = session;
+    next();
+}
+
+app.get("/", requireAuthPage, (req, res) => {
+    res.render("pages/index", {
+        title: "Automation Runner",
+        pageStyles: ["/styles/index.css"]
+    });
+});
+
+app.get("/login", (req, res) => {
+    res.render("pages/login", {
+        title: "Login",
+        error: null
+    });
+});
+
+app.get("/create-user", requireAuthPage, (req, res) => {
+    res.render("pages/createUser", {
+        title: "Create User",
+        pageStyles: ["/styles/createUser.css"]
+    });
+});
+
+app.get("/run-history", requireAuthPage, (req, res) => {
+    res.render("pages/runHistory", {
+        title: "Run History",
+        pageStyles: ["/styles/runHistory.css"]
+    });
+});
+
+app.get("/run/:product/:scriptId", requireAuthPage, async (req, res) => {
+    const { product, scriptId } = req.params;
+
+    res.render("pages/runner", {
+        title: "Runner",
+        product,
+        scriptId,
+        pageStyles: ["/styles/runner.css"]
+    });
+});
+
+app.get("/api/session/me", requireAuthAPI, (req, res) => {
 
     res.json({
         user: req.user,
@@ -144,7 +208,7 @@ app.post("/api/login", upload.single("envFile"), async (req, res) => {
     }
 });
 
-app.post("/api/logout", requireAuth, (req, res) => {
+app.post("/api/logout", requireAuthAPI, (req, res) => {
     const sessionId = req.cookies.session;
 
     // Remove from memory
@@ -182,7 +246,7 @@ app.post("/api/env/create", async (req, res) => {
     }
 });
 
-app.post("/api/run/:runId/stop", requireAuth, (req, res) => {
+app.post("/api/run/:runId/stop", requireAuthAPI, (req, res) => {
     const { runId } = req.params;
     const child = runningProcesses[runId];
 
@@ -197,7 +261,7 @@ app.post("/api/run/:runId/stop", requireAuth, (req, res) => {
 });
 
 // NEW RUNNER — THIS IS THE ONE YOU WANT
-app.post("/api/run/:product/:scriptId", requireAuth,
+app.post("/api/run/:product/:scriptId", requireAuthAPI,
     uploadMemory.fields([
         { name: "envFile", maxCount: 1 },
         { name: "csvFile", maxCount: 1 }
@@ -467,7 +531,7 @@ app.post("/api/run/:product/:scriptId", requireAuth,
     }
 );
 
-app.get("/api/runs", requireAuth, (req, res) => {
+app.get("/api/runs", requireAuthAPI, (req, res) => {
     const runsRoot = path.join(__dirname, "runs");
 
     try {
@@ -491,7 +555,7 @@ app.get("/api/runs", requireAuth, (req, res) => {
         res.status(500).json({ error: "Failed to load run history" });
     }
 });
-app.get("/api/run/:runId", requireAuth, (req, res) => {
+app.get("/api/run/:runId", requireAuthAPI, (req, res) => {
     const runId = req.params.runId;
     const runDir = path.join(__dirname, "runs", runId);
     const metaPath = path.join(runDir, "metadata.json");
@@ -509,7 +573,7 @@ app.get("/api/run/:runId", requireAuth, (req, res) => {
     }
 });
 
-app.get("/api/run/:runId/logs", requireAuth, (req, res) => {
+app.get("/api/run/:runId/logs", requireAuthAPI, (req, res) => {
     const runId = req.params.runId;
     const runDir = path.join(__dirname, "runs", runId);
 
@@ -521,7 +585,7 @@ app.get("/api/run/:runId/logs", requireAuth, (req, res) => {
         stderr: fs.existsSync(stderrPath) ? fs.readFileSync(stderrPath, "utf8") : ""
     });
 });
-app.get("/api/run/:runId/artifacts", requireAuth, (req, res) => {
+app.get("/api/run/:runId/artifacts", requireAuthAPI, (req, res) => {
     const runId = req.params.runId;
     const runDir = path.join(__dirname, "runs", runId);
 
@@ -551,7 +615,7 @@ app.get("/api/run/:runId/artifacts", requireAuth, (req, res) => {
 
     res.json(files);
 });
-app.get("/api/run/:runId/artifact", requireAuth, (req, res) => {
+app.get("/api/run/:runId/artifact", requireAuthAPI, (req, res) => {
     const runId = req.params.runId;
     const file = req.query.path; // full relative path
 
@@ -568,7 +632,7 @@ app.get("/api/run/:runId/artifact", requireAuth, (req, res) => {
     res.download(filePath);
 });
 
-app.get("/api/run/:product/:scriptId/logs", requireAuth, (req, res) => {
+app.get("/api/run/:product/:scriptId/logs", requireAuthAPI, (req, res) => {
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -599,7 +663,7 @@ app.get("/api/run/:product/:scriptId/logs", requireAuth, (req, res) => {
 });
 
 // List scripts for a product
-app.get("/api/scripts/:product", requireAuth, (req, res) => {
+app.get("/api/scripts/:product", requireAuthAPI, (req, res) => {
     const product = req.params.product;
     const dir = path.join(__dirname, "scripts", product);
 
@@ -611,7 +675,7 @@ app.get("/api/scripts/:product", requireAuth, (req, res) => {
 });
 
 // Product manifests
-app.get("/api/products", requireAuth, async (req, res) => {
+app.get("/api/products", requireAuthAPI, async (req, res) => {
     const base = path.join(__dirname, "scripts");
     const folders = await fs.promises.readdir(base);
 
@@ -626,7 +690,7 @@ app.get("/api/products", requireAuth, async (req, res) => {
     res.json(products);
 });
 
-app.get("/api/products/:id/manifest", requireAuth, async (req, res) => {
+app.get("/api/products/:id/manifest", requireAuthAPI, async (req, res) => {
     const manifestPath = path.join(__dirname, "scripts", req.params.id, "manifest.json");
     if (!fs.existsSync(manifestPath)) return res.status(404).json({ error: "Not found" });
     const manifest = JSON.parse(await fs.promises.readFile(manifestPath, "utf8"));
@@ -634,14 +698,14 @@ app.get("/api/products/:id/manifest", requireAuth, async (req, res) => {
 });
 
 // Script description
-app.get("/api/products/:product/scripts/:script/description", requireAuth, async (req, res) => {
+app.get("/api/products/:product/scripts/:script/description", requireAuthAPI, async (req, res) => {
     const filePath = path.join(__dirname, "scripts", req.params.product, req.params.script, "description.md");
     if (!fs.existsSync(filePath)) return res.status(404).send("Description not found");
     res.send(await fs.promises.readFile(filePath, "utf8"));
 });
 
 // Video listing
-app.get("/api/videos/:product/:run", requireAuth, (req, res) => {
+app.get("/api/videos/:product/:run", requireAuthAPI, (req, res) => {
     const dir = path.join(__dirname, "runs", req.params.product, req.params.run, "videos");
     fs.readdir(dir, (err, files) => {
         if (err) return res.json([]);

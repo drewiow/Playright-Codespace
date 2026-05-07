@@ -1,3 +1,39 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+    /* or whatever your header uses */
+}
+
+/* Logo stays fixed size */
+.header .logo {
+    height: 32px;
+    flex-shrink: 0;
+}
+
+/* Title takes the middle space and can truncate */
+.header .title {
+    flex: 1;
+    min-width: 0;
+    margin: 0 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* User menu sits on the right and does NOT overlap */
+.header .user-menu {
+    flex-shrink: 0;
+    position: relative;
+    /* overrides any absolute */
+}
+
 /* -------------------------------------------------------
    Header
 ------------------------------------------------------- */
@@ -25,29 +61,65 @@
     color: #333;
 }
 
-/* --- User Menu Container --- */
-.user-menu {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    font-family: system-ui, sans-serif;
-    z-index: 1000;
+/* Ensure the user menu container aligns with the header */
+.header .user-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
 }
 
-/* --- User Display Button --- */
+/* Align the button contents perfectly */
 .user-display {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #ffffff;
-    border: 1px solid #d0d0d0;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
-    color: #333;
-    transition: background 0.15s ease, border-color 0.15s ease;
 }
+
+/* Avatar centered */
+.user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Chevron aligned */
+.user-display .chevron {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 1px;
+    /* tiny optical tweak */
+}
+
+
+/* Remove default highlight */
+.user-menu .dropdown-item {
+    background: none;
+    border: none;
+    outline: none;
+}
+
+/* Clean, modern hover */
+.user-menu .dropdown-item:hover {
+    background: #f3f4f6;
+    /* light grey */
+    color: #111;
+}
+
+/* Optional: match Optum’s palette */
+.user-menu .dropdown-item:hover .item-icon {
+    opacity: 0.8;
+}
+
 
 .user-display:hover {
     background: #f5f5f5;

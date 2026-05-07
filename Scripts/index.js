@@ -92,8 +92,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         }
 
         // Success
-        checkAuth();
-        console.log("Logged in successfully");
+        window.location.href = "/";
 
     } catch (err) {
         console.error("Login error:", err);
@@ -160,6 +159,12 @@ document.addEventListener("click", (e) => {
 });
 
 async function loadProducts() {
+    console.log("loadProducts() CALLED");
+
+    const productGrid = document.getElementById("productGrid");
+    console.log("productGrid =", productGrid);
+    if (!productGrid) return; // Not on the landing page
+
     try {
         const res = await fetch("/api/products", {
             credentials: "include"
@@ -208,8 +213,7 @@ function attachProductHandlers() {
 
                 // If only one script, go straight to runner
                 if (scripts.length === 1) {
-                    window.location.href =
-                        `/runner.html?product=${product}&script=${scripts[0].id}`;
+                    window.location.href = `/run/${product}/${scripts[0].id}`;
                     return;
                 }
 
@@ -242,8 +246,7 @@ function showScriptPicker(product, scripts) {
         `;
 
         card.querySelector(".open-btn").onclick = () => {
-            window.location.href =
-                `/runner.html?product=${product}&script=${script.id}`;
+            window.location.href = `/run/${product}/${script.id}`;
         };
 
         grid.appendChild(card);

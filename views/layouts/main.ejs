@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>
+        <%= title %>
+    </title>
+
+    <link rel="stylesheet" href="/styles/styles.css" />
+    <link rel="stylesheet" href="/styles/header.css" />
+    <link rel="stylesheet" href="/styles/login.css" />
+
+    <% if (typeof pageStyles !=="undefined" && pageStyles) { %>
+        <% pageStyles.forEach(style=> { %>
+            <link rel="stylesheet" href="<%= style %>">
+            <% }) %>
+                <% } %>
+</head>
+
+<body>
+    <div class="app">
+
+        <!-- Header -->
+        <%- include("../partials/header") %>
+
+            <!-- Backdrop -->
+            <div id="loginBackdrop" class="modal-backdrop hidden"></div>
+
+            <!-- Login Modal -->
+            <%- include("../partials/login-modal") %>
+
+                <!-- Page Content -->
+                <main>
+                    <%- body %>
+                </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="/scripts/index.js" type="module"></script>
+    <script src="/scripts/header.js" type="module"></script>
+</body>
+
+</html>

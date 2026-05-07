@@ -4,34 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const artifactList = document.getElementById("artifactList");
 const logContainer = document.getElementById("logContainer");
-const params = new URLSearchParams(window.location.search);
-const product = params.get("product")?.toLowerCase();
-const script = params.get("script");
+
+// Parse URL path: /run/<product>/<scriptId>
+const parts = window.location.pathname.split("/");
+const product = parts[2];
+const scriptId = parts[3];
+
+if (!product || !scriptId) {
+    console.error("Missing product or script in URL", parts);
+}
 
 let lastLogLength = 0;
-
-async function checkAuth() {
-    try {
-        const res = await fetch("/api/session/me", {
-            credentials: "include"
-        });
-
-        if (!res.ok) {
-            // Not logged in → show login modal
-            showLoginModal();
-            return null;
-        }
-
-        const user = await res.json();
-        hideLoginModal();
-        return user;
-
-    } catch (err) {
-        console.error("Auth check failed:", err);
-        showLoginModal();
-        return null;
-    }
-}
 
 function startLogStream(product, scriptId) {
     const logContainer = document.getElementById("logContainer");
@@ -122,14 +105,19 @@ async function loadScriptMeta(product, script) {
 }
 
 async function initRunner() {
-    const params = new URLSearchParams(window.location.search);
 
-    const product = params.get("product")?.toLowerCase();
-    const scriptId = params.get("script");
+    const parts = window.location.pathname.split("/");
+
+    // parts[0] = ""
+    // parts[1] = "run"
+    // parts[2] = product
+    // parts[3] = scriptId
+
+    const product = parts[2];
+    const scriptId = parts[3];
 
     if (!product || !scriptId) {
-        console.error("Missing product or script in URL");
-        return;
+        console.error("Missing product or script in URL", parts);
     }
 
     startLogStream(product, scriptId);
@@ -147,9 +135,9 @@ async function initRunner() {
         document.getElementById("breadcrumb").innerHTML =
             `Automation Runner <span class="crumb-sep">→</span> ${productName} <span class="crumb-sep">→</span> ${script.title || script.name || script.id}`;
 
+        applyScriptRequirements(script);
         populateHeader(manifest, script);
         populateDescription(product, script);
-        applyScriptRequirements(script);
         loadScriptMeta(product, scriptId);
         setupRunForm(product, script);
         SetupAdvancedUI();
@@ -621,7 +609,7 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
 }
 
 function applyScriptRequirements(script) {
-    const envFileInput = document.getElementById("envFile");
+    const envFileInput = document.getElementById("runnerEnvFile");
     const envFileField = envFileInput.closest(".field");
 
     const passInput = document.getElementById("decryptPassword");
@@ -715,10 +703,11 @@ async function populateDescription(product, script) {
 }
 
 function setupRunForm(product, script) {
+    console.log("setupRunForm CALLED");
     const form = document.getElementById("run-form");
 
     // Gather UI values
-    const envFileInput = document.getElementById("envFile");
+    const envFileInput = document.getElementById("runnerEnvFile");
     const csvFileInput = document.getElementById("csvFile");
     const advancedStepsEl = document.getElementById("advancedSteps");
 
@@ -730,7 +719,7 @@ function setupRunForm(product, script) {
         recordTrace: document.getElementById("recordTrace").checked,
         autoScrollLogs: document.getElementById("autoScrollLogs").checked,
         clearLogsOnRun: document.getElementById("clearLogsOnRun").checked,
-        dryRun: document.getElementById("dryRunCheckbox").checked
+        dryRun: document.getElementById("dryRunCheckbox").checked,
     };
 
     document.getElementById("stopRunButton").addEventListener("click", async () => {
@@ -751,6 +740,9 @@ function setupRunForm(product, script) {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        console.log("envFileInput:", envFileInput);
+        console.log("envFileInput.files:", envFileInput?.files);
 
         const status = document.getElementById("runStatus");
         status.textContent = "Starting run…";
