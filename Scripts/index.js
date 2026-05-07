@@ -245,9 +245,19 @@ function showScriptPicker(product, scripts) {
             <button class="open-btn">Open</button>
         `;
 
-        card.addEventListener("click", (e) => {
+        card.addEventListener("click", () => {
             window.location.href = `/run/${product}/${script.id}`;
         });
+
+        card.querySelector(".info-btn").addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+
+        card.querySelector(".open-btn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            window.location.href = `/run/${product}/${script.id}`;
+        });
+
 
         grid.appendChild(card);
     });
