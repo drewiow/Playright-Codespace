@@ -1,135 +1,75 @@
+/* =========================
+   Header
+========================= */
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+
     height: 64px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: white;
-    /* or whatever your header uses */
+    padding: 0 20px;
+
+    background: #fff;
+    border-bottom: 1px solid #e2e2e2;
 }
 
-/* Logo stays fixed size */
 .header .logo {
     height: 32px;
-    flex-shrink: 0;
 }
 
-/* Title takes the middle space and can truncate */
 .header .title {
     flex: 1;
-    min-width: 0;
-    margin: 0 16px;
+    margin: 0 20px;
+
+    font-size: 1.2rem;
+    font-weight: 600;
+
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* User menu sits on the right and does NOT overlap */
-.header .user-menu {
-    flex-shrink: 0;
-    position: relative;
-    /* overrides any absolute */
-}
-
-/* -------------------------------------------------------
-   Header
-------------------------------------------------------- */
-.header {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    padding: 1rem 2rem;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e2e2;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.header .logo {
-    height: 36px;
-    width: auto;
-}
-
-.header .title {
-    margin-left: auto;
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #333;
-}
-
-/* Ensure the user menu container aligns with the header */
-.header .user-menu {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+/* =========================
+   User Menu Button
+========================= */
+.user-menu {
     position: relative;
 }
 
-/* Align the button contents perfectly */
 .user-display {
     display: flex;
     align-items: center;
     gap: 8px;
+
     padding: 6px 10px;
-    border-radius: 6px;
+    border-radius: 8px;
+
     cursor: pointer;
-}
-
-/* Avatar centered */
-.user-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-/* Chevron aligned */
-.user-display .chevron {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    margin-top: 1px;
-    /* tiny optical tweak */
-}
-
-
-/* Remove default highlight */
-.user-menu .dropdown-item {
-    background: none;
     border: none;
-    outline: none;
+    background: none;
 }
-
-/* Clean, modern hover */
-.user-menu .dropdown-item:hover {
-    background: #f3f4f6;
-    /* light grey */
-    color: #111;
-}
-
-/* Optional: match Optum’s palette */
-.user-menu .dropdown-item:hover .item-icon {
-    opacity: 0.8;
-}
-
 
 .user-display:hover {
     background: #f5f5f5;
-    border-color: #bcbcbc;
 }
 
-.user-icon {
-    font-size: 16px;
+.user-avatar {
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 13px;
+    font-weight: 600;
 }
 
+/* Chevron */
 .chevron {
     font-size: 12px;
     transition: transform 0.2s ease;
@@ -139,151 +79,54 @@
     transform: rotate(180deg);
 }
 
-/* --- Dropdown Menu --- */
+/* =========================
+   Dropdown
+========================= */
 .user-dropdown {
     position: absolute;
-    top: 42px;
+    top: 48px;
     right: 0;
-    background: #ffffff;
-    border: 1px solid #d0d0d0;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    width: 180px;
-    padding: 6px 0;
-    animation: fadeIn 0.15s ease;
+
+    width: 200px;
+
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+    overflow: hidden;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* --- Dropdown Items --- */
+/* Items */
 .dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
+    display: block;
+
+    padding: 10px 16px;
     font-size: 14px;
+
     color: #333;
     text-decoration: none;
+
     cursor: pointer;
-    transition: background 0.15s ease;
 }
 
 .dropdown-item:hover {
-    background: #f0f0f0;
+    background: #f5f5f5;
 }
 
-.item-icon {
-    font-size: 16px;
+/* Divider */
+.dropdown-divider {
+    height: 1px;
+    background: #eee;
+    margin: 6px 0;
 }
 
+/* Logout */
 .logout {
     color: #b00020;
 }
 
 .logout:hover {
     background: #ffe5e5;
-}
-
-.user-display {
-    gap: 10px;
-    padding: 8px 14px;
-}
-
-.user-dropdown {
-    width: 200px;
-}
-
-.user-display:hover {
-    background: #f0f0f0;
-}
-
-.user-dropdown {
-    position: absolute;
-    top: 46px;
-    right: 0;
-    background: #ffffff;
-    border-radius: 10px;
-    padding: 8px 0;
-    width: 210px;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    animation: dropdownFade 0.18s ease-out;
-}
-
-@keyframes dropdownFade {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    font-size: 14px;
-    color: #333;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.15s ease;
-}
-
-.dropdown-item:hover {
-    background: #f7f7f7;
-}
-
-.item-icon {
-    width: 18px;
-    text-align: center;
-    font-size: 16px;
-}
-
-.user-dropdown,
-.user-display {
-    border-radius: 8px;
-}
-
-.item-icon {
-    width: 18px;
-    text-align: center;
-}
-
-.user-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #4a6cf7;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.chevron {
-    font-size: 12px;
-    transition: transform 0.25s ease;
-}
-
-.user-display.open .chevron {
-    transform: rotate(180deg);
 }

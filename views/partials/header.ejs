@@ -1,11 +1,11 @@
 <header class="header">
-    <img class="logo" src="/images/optum-logo.png" alt="Optum">
 
     <div class="title" id="breadcrumb">
-        Automation Runner → Choose a Product
+        Automation Runner
     </div>
 
     <div id="userMenu" class="user-menu hidden">
+
         <button id="userDisplay" class="user-display">
             <div id="userAvatar" class="user-avatar"></div>
             <span id="userNameLabel"></span>
@@ -13,17 +13,25 @@
         </button>
 
         <div id="userDropdown" class="user-dropdown hidden">
+
+            <a href="/" class="dropdown-item">
+                Home
+            </a>
+
             <a href="/createUser" class="dropdown-item">
-                <span class="item-icon">➕</span> Create User
+                Create User
             </a>
 
             <a href="/run-history" class="dropdown-item">
-                <span class="item-icon">📜</span> Run History
+                Run History
             </a>
 
+            <div class="dropdown-divider"></div>
+
             <button id="logoutBtn" class="dropdown-item logout">
-                <span class="item-icon">🚪</span> Logout
+                Logout
             </button>
+
         </div>
-    </div>
+
 </header>
