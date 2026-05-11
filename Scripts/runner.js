@@ -291,7 +291,7 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
         {
             group: "Navigation",
             actions: [
-                { id: "save-provider", label: "Save Provider", steps: `click[value = "Save"]` }
+                { id: "save-provider", label: "Save Provider", steps: `click [value = "Save"]` }
             ]
         }
     ];
@@ -711,17 +711,6 @@ function setupRunForm(product, script) {
     const csvFileInput = document.getElementById("csvFile");
     const advancedStepsEl = document.getElementById("advancedSteps");
 
-    const options = {
-        humanMode: document.getElementById("humanMode").checked,
-        humanIntensity: document.getElementById("humanIntensity").value,
-        showBrowser: document.getElementById("showBrowser").checked,
-        recordVideo: document.getElementById("recordVideo").checked,
-        recordTrace: document.getElementById("recordTrace").checked,
-        autoScrollLogs: document.getElementById("autoScrollLogs").checked,
-        clearLogsOnRun: document.getElementById("clearLogsOnRun").checked,
-        dryRun: document.getElementById("dryRunCheckbox").checked,
-    };
-
     document.getElementById("stopRunButton").addEventListener("click", async () => {
         if (!currentRunId) return;
 
@@ -740,6 +729,17 @@ function setupRunForm(product, script) {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        const options = {
+            humanMode: document.getElementById("humanMode").checked,
+            humanIntensity: document.getElementById("humanIntensity").value,
+            showBrowser: document.getElementById("showBrowser").checked,
+            recordVideo: document.getElementById("recordVideo").checked,
+            recordTrace: document.getElementById("recordTrace").checked,
+            autoScrollLogs: document.getElementById("autoScrollLogs").checked,
+            clearLogsOnRun: document.getElementById("clearLogsOnRun").checked,
+            dryRun: document.getElementById("dryRunCheckbox").checked,
+        };
 
         console.log("envFileInput:", envFileInput);
         console.log("envFileInput.files:", envFileInput?.files);
