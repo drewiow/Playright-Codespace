@@ -1,5 +1,5 @@
 // csvValidationHelper.mjs
-import fs from "fs";
+import fs from "node:fs";
 
 /** Basic email check (practical, not full RFC) */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

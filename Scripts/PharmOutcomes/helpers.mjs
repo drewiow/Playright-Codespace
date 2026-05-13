@@ -2,20 +2,12 @@ import { authenticator } from "otplib";
 import { decryptEnv, createBrowserContext } from "../common/common.mjs";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Decrypt env.enc using ENV_ENC_PATH + ENV_PASSPHRASE
 export async function setupContext(options = {}) {
-  const envPath = process.env.ENV_ENC_PATH;
-  const passphrase = process.env.ENV_PASSPHRASE;
-
-  if (!envPath) throw new Error("ENV_ENC_PATH missing");
-  if (!passphrase) throw new Error("ENV_PASSPHRASE missing");
-
-  await decryptEnv(envPath, passphrase);
-
   return await createBrowserContext(options);
 }
 
@@ -91,9 +83,13 @@ export async function login(page, username, password, odscode) {
 
   await page.fill("#login_name", username);
   await page.fill("#login_pwd", password);
-  await page.click("[type='submit'][value='Go']");
+  await Promise.all([
+    page.waitForSelector("#formCode", { timeout: 10000 }),
+    page.click("[type='submit'][value='Go']")
+  ]);
 
   await page.fill("#formCode", token);
+  await page.click("#submitMFA");
   await page.click("#submitMFA");
 }
 

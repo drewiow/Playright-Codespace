@@ -1,21 +1,17 @@
 import express from "express";
 import multer from "multer";
 import cors from "cors";
-import fs from "fs";
+import fs from "node:fs";
 import crypto from "crypto";
-import fsp from "fsp";
+import fsp from "node:fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
 import { EventEmitter } from "events";
-import { encryptEnv, decryptEnv } from "./Scripts/common/common.mjs";
+import { encryptEnv, decryptEnv } from "./scripts/common/common.mjs";
 import cookieParser from "cookie-parser";
-import { parseAdvancedSteps } from "./Scripts/advanced/parseAdvancedSteps.mjs";
+import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
-
-
-
-console.log("SERVER INSTANCE STARTED", Date.now());
 
 // Memory session store
 const sessions = new Map();
@@ -39,6 +35,9 @@ console.log("CURRENT LAYOUT:", app.get("layout"));
 
 // 2. Layouts MUST be loaded after view engine
 app.use(expressLayouts);
+
+app.use("/vendor", express.static(path.join(__dirname, "node_modules")));
+
 
 // 3. Everything else AFTER layouts
 app.use(cookieParser());
@@ -111,6 +110,13 @@ app.get("/create-user", requireAuthPage, (req, res) => {
     });
 });
 
+app.get("/edit-user", requireAuthPage, (req, res) => {
+    res.render("pages/editUser", {
+        title: "Edit User",
+        pageStyles: ["/styles/createUser.css"]
+    });
+});
+
 app.get("/run-history", requireAuthPage, (req, res) => {
     res.render("pages/runHistory", {
         title: "Run History",
@@ -130,6 +136,9 @@ app.get("/run/:product/:scriptId", requireAuthPage, async (req, res) => {
 });
 
 app.get("/api/session/me", requireAuthAPI, (req, res) => {
+
+    console.log("Cookies received:", req.cookies);
+    console.log("User session:", req.user);
 
     res.json({
         user: req.user,
@@ -155,7 +164,8 @@ app.post("/api/login", upload.single("envFile"), async (req, res) => {
         // 1. Decrypt the env.enc file
         let decryptedText;
         try {
-            decryptedText = await decryptEnv(file.path, passphrase);
+            const encryptedBuffer = fs.readFileSync(file.path);
+            decryptedText = decryptEnv(encryptedBuffer, passphrase);
         } catch (err) {
             console.error("Decryption failed:", err);
             return res.status(401).json({ error: "Invalid file or passphrase" });
@@ -230,6 +240,9 @@ app.post("/api/env/create", async (req, res) => {
             return res.status(400).json({ error: "Missing master password" });
         }
 
+        console.log("REQ BODY:", req.body);
+
+
         const envText = Object.entries(envVars)
             .map(([k, v]) => `${k}=${v}`)
             .join("\n");
@@ -243,6 +256,34 @@ app.post("/api/env/create", async (req, res) => {
     } catch (err) {
         console.error("env create error:", err);
         res.status(500).json({ error: "Failed to create env.enc" });
+    }
+});
+
+app.post("/api/env/decrypt", requireAuthAPI, upload.single("envFile"), async (req, res) => {
+    try {
+        const file = req.file;
+        const passphrase = req.body.passphrase;
+
+        if (!file || !passphrase) {
+            return res.status(400).json({ error: "Missing file or passphrase" });
+        }
+
+        const encryptedBuffer = fs.readFileSync(file.path);
+        const decryptedText = decryptEnv(encryptedBuffer, passphrase);
+
+        const envVars = {};
+        decryptedText.split(/\r?\n/).forEach(line => {
+            const [key, ...rest] = line.split("=");
+            if (!key) return;
+            envVars[key.trim()] = rest.join("=").trim();
+        });
+
+        res.json(envVars);
+
+    } catch (err) {
+        res.status(400).json({ error: "Failed to decrypt file" });
+    } finally {
+        if (req.file?.path) fs.unlink(req.file.path, () => { });
     }
 });
 
@@ -278,6 +319,7 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
             // 1. Create run directory FIRST
             const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
             const runDir = path.join(runsDir, runId);
+            console.log("Run directory:", runDir);
             fs.mkdirSync(runDir, { recursive: true, mode: 0o700 });
             options.runDir = runDir;
             const manifestPath = path.join(__dirname, "scripts", product, "Manifest.json");
@@ -288,6 +330,7 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
 
             const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
             const scriptMeta = manifest.scripts.find(s => s.id === scriptId);
+            console.log("Script metadata:", scriptMeta);
 
             // Resolve scriptPath (supports .mjs, .js, or index files)
             let scriptPathBase = path.join(__dirname, "scripts", product, scriptId);
@@ -424,13 +467,20 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
                 JSON.stringify(metadata, null, 2)
             );
 
+            console.log("Spawning Child");
+
             // Spawn child
             const startTime = Date.now();
-            const child = spawn(process.execPath, [scriptPath], {
-                env: childEnv,
-                cwd: runDir,
-                stdio: ["ignore", "pipe", "pipe"]
-            });
+            const child = spawn(
+                process.execPath,
+                [scriptPath],
+                {
+                    env: childEnv,
+                    cwd: path.dirname(scriptPath),
+                    stdio: ["ignore", "pipe", "pipe"],
+                    shell: false
+                }
+            );
             runningProcesses[runId] = child;
             // Log files
             const stdoutPath = path.join(runDir, "stdout.log");
@@ -699,9 +749,17 @@ app.get("/api/products/:id/manifest", requireAuthAPI, async (req, res) => {
 
 // Script description
 app.get("/api/products/:product/scripts/:script/description", requireAuthAPI, async (req, res) => {
-    const filePath = path.join(__dirname, "scripts", req.params.product, req.params.script, "description.md");
-    if (!fs.existsSync(filePath)) return res.status(404).send("Description not found");
+    const dir = path.join(__dirname, "scripts", req.params.product, req.params.script);
+
+    const files = fs.readdirSync(dir);
+    console.log("Description files found:", files);
+    const match = files.find(f => f.toLowerCase() === "description.md");
+    console.log("Matched description file:", match);
+    if (!match) return res.status(404).send("Description not found");
+
+    const filePath = path.join(dir, match);
     res.send(await fs.promises.readFile(filePath, "utf8"));
+
 });
 
 // Video listing

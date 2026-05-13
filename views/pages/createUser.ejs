@@ -1,3 +1,30 @@
+<div id="editUserModal" class="modal hidden">
+    <div class="modal-card">
+
+        <div class="modal-header">
+            <h3>Edit your details</h3>
+            <button id="closeEditModalBtn" class="modal-close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+
+            <div class="field">
+                <label>Upload existing .enc file</label>
+                <input type="file" id="existingEnvFile">
+            </div>
+
+            <div class="field">
+                <label>Passphrase</label>
+                <input type="password" id="existingPassphrase">
+            </div>
+
+            <button id="loadDetailsBtn" class="button-primary">Load Details</button>
+
+        </div>
+
+    </div>
+</div>
+
 <main class="create-user-page">
 
     <div class="page-container">
@@ -114,24 +141,25 @@
 
 </main>
 
-<!-- FINALISE MODAL -->
 <div id="finalizeUserModal" class="modal hidden">
-    <h2 class="modal-title">🔐 Secure This User</h2>
+    <div class="modal-card">
+        <h2 class="modal-title">🔐 Secure This User</h2>
 
-    <p class="modal-subtitle">
-        Enter the master passphrase used to encrypt this file.
-    </p>
+        <p class="modal-subtitle">
+            Enter the master passphrase used to encrypt this file.
+        </p>
 
-    <div class="field">
-        <label>Master Passphrase</label>
-        <input type="password" id="masterPassphrase" required />
-    </div>
+        <div class="field">
+            <label>Master Passphrase</label>
+            <input type="password" id="masterPassphrase" required />
+        </div>
 
-    <div class="modal-actions">
-        <button id="cancelFinalize">Cancel</button>
-        <button id="confirmGenerate" class="button-primary">
-            Generate encrypted file
-        </button>
+        <div class="modal-actions">
+            <button id="cancelFinalize">Cancel</button>
+            <button id="confirmGenerate" class="button-primary">
+                Generate encrypted file
+            </button>
+        </div>
     </div>
 </div>
 

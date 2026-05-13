@@ -1,12 +1,39 @@
-/* -------------------------------------------------------
-   Base
-------------------------------------------------------- */
+/* =======================================================
+   TOKENS / GLOBALS
+======================================================= */
+:root {
+    --bg-app: #f7f7f8;
+    --bg-surface: #ffffff;
+
+    --text-primary: #1f2937;
+    --text-muted: #64748b;
+
+    --border-soft: #e5e7eb;
+
+    --accent: #ff7f32;
+    --accent-hover: #e86f28;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+
+    --wizard-width: 960px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f7f7f8;
-    color: #222;
     margin: 0;
-    padding: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -14,23 +41,23 @@ body {
     display: none !important;
 }
 
-/* -------------------------------------------------------
-   Header
-------------------------------------------------------- */
+/* =======================================================
+   HEADER / STATUS
+======================================================= */
+.app-header,
+.statusbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-soft);
+}
+
 .app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 2rem;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e2e2;
+    padding: var(--space-md) var(--space-xl);
     position: sticky;
     top: 0;
     z-index: 20;
-}
-
-.app-header .logo {
-    height: 36px;
 }
 
 .header-center {
@@ -38,85 +65,198 @@ body {
     font-weight: 500;
     color: #444;
     display: flex;
-    align-items: center;
     gap: 0.4rem;
 }
 
-.header-right a {
-    color: #0055a5;
-    text-decoration: none;
-}
-
-.header-right a:hover {
-    text-decoration: underline;
-}
-
-/* -------------------------------------------------------
-   Status Bar
-------------------------------------------------------- */
 .statusbar {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e2e2;
-    padding: 0.6rem 2rem;
+    padding: 0.6rem var(--space-xl);
     font-size: 0.95rem;
     color: #444;
 }
 
-/* -------------------------------------------------------
-   Layout
-------------------------------------------------------- */
+/* =======================================================
+   APP LAYOUT
+======================================================= */
 .runner-layout {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 2rem;
-    padding: 2rem 3rem;
+    padding: var(--space-xl);
     max-width: 1400px;
     margin: 0 auto;
 }
 
-.left-column,
-.right-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+.runner-layout:not(.wizard-mode) {
+    display: grid;
+    grid-template-columns: 320px 1fr;
 }
 
-/* -------------------------------------------------------
-   Cards
-------------------------------------------------------- */
-.card {
+/* Wizard shell — primary container */
+.wizard-shell {
+    width: 100%;
+    max-width: var(--wizard-width, 960px);
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Wizard form surface */
+#wizardContainer {
+    width: 100%;
+    margin-top: var(--space-lg);
     background: #ffffff;
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid #e5e5e5;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 2rem;
 }
 
-.card h2 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
+
+
+/* =======================================================
+   WIZARD MODE (CRITICAL)
+======================================================= */
+.runner-layout.wizard-mode {
+    display: block;
+    max-width: none;
+    padding: var(--space-xl);
 }
 
-/* -------------------------------------------------------
-   Form Fields
-------------------------------------------------------- */
+.runner-layout.wizard-mode .wizard-shell {
+    max-width: var(--wizard-width);
+    margin: 0 auto;
+}
+
+.runner-layout.wizard-mode .execution-column {
+    display: none;
+}
+
+/* =======================================================
+   WIZARD SHELL
+======================================================= */
+.script-title {
+    font-size: 1.6rem;
+    margin-bottom: var(--space-md);
+}
+
+/* =======================================================
+   PRE-WIZARD OVERVIEW
+======================================================= */
+#scriptOverview {
+    margin-bottom: var(--space-xl);
+}
+
+#scriptOverview h3 {
+    font-size: 1.1rem;
+    margin-bottom: var(--space-sm);
+}
+
+#scriptOverview button {
+    margin-top: var(--space-lg);
+}
+
+/* =======================================================
+   WIZARD HEADER
+======================================================= */
+
+.wizard-header {
+    margin-bottom: var(--space-md);
+}
+
+.wizard-progress {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.wizard-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.wizard-subtitle {
+    margin-top: var(--space-xs);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* =======================================================
+   WIZARD FORM & STEPS
+======================================================= */
+.wizard-form {
+    width: 100%;
+}
+
+.wizard-step {
+    margin-bottom: var(--space-xl);
+}
+
+.wizard-step-hint {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+/* Wizard navigation buttons */
+.wizard-nav button {
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Primary actions: Next + Run */
+#wizardNextBtn,
+#runScriptBtn {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+#runScriptBtn {
+    font-size: 1rem;
+    padding: 0.7rem 1.4rem;
+}
+
+#wizardNextBtn:hover,
+#runScriptBtn:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+#wizardBackBtn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-soft);
+}
+
+#wizardNextBtn,
+#runScriptBtn {
+    background: var(--accent);
+    color: white;
+}
+
+
+
+/* =======================================================
+   FORM FIELDS
+======================================================= */
 .field {
     display: flex;
     flex-direction: column;
-    margin-bottom: 1rem;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
 }
 
 .field label {
+    font-weight: 600;
     font-size: 0.9rem;
-    margin-bottom: 0.3rem;
-    font-weight: 500;
 }
 
 .field input,
+.field textarea,
 .field select {
-    padding: 0.5rem 0.6rem;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    padding: 0.6rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-soft);
     font-size: 0.9rem;
 }
 
@@ -124,87 +264,90 @@ body {
     resize: vertical;
 }
 
-/* -------------------------------------------------------
-   Options Panel
-------------------------------------------------------- */
-.options-panel summary {
-    cursor: pointer;
+/* =======================================================
+   ADVANCED STEPS
+======================================================= */
+.advanced-steps {
+    margin-top: var(--space-md);
+}
+
+.advanced-steps label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-weight: 600;
 }
 
-.options-group {
-    margin-top: 1rem;
+.advanced-steps textarea {
+    width: 100%;
+    min-height: 120px;
+    font-family: Consolas, monospace;
 }
 
-.options-group h3 {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.options-group label {
+/* =======================================================
+   WIZARD NAVIGATION
+======================================================= */
+.wizard-nav {
     display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 0.4rem;
+    justify-content: flex-end;
+    /* all buttons align right */
+    gap: 0.75rem;
+    /* space between buttons */
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-soft);
 }
 
-/* -------------------------------------------------------
-   Primary Button
-------------------------------------------------------- */
+
+
+/* =======================================================
+   BUTTONS
+======================================================= */
 .button-primary {
-    margin-top: 1rem;
-    padding: 0.8rem 1.2rem;
-    background: #ff7f32;
-    color: #fff;
+    background: var(--accent);
+    color: #ffffff;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1.2rem;
     font-weight: 600;
     cursor: pointer;
 }
 
 .button-primary:hover {
-    background: #e86f28;
+    background: var(--accent-hover);
 }
 
-/* -------------------------------------------------------
-   Logs
-------------------------------------------------------- */
+/* =======================================================
+   EXECUTION / LOGS
+======================================================= */
+.execution-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
 .log-viewer {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e5e5e5;
-    padding: 1rem;
     height: 420px;
-    overflow-y: auto;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-soft);
     font-family: Consolas, monospace;
     font-size: 0.85rem;
-    line-height: 1.4;
-    white-space: normal;
+    overflow-y: auto;
 }
 
-
-/* -------------------------------------------------------
-   Modal (Advanced Steps Editor)
-------------------------------------------------------- */
-/* Override login modal rules for advanced modals */
-#advancedEditorModal.modal,
-#scriptRequirementsModal.modal,
-#videoViewerModal.modal {
+/* =======================================================
+   MODALS (ADVANCED EDITOR)
+======================================================= */
+.modal {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
-    transform: none;
-    top: 0;
-    left: 0;
-    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
 }
-
 
 .modal-overlay {
     position: absolute;
@@ -214,369 +357,20 @@ body {
 
 .modal-content {
     position: relative;
-    max-width: 1000px;
     width: 90vw;
-    max-height: 85vh;
-    margin: 5vh auto;
-    background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: column;
-}
-
-/* Header */
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.modal-header button {
-    border: none;
-    background: transparent;
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-
-/* Body layout */
-.modal-body {
-    display: flex;
-    grid-template-columns: 260px 1fr;
-    gap: 16px;
-    padding: 1rem;
-    overflow: hidden;
-    flex: 1;
-    min-height: 0;
-}
-
-/* Authoring panel */
-.advanced-authoring {
-    width: 320px;
-    /* or whatever feels right */
-    flex-shrink: 0;
-    overflow-y: auto;
-    max-height: 100%;
-    min-height: 0;
-}
-
-.advanced-templates {
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.advanced-templates label {
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.advanced-templates select {
-    width: 100%;
-    padding: 0.4rem;
-    margin-top: 0.4rem;
-}
-
-/* Actions */
-.advanced-actions strong {
-    font-size: 0.75rem;
-    color: #6b7280;
-    text-transform: uppercase;
-}
-
-.advanced-actions button {
-    display: block;
-    width: 100%;
-    padding: 0.5rem 0.6rem;
-    margin-top: 0.4rem;
-    text-align: left;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.advanced-actions button:hover {
-    background: #e5e7eb;
-}
-
-/* Editor */
-.editor-wrapper {
-    position: relative;
-    height: 100%;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    overflow: hidden;
-    /* ✅ CLIPS CONTENT */
-    background: #ffffff;
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    flex-direction: column;
-
-}
-
-#advancedEditorModal .modal-content {
+    max-width: 1000px;
     max-height: 90vh;
+    background: #ffffff;
+    border-radius: var(--radius-md);
     display: flex;
     flex-direction: column;
 }
 
-#advancedEditorModal .modal-body {
-    flex: 1;
-    min-height: 0;
-
-}
-
-#advancedEditorModal .modal-content {
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-}
-
-#advancedEditorModal .modal-body {
-    flex: 1;
-    overflow-y: auto;
-    min-height: 0;
-}
-
-#advancedEditorTextarea {
-    position: relative;
-    flex: 1;
-    /* ✅ Fills wrapper */
-    border: none;
-    outline: none;
-    padding: 0.75rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    background: transparent;
-    resize: none;
-    overflow-y: auto;
-}
-
-#advancedEditorTextarea:focus {
-    border-color: #ff7f32;
-    outline: none;
-}
-
-/* Footer */
-.modal-footer {
-    padding: 0.75rem 1.25rem;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: flex-end;
-    background: #fafafa;
-    background: linear-gradient(to top, #fafafa, #ffffff);
-}
-
-.modal-footer button {
-    padding: 0.5rem 1rem;
-    font-weight: 600;
-}
-
-#advancedEditorHighlight {
-    position: absolute;
-    inset: 0;
-    padding: 0.75rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    color: transparent;
-    pointer-events: none;
-    overflow-y: auto;
-}
-
-
-#advancedEditorHighlight .invalid-token {
-    pointer-events: auto;
-    /* ✅ re-enable clicks */
-    cursor: pointer;
-}
-
-
-.advanced-steps {
-    margin-top: 1rem;
-}
-
-.advanced-steps label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 0.4rem;
-}
-
-.advanced-steps textarea {
-    width: 90%;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.85rem;
-    line-height: 1.4;
-    padding: 0.5rem 0.6rem;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-    background: #fafafa;
-    resize: vertical;
-}
-
-#openAdvancedEditor {
-    margin-left: 0.4rem;
-    border: 1px solid #d1d5db;
-    background: #ffffff;
-    border-radius: 6px;
-    padding: 0.2rem 0.45rem;
-    cursor: pointer;
-    font-size: 0.8rem;
-}
-
-#openAdvancedEditor:hover {
-    background: #f3f4f6;
-}
-
-.advanced-tokens {
-    padding-top: 0.75rem;
-    border-top: 1px solid #e5e7eb;
-}
-
-.advanced-tokens strong {
-    font-size: 0.75rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 0.4rem;
-}
-
-.token-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-.token-list button {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-    background: rgba(251, 191, 36, 0.18);
-    border: 1px solid rgba(251, 191, 36, 0.4);
-    border-radius: 6px;
-    padding: 0.25rem 0.45rem;
-    cursor: pointer;
-}
-
-.token-list button:hover {
-    background: rgba(251, 191, 36, 0.3);
-}
-
-.advanced-help-panel {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 360px;
-    height: 100%;
-    background: #ffffff;
-    border-left: 1px solid #ddd;
-    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
-    padding: 12px;
-    overflow-y: auto;
-    z-index: 10;
-}
-
-.advanced-help-panel.hidden {
-    display: none;
-}
-
-.advanced-help-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-}
-
-.advanced-help-content h4 {
-    margin: 16px 0 4px;
-}
-
-.advanced-help-toggle {
-    margin-top: 6px;
-}
-
-.icon-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.advanced-help-toggle {
-    all: unset;
-    cursor: pointer;
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 6px;
-}
-
-.advanced-help-toggle:hover {
-    text-decoration: underline;
-    color: #333;
-}
-
-.advanced-help-icon {
-    all: unset;
-    cursor: pointer;
-    font-size: 14px;
-    color: #888;
-    padding: 2px 6px;
-    border-radius: 4px;
-    float: right;
-}
-
-.advanced-help-icon:hover {
-    background: #f0f0f0;
-    color: #333;
-}
-
-.advanced-help-toggle::before {
-    content: "ℹ ";
-    font-size: 11px;
-}
-
-.invalid-token {
-    background: rgba(239, 68, 68, 0.25);
-    /* soft red */
-    border-bottom: 2px dotted #ef4444;
-    cursor: pointer;
-}
-
-#advancedEditorHighlight {
-    margin: 0;
-    /* 🔑 THIS IS THE MISSING PIECE */
-}
-
-#advancedEditorHighlight {
-    z-index: 2;
-    /* ✅ ABOVE textarea */
-}
-
-#advancedEditorTextarea {
-    z-index: 1;
-    /* ✅ BELOW highlight */
-}
-
+/* =======================================================
+   STOP BUTTON
+======================================================= */
 .stop-run-btn {
     background: #f36c21;
-    /* Optum orange */
     color: white;
     border: none;
     padding: 14px 28px;
@@ -584,10 +378,80 @@ body {
     font-weight: 600;
     border-radius: 6px;
     cursor: pointer;
-    width: 60%;
-    max-width: 300px;
 }
 
 .stop-run-btn:hover {
     background: #d85f1d;
+}
+
+/* Markdown styling for description */
+#descriptionContent {
+    line-height: 1.6;
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+/* Headings */
+#descriptionContent h1 {
+    font-size: 1.4rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.6rem;
+}
+
+#descriptionContent h2 {
+    font-size: 1.15rem;
+    margin-top: 1.4rem;
+    margin-bottom: 0.4rem;
+}
+
+#descriptionContent h3 {
+    font-size: 1rem;
+    margin-top: 1.2rem;
+    margin-bottom: 0.3rem;
+}
+
+/* Paragraph spacing */
+#descriptionContent p {
+    margin: 0.4rem 0 0.8rem;
+}
+
+/* Lists */
+#descriptionContent ul {
+    padding-left: 1.2rem;
+    margin-bottom: 0.9rem;
+}
+
+#descriptionContent li {
+    margin-bottom: 0.3rem;
+}
+
+/* Horizontal rules (make them subtle) */
+#descriptionContent hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 1.2rem 0;
+}
+
+/* Bold text */
+#descriptionContent strong {
+    font-weight: 600;
+}
+
+.review-section {
+    margin-bottom: 1.2rem;
+}
+
+.review-section h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.review-section div {
+    background: #f8fafc;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
 }

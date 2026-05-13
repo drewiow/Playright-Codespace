@@ -1,23 +1,41 @@
-import { decryptEnv } from "../common/common.mjs";
+import fs from "fs";
+import { decryptEnv } from "./common.mjs";
 
-let initialized = false;
+export async function initExecution({ logger }) {
 
-export async function initExecution({ logger = console.log } = {}) {
-    if (initialized) return;
+    logger("🔧 initExecution starting");
 
-    if (process.env.ENV_ENC_PATH) {
-        if (!process.env.ENV_PASSPHRASE) {
-            throw new Error("ENV_PASSPHRASE missing for provided ENV_ENC_PATH");
-        }
+    const envPath = process.env.ENV_ENC_PATH;
+    const passphrase = process.env.ENV_PASSPHRASE;
 
-        await decryptEnv(
-            process.env.ENV_ENC_PATH,
-            process.env.ENV_PASSPHRASE
-        );
-    }
-    if (!process.env.USERNAME) throw new Error("USERNAME missing after decrypt");
-    if (!process.env.PASSWORD) throw new Error("PASSWORD missing after decrypt");
-    if (!process.env.SECRET_KEY) throw new Error("SECRET_KEY missing after decrypt");
+    if (!envPath) throw new Error("ENV_ENC_PATH missing");
+    if (!passphrase) throw new Error("ENV_PASSPHRASE missing");
 
-    initialized = true;
+    // ✅ read file
+    const encryptedBuffer = fs.readFileSync(envPath);
+
+    // ✅ decrypt
+    const decrypted = await decryptEnv(encryptedBuffer, passphrase);
+
+    // ✅ inject env
+    decrypted.split(/\r?\n/).forEach(line => {
+        const [key, ...rest] = line.split("=");
+        if (!key) return;
+
+        process.env[key.trim()] = rest.join("=").trim();
+    });
+
+    logger("🔍 ENV CHECK →");
+
+    const debugEnv = {
+        USERNAME: process.env.USERNAME,
+        PASSWORD: process.env.PASSWORD ? "****" : undefined,
+        SECRET_KEY: process.env.SECRET_KEY ? "****" : undefined,
+        ODSCODE: process.env.ODSCODE
+    };
+
+    logger(debugEnv);
+
+    logger("✅ Environment loaded");
+
 }

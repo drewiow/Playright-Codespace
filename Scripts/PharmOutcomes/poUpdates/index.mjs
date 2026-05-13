@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import fs from "fs";
+import fs from "node:fs";
 import path from "path";
 import { login, securityWord, setupContext } from "./helpers.mjs";
 import { fileURLToPath } from "url";

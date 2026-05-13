@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import fs from "fs";
+import fs from "node:fs";
 import path from "path";
 import { login, setupContext, loginCommissioner } from "./helpers.mjs";
 import dotenv from "dotenv";

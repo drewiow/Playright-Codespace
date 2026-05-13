@@ -18,6 +18,7 @@
     "express": "^5.2.1",
     "express-ejs-layouts": "^2.5.1",
     "fsp": "^0.1.2",
+    "marked": "^18.0.3",
     "multer": "^2.1.1",
     "otplib": "^10.2.3",
     "playwright": "^1.58.2"

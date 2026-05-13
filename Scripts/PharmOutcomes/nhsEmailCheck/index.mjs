@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";

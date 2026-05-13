@@ -1,6 +1,5 @@
-// Scripts/common/common.mjs
-import fsp from "fs/promises";
-import fs from "fs";
+import fsp from "node:fs/promises";
+import fs from "node:fs";
 import path from "path";
 import crypto from "crypto";
 import { chromium } from "playwright";
@@ -60,10 +59,8 @@ export async function encryptEnv(plaintext, password) {
     return Buffer.concat([salt, iv, tag, encrypted]);
 }
 
-export async function decryptEnv(encPath, password) {
+export function decryptEnv(data, password) {
     if (!password) throw new Error("Missing master password");
-
-    const data = await fsp.readFile(encPath);
 
     const salt = data.subarray(0, 16);
     const iv = data.subarray(16, 28);
@@ -78,23 +75,19 @@ export async function decryptEnv(encPath, password) {
         "sha256"
     );
 
-    const decipher = crypto.createDecipheriv(ALGO, key, iv);
+    const decipher = crypto.createDecipheriv(
+        ALGO,
+        key,
+        iv,
+        { authTagLength: 16 }
+    );
+
     decipher.setAuthTag(tag);
 
-    const decrypted = Buffer.concat([
+    return Buffer.concat([
         decipher.update(ciphertext),
         decipher.final()
     ]).toString("utf8");
-
-    // 🔥 NEW: parse .env content and load into process.env
-    decrypted.split(/\r?\n/).forEach(line => {
-        const [key, ...rest] = line.split("=");
-        if (!key) return;
-        const value = rest.join("=");
-        process.env[key.trim()] = value.trim();
-    });
-
-    return decrypted;
 }
 
 // -----------------------------
@@ -190,7 +183,8 @@ export async function createBrowserContext(options = {}) {
     const browser = await chromium.launch({
         headless: effectiveHeadless,
         slowMo: human ? intensity * 100 : 0,
-        devtools: devtools
+        devtools: devtools,
+        executablePath: "C:\\Users\\Drew.Clarke\\AppData\\Local\\ms-playwright\\chromium_1150\\chrome-win\\chrome.exe"
     });
 
     console.log("Browser launched version:", await browser.version());

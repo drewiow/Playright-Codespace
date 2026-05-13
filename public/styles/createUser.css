@@ -88,6 +88,82 @@ h1 {
     cursor: pointer;
 }
 
+.hidden {
+    display: none !important;
+}
+
+
 .link-button:hover {
     text-decoration: underline;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    padding: 1rem;
+    backdrop-filter: blur(2px);
+}
+
+.modal-card {
+    background: #fff;
+    padding: 1.5rem;
+    /* slightly tighter */
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    /* give more room for forms */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+
+    transform: translateY(10px);
+    opacity: 0;
+    transition: all 0.2s ease;
+
+}
+
+
+.modal:not(.hidden) .modal-card {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+
+/* Modal structure */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+
+
+/* Close button */
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #555;
+}
+
+.modal-close:hover {
+    color: #111;
 }

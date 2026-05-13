@@ -121,3 +121,15 @@
     background: #eee;
     margin: 6px 0;
 }
+
+/* =========================
+   Visibility Overrides
+========================= */
+
+.user-menu.hidden {
+    display: none !important;
+}
+
+.user-dropdown.hidden {
+    display: none !important;
+}

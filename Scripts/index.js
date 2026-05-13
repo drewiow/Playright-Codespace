@@ -5,8 +5,11 @@ const envFileInput = document.getElementById("envFile");
 const passphraseInput = document.getElementById("passphrase");
 const unlockBtn = document.getElementById("unlockBtn");
 const loginError = document.getElementById("loginError");
+const logoutBtn = document.getElementById("logoutBtn");
+let isAuthenticated = false;
 
-unlockBtn.addEventListener("click", async () => {
+
+logoutBtn.addEventListener("click", async () => {
     await fetch("/api/logout", {
         method: "POST",
         credentials: "include"
@@ -24,18 +27,23 @@ document.addEventListener("DOMContentLoaded", () => {
     checkAuth();
 });
 async function checkAuth() {
+    if (isAuthenticated) {
+        return;
+    }
+
     try {
         const res = await fetch("/api/session/me", {
             credentials: "include"
         });
 
         if (!res.ok) {
-            // Not logged in → show login modal
             showLoginModal();
             return null;
         }
 
         const user = await res.json();
+        isAuthenticated = true;
+
         hideLoginModal();
         updateUserMenu(user);
         loadProducts();
@@ -91,8 +99,11 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             return;
         }
 
-        // Success
-        window.location.href = "/";
+        isAuthenticated = true;
+        hideLoginModal();
+        updateUserMenu(await res.json());
+        loadProducts();
+
 
     } catch (err) {
         console.error("Login error:", err);
@@ -102,6 +113,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 });
 // Show modal
 function showLoginModal() {
+    console.log("Showing login modal");
     loginModal.classList.remove("hidden");
     loginBackdrop.classList.remove("hidden");
     document.body.style.overflow = "hidden";
@@ -109,6 +121,7 @@ function showLoginModal() {
 
 // Hide modal
 function hideLoginModal() {
+    console.log("Hiding login modal");
     loginModal.classList.add("hidden");
     loginBackdrop.classList.add("hidden");
     document.body.style.overflow = "";
@@ -126,20 +139,37 @@ function setUserAvatar(name) {
     avatar.textContent = initials;
 }
 
-function updateUserMenu(user) {
+function updateUserMenu(data) {
     const menu = document.getElementById("userMenu");
     const label = document.getElementById("userNameLabel");
-    setUserAvatar(user.user.displayName);
-    label.textContent = `${user.user.displayName} (${user.user.roles})`;
+
+    // Normalize shape
+    const user = data.user ?? data;
+
+    setUserAvatar(user.displayName);
+    label.textContent = `${user.displayName} (${user.roles})`;
+
     menu.classList.remove("hidden");
 }
 
-document.getElementById("userDisplay").addEventListener("click", () => {
-    const dropdown = document.getElementById("userDropdown");
-    const display = document.getElementById("userDisplay");
+document.addEventListener("click", () => {
+    if (!userDropdown || !userDisplay) return;
 
-    dropdown.classList.toggle("hidden");
-    display.classList.toggle("open");
+    userDropdown.classList.add("hidden");
+    userDisplay.classList.remove("open");
+});
+
+userDropdown.addEventListener("click", (e) => {
+    e.stopPropagation(); // allow click, but still close
+    userDropdown.classList.add("hidden");
+    userDisplay.classList.remove("open");
+});
+
+userDisplay.addEventListener("click", (e) => {
+    e.stopPropagation(); // 🔑 this prevents the document handler
+
+    userDropdown.classList.toggle("hidden");
+    userDisplay.classList.toggle("open");
 });
 
 // Toggle script info popovers

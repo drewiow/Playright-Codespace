@@ -61,20 +61,6 @@
             "advanced": false
         },
         {
-            "id": "CheckCovidSiteExists",
-            "title": "Check Covid Site Exists",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will take an ODS code and log into every region to see if it exists, it will log the region(s) it's found on",
-            "icon": "🩺",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
             "id": "CovidSiteCount",
             "title": "Covid Site Count",
             "requiresCsv": false,
@@ -225,20 +211,6 @@
             "descriptionFile": "description.md",
             "description": "This will take all details needed for a system announcement to be added to selected regions",
             "icon": "📣",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "checkodsforcovsite",
-            "title": "Check ODS for COV Site",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will loop through a CSV of ODS COdes and find out if they have a COV site and report on what region they are on.",
-            "icon": "🗺️",
             "animation": "pulse",
             "advanced": false
         }

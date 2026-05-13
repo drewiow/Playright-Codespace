@@ -1,9 +1,9 @@
-document.addEventListener("DOMContentLoaded", () => {
-    initRunner();
-});
+import { marked } from "/vendor/marked/lib/marked.esm.js";
 
 const artifactList = document.getElementById("artifactList");
 const logContainer = document.getElementById("logContainer");
+const runnerRoot = document.getElementById("runnerRoot");
+
 
 // Parse URL path: /run/<product>/<scriptId>
 const parts = window.location.pathname.split("/");
@@ -14,94 +14,361 @@ if (!product || !scriptId) {
     console.error("Missing product or script in URL", parts);
 }
 
+
+document.addEventListener("DOMContentLoaded", () => {
+    initRunner();
+    runnerRoot.classList.add("wizard-mode");
+});
+
+
 let lastLogLength = 0;
 
-function startLogStream(product, scriptId) {
-    const logContainer = document.getElementById("logContainer");
+let wizardState = {
+    stepIndex: 0,
+    steps: [],
 
-    const source = new EventSource(`/api/run/${product}/${scriptId}/logs`);
+    env: { ready: false },
+    csv: { ready: false },
+    options: { ready: true },
+    advanced: { ready: true },
+};
 
-    // LOG EVENTS
-    source.addEventListener("log", (event) => {
-        let entry;
+let wizardStarted = false;
 
-        try {
-            entry = JSON.parse(event.data);
-        } catch {
-            entry = { time: new Date().toISOString(), line: event.data, stream: "stdout" };
-        }
-        if (!entry.line) return;
+const WIZARD_STEP_META = {
+    env: {
+        title: "Unlock access",
+        subtitle: "Provide your encrypted environment file and passphrase to continue"
+    },
 
-        const timestamp = new Date(entry.time).toLocaleTimeString();
-        const message = entry.line;
+    csv: {
+        title: "Select data",
+        subtitle: "Choose the CSV file that defines the records this script will process"
+    },
 
-        const div = document.createElement("div");
-        div.className = `log-line log-${entry.stream}`;
+    inputs: {
+        title: "Script inputs",
+        subtitle: "Enter the information required by this script to run correctly"
+    },
 
-        div.innerHTML = `
-            <span class="log-timestamp">${timestamp}</span>
-            <span class="log-message">${message}</span>
-        `;
+    actions: {
+        title: "Automation steps",
+        subtitle: "Define the actions this script should perform"
+    },
 
-        logContainer.appendChild(div);
+    behaviour: {
+        title: "Run behaviour",
+        subtitle: "Control how the automation behaves while it runs"
+    },
 
-        if (document.getElementById("autoScrollLogs").checked) {
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
+    review: {
+        title: "Review & run",
+        subtitle: "Check your selections before starting the automation"
+    }
+};
+
+document
+    .getElementById("startWizardBtn")
+    .addEventListener("click", () => {
+        wizardStarted = true;
+        console.log("[Wizard] Started");
+        document.getElementById("scriptOverview").classList.add("hidden");
+        document.getElementById("wizardContainer").classList.remove("hidden");
+
+        document
+            .getElementById("runnerRoot")
+            .classList.add("wizard-mode");
+
+        wizardState.stepIndex = 0;
+        renderWizardStep();
     });
 
-    source.addEventListener("run:finished", () => {
-        console.log("Run finished — hiding Stop button");
-        document.getElementById("stopRunContainer").style.display = "none";
-        source.close();
-    });
+function renderWizardHeader() {
+    const headerEl = document.getElementById("wizardHeader");
+    if (!headerEl) return;
 
-    source.onerror = () => {
-        console.warn("Log stream disconnected");
-        source.close();
-    };
+    const stepKey = getCurrentStep();
+    const stepMeta = WIZARD_STEP_META[stepKey];
+
+    const stepIndex = wizardState.stepIndex + 1;
+    const totalSteps = wizardState.steps.length;
+
+    headerEl.innerHTML = `
+        <div class="wizard-header-inner">
+            <div class="wizard-progress">
+                Step ${stepIndex} of ${totalSteps}
+            </div>
+            <div class="wizard-title">
+                ${stepMeta?.title ?? stepKey}
+            </div>
+            <div class="wizard-subtitle">
+                ${stepMeta?.subtitle ?? ""}
+            </div>
+        </div>
+    `;
 }
 
-async function loadScriptMeta(product, script) {
-    const res = await fetch(`/Scripts/${product}/${script}/meta.json`);
+function goToNextStep() {
+    const step = getCurrentStep();
+
+    if (step === "inputs" && !areInputsValid()) {
+        alert("Please complete all required inputs.");
+        return;
+    }
+
+    if (getCurrentStep() === "inputs" && !areInputsValid()) {
+        alert("Please complete all required inputs before continuing.");
+        return;
+    }
+
+    wizardState.stepIndex++;
+    renderWizardStep();
+}
+
+
+function goToPreviousStep() {
+    if (wizardState.stepIndex > 0) {
+        wizardState.stepIndex--;
+        renderWizardStep();
+    }
+}
+
+const backBtn = document.getElementById("wizardBackBtn");
+if (backBtn) {
+    backBtn.addEventListener("click", goToPreviousStep);
+}
+
+const nextBtn = document.getElementById("wizardNextBtn");
+if (nextBtn) {
+    nextBtn.addEventListener("click", goToNextStep);
+}
+
+
+function renderWizardStep() {
+    if (!wizardStarted) return;
+    const step = getCurrentStep();
+    console.log("[Wizard] Rendering step:", step);
+
+    // Panels
+    const envPanel = document.getElementById("envPanel");
+    const csvPanel = document.getElementById("csvPanel");
+    const advancedPanel = document.getElementById("advancedPanel");
+    const optionsPanel = document.querySelector(".options-panel");
+    const inputsPanel = document.getElementById("inputsPanel");
+    const actionsPanel = document.getElementById("actionsPanel");
+    const behaviourPanel = document.getElementById("behaviourPanel");
+    const reviewPanel = document.getElementById("reviewPanel");
+
+    // Navigation buttons
+    const backBtn = document.getElementById("wizardBackBtn");
+    const nextBtn = document.getElementById("wizardNextBtn");
+    const runBtn = document.getElementById("runScriptBtn");
+
+    // ---- Hide all panels first ----
+    if (envPanel) envPanel.style.display = "none";
+    if (csvPanel) csvPanel.style.display = "none";
+    if (advancedPanel) advancedPanel.style.display = "none";
+    if (optionsPanel) optionsPanel.style.display = "none";
+    if (inputsPanel) inputsPanel.style.display = "none";
+    if (actionsPanel) actionsPanel.style.display = "none";
+    if (behaviourPanel) behaviourPanel.style.display = "none";
+    if (reviewPanel) reviewPanel.style.display = "none";
+
+    renderWizardHeader();
+
+    // ---- Step-specific panels ----
+    if (step === "env") {
+        if (envPanel) envPanel.style.display = "";
+    }
+
+    if (step === "csv") {
+        if (csvPanel) csvPanel.style.display = "";
+    }
+
+    if (step === "inputs") {
+        if (inputsPanel && window.hasScriptInputs) {
+            inputsPanel.style.display = "";
+        }
+    }
+
+    if (step === "options") {
+        if (optionsPanel) optionsPanel.style.display = "";
+        if (advancedPanel) advancedPanel.style.display = "";
+    }
+
+    if (step === "actions") {
+        if (actionsPanel) actionsPanel.style.display = "";
+    }
+
+    if (step === "behaviour") {
+        if (behaviourPanel) behaviourPanel.style.display = "";
+    }
+
+    if (step === "review") {
+        renderReview();
+
+        if (envPanel) envPanel.style.display = "none";
+        if (csvPanel) csvPanel.style.display = "none";
+        if (optionsPanel) optionsPanel.style.display = "none";
+        if (advancedPanel) advancedPanel.style.display = "none";
+        if (reviewPanel) reviewPanel.style.display = "";
+    }
+
+    // ---- Navigation visibility ----
+    if (backBtn) {
+        backBtn.style.display =
+            wizardState.stepIndex === 0 ? "none" : "";
+    }
+
+    if (nextBtn) {
+        nextBtn.style.display =
+            step === "review" ? "none" : "";
+    }
+
+    if (runBtn) {
+        runBtn.style.display =
+            step === "review" ? "" : "none";
+    }
+}
+
+function areInputsValid() {
+    if (!window.hasScriptInputs) return true;
+
+    const controls = document.querySelectorAll(
+        "#scriptInputs input, #scriptInputs select, #scriptInputs textarea"
+    );
+
+    return Array.from(controls).every(el => {
+        if (!el.required) return true;
+        return el.value && el.value.trim() !== "";
+    });
+}
+
+async function loadScriptMeta(product, scriptId) {
+    const res = await fetch(`/scripts/${product}/${scriptId}/meta.json`);
     const meta = await res.json();
 
+    window.currentScriptMeta = meta;
+    window.hasScriptInputs =
+        Array.isArray(meta.inputs) && meta.inputs.length > 0;
+
+    renderScriptInputs(meta);
+    maybeInsertInputsStep();
+}
+
+function renderScriptInputs(meta) {
     const container = document.getElementById("scriptInputs");
-    container.innerHTML = ""; // keep the outer .field from HTML
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    if (!Array.isArray(meta.inputs) || meta.inputs.length === 0) {
+        return;
+    }
 
     meta.inputs.forEach(input => {
-        // this is the inner row, not the main field wrapper
-        const row = document.createElement("div");
-        row.className = "field";
+        const field = document.createElement("div");
+        field.className = "field";
 
         const label = document.createElement("label");
         label.textContent = input.label;
+        label.setAttribute("for", `input-${input.key}`);
 
-        let field;
+        let control;
 
-        if (input.type === "select") {
-            field = document.createElement("select");
-            input.options.forEach(opt => {
-                const o = document.createElement("option");
-                o.value = opt;
-                o.textContent = opt;
-                field.appendChild(o);
-            });
-        } else {
-            field = document.createElement("input");
-            field.type = input.type;
-            field.placeholder = input.placeholder || "";
+        switch (input.type) {
+            case "select":
+                control = document.createElement("select");
+                if (Array.isArray(input.options)) {
+                    input.options.forEach(opt => {
+                        const option = document.createElement("option");
+                        option.value = opt.value ?? opt;
+                        option.textContent = opt.label ?? opt;
+                        control.appendChild(option);
+                    });
+                }
+                break;
+
+            case "textarea":
+                control = document.createElement("textarea");
+                break;
+
+            default:
+                control = document.createElement("input");
+                control.type = input.type || "text";
         }
 
-        field.id = `input-${input.key}`;
-        field.name = input.key; // so it posts with the form
+        control.id = `input-${input.key}`;
+        control.name = input.key;
 
-        row.appendChild(label);
-        row.appendChild(field);
-        container.appendChild(row);
+        if (input.placeholder) {
+            control.placeholder = input.placeholder;
+        }
+
+        if (input.required) {
+            control.required = true;
+        }
+
+        field.appendChild(label);
+        field.appendChild(control);
+        container.appendChild(field);
     });
+}
 
-    window.currentScriptMeta = meta;
+function maybeInsertInputsStep() {
+    if (!window.hasScriptInputs) return;
+
+    const steps = wizardState.steps;
+
+    // Prefer inserting before actions, otherwise before review
+    const insertIndex = steps.includes("actions")
+        ? steps.indexOf("actions")
+        : steps.indexOf("review");
+
+    if (!steps.includes("inputs")) {
+        steps.splice(insertIndex, 0, "inputs");
+    }
+}
+
+function getCurrentStep() {
+    return wizardState.steps[wizardState.stepIndex];
+}
+
+function getWizardSteps(script) {
+    const steps = [];
+
+    // 1. Credentials / Unlock
+    if (script.requiresEnvFile || script.requiresPassword) {
+        steps.push("env");
+    }
+
+    // 2. Data source
+    if (script.requiresCsv) {
+        steps.push("csv");
+    }
+
+    // 3. Script-specific inputs (manifest-driven)
+    // These define WHAT the script operates on
+    if (script.inputs && script.inputs.length > 0) {
+        steps.push("inputs");
+    }
+
+    // 4. Automation / Actions
+    // Defines WHAT actions are performed per row or run
+    if (script.actions || script.advanced) {
+        steps.push("actions");
+    }
+
+    // 5. Run behaviour / Execution options
+    // Defines HOW the automation behaves (safety, visibility, speed)
+    if (script.showOptionsPanel) {
+        steps.push("behaviour");
+    }
+
+    // 6. Final confirmation
+    steps.push("review");
+
+    return steps;
 }
 
 async function initRunner() {
@@ -120,11 +387,20 @@ async function initRunner() {
         console.error("Missing product or script in URL", parts);
     }
 
-    startLogStream(product, scriptId);
+    //startLogStream(product, scriptId);
 
     try {
         const manifest = await loadManifest(product);
         const script = manifest.scripts.find(s => s.id === scriptId);
+
+        window.currentScript = script;
+        wizardState.steps = getWizardSteps(script);
+        wizardState.stepIndex = 0;
+
+        console.log("[Wizard] Steps:", wizardState.steps);
+        console.log("[Wizard] Current step:", getCurrentStep());
+
+
 
         if (!script) {
             console.error("Script not found in manifest:", scriptId);
@@ -142,38 +418,19 @@ async function initRunner() {
         setupRunForm(product, script);
         SetupAdvancedUI();
         await loadManifest(product);
+        renderWizardStep();
 
     } catch (err) {
         console.error("Runner init failed:", err);
     }
 }
 
+
 function SetupAdvancedUI() {
     console.log("[AdvancedUI] setup running");
 
     const inlineTextarea = document.getElementById("advancedSteps");
-    const modal = document.getElementById("advancedEditorModal");
-    const modalTextarea = document.getElementById("advancedEditorTextarea");
 
-    if (!inlineTextarea || !modal || !modalTextarea) return;
-
-    const openBtn = document.getElementById("openAdvancedEditor");
-    const closeBtn = document.getElementById("closeAdvancedEditor");
-    const applyBtn = document.getElementById("applyAdvancedSteps");
-
-    openBtn?.addEventListener("click", () => {
-        modalTextarea.value = inlineTextarea.value;
-        modal.classList.remove("hidden");
-    });
-
-    closeBtn?.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
-
-    applyBtn?.addEventListener("click", () => {
-        inlineTextarea.value = modalTextarea.value;
-        modal.classList.add("hidden");
-    });
 
     function initAdvancedHelp() {
         const panel = document.getElementById("advanced-help-panel");
@@ -371,7 +628,7 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
     renderAdvancedActions(
         ADVANCED_ACTIONS,
         actionsContainer,
-        modalTextarea
+        inlineTextarea
     );
 
     function renderTokenPanel(headers) {
@@ -389,7 +646,7 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
 
             btn.addEventListener("click", () => {
                 insertSteps(
-                    modalTextarea,
+                    inlineTextarea,
                     `{{${header}}} `
                 );
             });
@@ -418,17 +675,18 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
 
     console.log("[CSV] file", csvFileInput);
 
-    csvFileInput.addEventListener("change", (e) => {
-        console.log("[CSV] file selected", e.target.files);
-        handleCsvSelected(e);
-    });
+    if (csvFileInput) {
+        csvFileInput.addEventListener("change", (e) => {
+            handleCsvSelected(e);
+        });
+    }
 
     document.querySelectorAll("[data-action]").forEach(btn => {
         btn.addEventListener("click", () => {
             const action = ADVANCED_ACTIONS[btn.dataset.action];
             if (!action) return;
 
-            insertSteps(modalTextarea, action.steps);
+            insertSteps(inlineTextarea, action.steps);
         });
     });
 
@@ -436,30 +694,11 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
         const preset = ADVANCED_PRESETS.find(p => p.id === presetSelect.value);
         if (!preset) return;
 
-        modalTextarea.value = preset.steps;
+        inlineTextarea.value = preset.steps;
         presetSelect.value = "";
     });
 
     const tokenListEl = document.getElementById("advancedTokenList");
-
-    function renderTokenPanel(headers) {
-        tokenListEl.innerHTML = "";
-
-        headers.forEach(header => {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.textContent = `{{${header}}} `;
-
-            btn.addEventListener("click", () => {
-                insertSteps(
-                    modalTextarea,
-                    `{{${header}}} `
-                );
-            });
-
-            tokenListEl.appendChild(btn);
-        });
-    }
 
     let csvHeaders = [];
     const TOKEN_REGEX = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
@@ -498,7 +737,7 @@ type input[name="inMESHMailboxPasswords[]"]: first - of - type {{MESH_PASSWORD}}
         });
     }
 
-    const textarea = document.getElementById("advancedEditorTextarea");
+    const textarea = inlineTextarea
     const highlight = document.getElementById("advancedEditorHighlight");
 
     document.addEventListener("click", (e) => {
@@ -684,11 +923,68 @@ function populateHeader(manifest, script) {
     titleEl.textContent = script.title || script.name || script.id;
 }
 
+function renderReview() {
+    document.getElementById("reviewScriptName").textContent =
+        currentScriptMeta?.title || scriptId;
+
+    const script = window.currentScript;
+
+    // Inputs
+    const inputsEl = document.getElementById("reviewInputs");
+    inputsEl.innerHTML = "";
+
+    if (window.currentScriptMeta?.inputs) {
+        window.currentScriptMeta.inputs.forEach(input => {
+            const el = document.getElementById(`input-${input.key}`);
+            const value = el ? el.value : "—";
+
+            const row = document.createElement("div");
+            row.textContent = `${input.label}: ${value}`;
+            inputsEl.appendChild(row);
+        });
+    }
+
+    const optionsSection = document.getElementById("reviewOptionsSection");
+    const optionsEl = document.getElementById("reviewOptions");
+
+    if (script?.showOptionsPanel) {
+        optionsSection.style.display = "";
+
+        const content = [];
+
+        const humanModeEl = document.getElementById("humanMode");
+        if (humanModeEl?.checked) content.push("Human-like mode enabled");
+        if (humanModeEl?.checked) {
+            const humanIntensityEl = document.getElementById("humanIntensity");
+            if (humanIntensityEl && humanIntensityEl.value) {
+                content.push(`Human-like interactions: ${humanIntensityEl.value || "default"}`);
+            }
+        }
+        const showBrowserEl = document.getElementById("showBrowser");
+        if (showBrowserEl?.checked) content.push("Browser visible");
+
+        const recordVideoEl = document.getElementById("recordVideo");
+        if (recordVideoEl?.checked) content.push("Recording video");
+
+        const recordTraceEl = document.getElementById("recordTrace");
+        if (recordTraceEl?.checked) content.push("Recording trace");
+
+        const dryRunEl = document.getElementById("dryRun");
+        if (dryRunEl?.checked) content.push("Dry run enabled");
+
+        optionsEl.textContent =
+            content.length > 0 ? content.join(", ") : "Default behaviour";
+
+    } else {
+        optionsSection.style.display = "none";
+    }
+
+}
+
+
 async function populateDescription(product, script) {
     const descEl = document.getElementById("descriptionContent");
 
-
-    // Otherwise try to load description.md
     try {
         const res = await fetch(`/api/products/${product}/scripts/${script.id}/description`);
         if (res.ok) {
@@ -697,133 +993,173 @@ async function populateDescription(product, script) {
         } else {
             descEl.textContent = "No description available.";
         }
-    } catch {
-        descEl.textContent = "No description available.";
+    } catch (err) {
+        console.error("Failed to load description:", err);
+        descEl.textContent = "Failed to load description.";
     }
 }
 
+async function startRun(product, script, formData) {
+    const status = document.getElementById("runStatus");
+
+    if (status) {
+        status.textContent = "Starting run…";
+    }
+
+    try {
+        const res = await fetch(
+            `/api/run/${encodeURIComponent(product)}/${encodeURIComponent(script.id)}`,
+            {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            }
+        );
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            console.error("Run start error:", data);
+
+            if (status) {
+                status.textContent = data.error || "Run failed to start.";
+            }
+
+            // Hide stop button — run never started
+            document.getElementById("stopRunContainer")?.classList.add("hidden");
+            return;
+        }
+
+        if (status) {
+            status.textContent = data.message || "Run started.";
+        }
+
+        if (data.runId) {
+            window.currentRunId = data.runId;
+
+            // Show stop button
+            document.getElementById("stopRunContainer")?.classList.remove("hidden");
+        }
+
+    } catch (err) {
+        console.error("Run failed:", err);
+
+        if (status) {
+            status.textContent = "Run failed.";
+        }
+
+        document.getElementById("stopRunContainer")?.classList.add("hidden");
+    } finally {
+        // Clear password after run
+        const passEl = document.getElementById("decryptPassword");
+        if (passEl) passEl.value = "";
+    }
+}
+
+function enterExecutionMode() {
+    console.log("Entering execution mode");
+
+    const root = document.getElementById("runnerRoot");
+    const wizard = document.getElementById("wizardContainer");
+    const execution = document.getElementById("executionContainer");
+
+    // Ensure layout switches to execution view if needed
+    if (root) {
+        root.classList.remove("wizard-mode");
+    }
+
+    // Hide wizard UI
+    if (wizard) {
+        wizard.classList.add("hidden");
+    }
+
+    // Show execution/logs UI
+    if (execution) {
+        execution.classList.remove("hidden");
+    }
+}
+
+
 function setupRunForm(product, script) {
     console.log("setupRunForm CALLED");
-    const form = document.getElementById("run-form");
 
-    // Gather UI values
+    const form = document.getElementById("run-form");
+    if (!form) {
+        console.warn("run-form not found");
+        return;
+    }
+
     const envFileInput = document.getElementById("runnerEnvFile");
     const csvFileInput = document.getElementById("csvFile");
     const advancedStepsEl = document.getElementById("advancedSteps");
 
-    document.getElementById("stopRunButton").addEventListener("click", async () => {
-        if (!currentRunId) return;
+    const stopRunButton = document.getElementById("stopRunButton");
+    if (stopRunButton) {
+        stopRunButton.addEventListener("click", async () => {
+            if (!currentRunId) return;
 
-        const btn = document.getElementById("stopRunButton");
-        btn.disabled = true;
-        btn.textContent = "Stopping…";
+            stopRunButton.disabled = true;
+            stopRunButton.textContent = "Stopping…";
 
-        await fetch(`/api/run/${currentRunId}/stop`, {
-            method: "POST",
-            credentials: "include"
+            await fetch(`/api/run/${currentRunId}/stop`, {
+                method: "POST",
+                credentials: "include"
+            });
+
+            stopRunButton.textContent = "Stopping…";
         });
-
-        // UI feedback
-        btn.textContent = "Stopping…";
-    });
+    } else {
+        console.warn("stopRunButton not present (expected before execution)");
+    }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const options = {
-            humanMode: document.getElementById("humanMode").checked,
-            humanIntensity: document.getElementById("humanIntensity").value,
-            showBrowser: document.getElementById("showBrowser").checked,
-            recordVideo: document.getElementById("recordVideo").checked,
-            recordTrace: document.getElementById("recordTrace").checked,
-            autoScrollLogs: document.getElementById("autoScrollLogs").checked,
-            clearLogsOnRun: document.getElementById("clearLogsOnRun").checked,
-            dryRun: document.getElementById("dryRunCheckbox").checked,
-        };
+        enterExecutionMode();
 
-        console.log("envFileInput:", envFileInput);
-        console.log("envFileInput.files:", envFileInput?.files);
+        const options = currentScriptMeta?.showOptionsPanel
+            ? {
+                humanMode: document.getElementById("humanMode")?.checked ?? false,
+                humanIntensity: document.getElementById("humanIntensity")?.value,
+                showBrowser: document.getElementById("showBrowser")?.checked ?? false,
+                recordVideo: document.getElementById("recordVideo")?.checked ?? false,
+                recordTrace: document.getElementById("recordTrace")?.checked ?? false,
+                autoScrollLogs: true,
+                clearLogsOnRun: document.getElementById("clearLogsOnRun")?.checked ?? false,
+                dryRun: document.getElementById("dryRunCheckbox")?.checked ?? true,
+            } : { autoScrollLogs: true };
 
-        const status = document.getElementById("runStatus");
-        status.textContent = "Starting run…";
-
-        // Build FormData to match server expectations:
-        // - envFile => uploaded encrypted env blob
-        // - passphrase => decrypt passphrase (optional depending on script)
-        // - csvFile => optional CSV input
-        // - options => JSON string
         const formData = new FormData();
 
-        if (script.advanced === true && advancedStepsEl?.value.trim()) {
-            formData.append(
-                "advancedSteps",
-                advancedStepsEl.value.trim()
-            );
+        if (script.advanced && advancedStepsEl?.value.trim()) {
+            formData.append("advancedSteps", advancedStepsEl.value.trim());
         }
 
-        if (envFileInput && envFileInput.files && envFileInput.files.length > 0) {
+        if (envFileInput?.files?.length) {
             formData.append("envFile", envFileInput.files[0]);
         }
 
-        if (csvFileInput && csvFileInput.files && csvFileInput.files.length > 0) {
+        if (csvFileInput?.files?.length) {
             formData.append("csvFile", csvFileInput.files[0]);
         }
 
-
-        const passphrase =
-            document.getElementById("decryptPassword")?.value || "";
-
+        const passphrase = document.getElementById("decryptPassword")?.value;
         if (passphrase) {
             formData.append("passphrase", passphrase);
         }
 
         formData.append("options", JSON.stringify(options));
 
-        // Add dynamic inputs from script meta
-        if (window.currentScriptMeta && Array.isArray(window.currentScriptMeta.inputs)) {
+        if (window.currentScriptMeta?.inputs) {
             window.currentScriptMeta.inputs.forEach(input => {
                 const el = document.getElementById(`input-${input.key}`);
-                const value = el ? el.value : "";
-                formData.append(input.key, value);
-            });
-        }
-
-        try {
-            const res = await fetch(`/api/run/${encodeURIComponent(product)}/${encodeURIComponent(script.id)}`, {
-                method: "POST",
-                body: formData,
-                credentials: "include"
-            });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (!res.ok) {
-                status.textContent = data.error || "Run failed to start.";
-                console.error("Run start error:", data);
-
-                // Hide stop button because run never started
-                document.getElementById("stopRunContainer").style.display = "none";
-            } else {
-                status.textContent = data.message || "Run started.";
-
-                if (data.runId) {
-                    window.currentRunId = data.runId;
-
-                    // SHOW stop button only when run actually starts
-                    document.getElementById("stopRunContainer").style.display = "block";
+                if (el) {
+                    formData.append(input.key, el.value);
                 }
-            }
-        } catch (err) {
-            console.error("Run failed:", err);
-            status.textContent = "Run failed.";
-
-            // Hide stop button because run never started
-            document.getElementById("stopRunContainer").style.display = "none";
-        } finally {
-            // Clear sensitive input only
-            const passEl = document.getElementById("decryptPassword");
-            if (passEl) passEl.value = "";
+            });
         }
+
+        await startRun(product, script, formData);
     });
 }
 

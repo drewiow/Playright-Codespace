@@ -41,6 +41,42 @@ function handleFormSubmit(e) {
 
     openFinalizeModal();
 }
+document.getElementById("loadDetailsBtn").addEventListener("click", async () => {
+    const file = document.getElementById("existingEnvFile").files[0];
+    const passphrase = document.getElementById("existingPassphrase").value;
+
+    if (!file || !passphrase) {
+        alert("Please provide file and passphrase");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("envFile", file);
+    formData.append("passphrase", passphrase);
+
+    const res = await fetch("/api/env/decrypt", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        alert("Failed to decrypt file");
+        return;
+    }
+
+    populateForm(data);
+});
+
+function populateForm(data) {
+    document.getElementById("username").value = data.USERNAME || "";
+    document.getElementById("password").value = data.PASSWORD || "";
+    document.getElementById("secretKey").value = data.SECRET_KEY || "";
+    document.getElementById("userId").value = data.USER_ID || "";
+    document.getElementById("userEmail").value = data.USER_EMAIL || "";
+    document.getElementById("userDisplayName").value = data.USER_DISPLAY_NAME || "";
+}
 
 // -----------------------------------
 // Step 2: Confirm → call API + download
@@ -157,6 +193,10 @@ function showSuccessState({ userName, fileName }) {
     document.getElementById("successUserName").textContent = userName;
     document.getElementById("successFileName").textContent = fileName;
 }
+
+document.getElementById("closeEditSection")?.addEventListener("click", () => {
+    editSection.classList.add("hidden");
+});
 
 // -----------------------------------
 // Download Handling

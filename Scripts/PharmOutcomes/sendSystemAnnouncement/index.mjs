@@ -1,6 +1,6 @@
 import { fileURLToPath } from "url";
 import path from "path";
-import fs from "fs";
+import fs from "node:fs";
 import process from "process";
 import { login, loginCommissioner, setupContext } from "../helpers.mjs";
 

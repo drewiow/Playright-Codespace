@@ -13,8 +13,6 @@ Frontend should not care about queuingThe backend may queue internally
 The UI only cares that a run has started
 
 
-
-
 Execution Model
 
 Preferred log transport: Server‑Sent Events (SSE) 
@@ -24,9 +22,6 @@ No client polling loops
 One log stream per run
 Polling modelPresent only in legacy code (app.js)
 Will be removed over time
-
-
-
 
 Script Configuration
 
@@ -48,9 +43,6 @@ const state = {
   runId,
   meta
 };
-
-
-
 
 UI Responsibilities
 
@@ -101,9 +93,6 @@ Legacy Code
 app.jsRepresents the old queued/polling runner
 Considered legacy
 To be removed once functionality is migrated
-
-
-
 
 Refactor Log
 Add an entry every time a refactor step is completed.
@@ -230,3 +219,112 @@ Provides immediate feedback for common authoring mistakes (typos, missing CSV co
 Keeps execution semantics unchanged and predictable.
 Reinforces the mental model that Advanced Steps resolve against CSV row data.
 Aligns with the principle that the runner UI owns authoring UX while the backend remains deterministic.
+
+Decision: Wizard-style runner UI
+
+The runner UI presents script execution as a sequential wizard:
+
+Env unlock
+CSV selection & token validation
+Run configuration
+Review & execute
+
+
+This is a UI-only affordance.
+Backend execution semantics remain unchanged.
+Power users may bypass the wizard via an advanced mode.
+
+2026‑05‑11
+Decision: Introduce a wizard‑based configuration flow for script execution
+Context
+The original runner UI exposed all inputs, options, and logs simultaneously, requiring users to understand execution semantics up‑front. This created unnecessary cognitive load, especially for less frequent or less advanced users.
+Decision
+Introduce a wizard‑based UI flow that guides users through script configuration in explicit steps before execution begins.
+The wizard is a UI‑only affordance. Backend execution semantics, payload shape, and runner contracts remain unchanged.
+
+Wizard Model
+The runner UI operates in two distinct UI modes:
+1. Wizard (Configuration) Mode
+
+The wizard owns the page visually.
+Users are guided through a linear sequence of steps:
+
+Env / Unlock – supply encrypted env file and passphrase
+CSV – supply CSV data (when required)
+Options – configure run behaviour and advanced steps
+Review – final confirmation before execution
+
+
+Navigation is explicit via Back / Next / Run controls.
+Logs are completely hidden in this mode.
+The layout is single‑column, form‑focused, and visually flattened to reduce “dashboard” affordances.
+
+2. Execution Mode
+
+Entered only when the user clicks Run.
+Wizard UI is removed from view.
+Logs become the primary focus of the page.
+Execution progress, stop controls, and artifacts are displayed.
+The UI shifts back to a dashboard‑style layout.
+
+This mode switch is explicit and intentional, reinforcing the mental model:
+
+Configure → Commit → Observe
+
+
+Manifest‑Driven Steps
+Wizard steps are derived from the script manifest, not hard‑coded.
+Examples:
+
+Scripts requiring env credentials include the Env step.
+Scripts requiring CSV input include the CSV step.
+Scripts exposing advanced behaviour include the Options step.
+
+The wizard adapts automatically to script capabilities without backend awareness.
+
+Navigation Semantics
+
+Wizard progression is user‑driven, not automatic.
+wizardState.stepIndex is the single source of truth for current step.
+Next advances steps.
+Back reverses steps.
+Run replaces Next on the final step and commits execution.
+No implicit looping or auto‑advance occurs.
+
+
+Review Step (Current State)
+
+The Review step currently acts as a structural checkpoint before execution.
+It is intentionally separated from execution.
+Future work may replace this with a read‑only, text‑based summary, but execution semantics are already correctly isolated.
+
+
+Non‑Goals
+
+The wizard does not change backend execution logic.
+The wizard does not validate or reinterpret script semantics.
+The wizard does not introduce new execution states.
+Logs are not partially visible or “previewed” before Run.
+
+
+Rationale
+
+Reduces cognitive load by sequencing required decisions.
+Makes the runner approachable without constraining advanced users.
+Aligns UI shape with user intent (configuration vs execution).
+Preserves a clean separation between UI orchestration and backend determinism.
+Enables future UX refinement without architectural churn.
+
+
+Outcome
+The runner now has:
+
+A clear configuration → execution boundary
+A manifest‑driven, extensible wizard model
+A UI that can evolve safely without touching execution semantics
+
+
+The wizard separates script configuration, automation behaviour, and execution behaviour into distinct steps to reduce cognitive load and improve operator confidence.
+Execution does not begin until the Review step; logs are hidden prior to commitment.
+
+The script overview is intentionally separated from the configuration wizard to distinguish orientation from commitment. The wizard only begins after explicit user intent.

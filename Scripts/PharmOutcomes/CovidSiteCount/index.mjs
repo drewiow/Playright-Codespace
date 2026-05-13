@@ -1,6 +1,6 @@
 import { fileURLToPath } from "url";
 import path from "path";
-import fs from "fs";
+import fs from "node:fs";
 import process from "process";
 import { login, securityWord, setupContext } from "../helpers.mjs";
 import { decryptEnv } from "../../common/common.mjs";
