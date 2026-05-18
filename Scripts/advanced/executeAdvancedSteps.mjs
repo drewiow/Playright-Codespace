@@ -3,14 +3,16 @@ import { typeCommand } from "./commands/type.mjs";
 import { waitCommand } from "./commands/wait.mjs";
 import { pressCommand } from "./commands/press.mjs";
 import { gotoCommand } from "./commands/goto.mjs";
+import { selectCommand } from "./commands/select.mjs";
 
 const commandHandlers = {
     click: clickCommand,
     press: pressCommand,
     goto: gotoCommand,
+    select: selectCommand,
     type: typeCommand,
     wait: waitCommand,
-    key: pressCommand, // alias for press
+    key: pressCommand,
 };
 
 export async function executeAdvancedSteps({ steps, page, rowIndex, log }) {

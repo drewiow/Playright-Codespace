@@ -8,8 +8,6 @@ import { initExecution } from "../../common/initExecution.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log("SCRIPT BOOT:", __filename, new Date().toISOString());
-
 process.on("uncaughtException", err =>
   console.error("UNCAUGHT EXCEPTION:", err?.stack || err)
 );
@@ -22,7 +20,6 @@ function defaultLogger(...args) {
 }
 
 export default async function run({ logger = defaultLogger } = {}) {
-  logger("RUN STARTED");
 
   // Dynamic input from meta.json → backend → env
   await initExecution({ logger });
@@ -43,12 +40,10 @@ export default async function run({ logger = defaultLogger } = {}) {
   let page = null;
 
   try {
-    logger("🔧 setupContext starting");
     ({ browser, context, page } = await setupContext({
       headless: process.env.CONFIG_HEADLESS === "true",
       human: process.env.CONFIG_HUMAN === "true"
     }));
-    logger("✅ Browser/context/page created");
 
     const startTime = Date.now();
 
@@ -78,6 +73,8 @@ export default async function run({ logger = defaultLogger } = {}) {
         if (text.includes("No matches")) {
           logger(`🚫 No matches in ${name}`);
           continue;
+        } else {
+          logger(`✅ Found match in ${name}: ${text}`);
         }
       }
 

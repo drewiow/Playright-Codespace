@@ -102,8 +102,7 @@ export default async function run({ logger = defaultLogger } = {}) {
     for (let i = 0; i < rows.length; i++) {
 
       const row = rows[i];
-      const odsCode = row.odsCode || row.ODSCode || row.ODS || "";
-
+      const odsCode = row.odscode || row.ODS;
       if (!odsCode) {
         logger("⚠️ Skipping row with no ODS code:", row);
         continue;

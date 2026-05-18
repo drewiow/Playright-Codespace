@@ -1,68 +1,175 @@
 import fs from "node:fs";
+import fsp from "node:fs/promises";
 import path from "path";
-import dotenv from "dotenv";
-import { login, setupContext } from "./helpers.mjs";
+import process from "process";
 import { fileURLToPath } from "url";
+import { initExecution } from "../../common/initExecution.mjs";
+import { resolveOdsContext, setupContext, parseCSV } from "../helpers.mjs";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-(async () => {
-  const startTime = new Date();
-  const { browser, context, page } = await setupContext();
+console.log("SCRIPT BOOT:", __filename);
 
-  // Recreate __dirname
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
+process.on("uncaughtException", err =>
+  console.error("UNCAUGHT EXCEPTION:", err?.stack || err)
+);
+process.on("unhandledRejection", r =>
+  console.error("UNHANDLED REJECTION:", r?.stack || r)
+);
 
-  //open Odscodes json file and loop through
-  const odsPath = path.resolve(__dirname, "./input/findOdsCodes.json");
-  const odsCodes = JSON.parse(fs.readFileSync(odsPath, "utf-8"));
-  for (const { primaryOdscode } of odsCodes) {
-    console.log(`🔍 Checking ODS Code: ${primaryOdscode}`);
+function defaultLogger(...args) {
+  console.log(...args);
+}
 
-    const regionsPath = path.resolve(__dirname, "./input/regions.json");
-    const regions = JSON.parse(fs.readFileSync(regionsPath, "utf-8"));
+process.on("SIGTERM", async () => {
+  console.log("🛑 Stop requested — cleaning up…");
 
-    for (const { name, odscode } of regions) {
-      console.log(`🔍 Checking region: ${name} (${odscode})`);
+  try { if (page && !page.isClosed()) await page.close(); } catch { }
+  try { if (context) await context.close(); } catch { }
+  try { if (browser) await browser.close(); } catch { }
 
-      try {
-        await login(page, process.env.USERNAME, process.env.PASSWORD, odscode);
-      } catch (err) {
-        console.error(`❌ Login failed for ${name}:`, err);
-        continue;
-      }
+  console.log("__RUN_STOPPED__");
+  process.exit(0);
+});
 
-      await page.goto("https://outcomes4health.org/o4h/admin/providers");
-      await page.fill("#providerlookup", primaryOdscode + "COV");
+export default async function run({ logger = defaultLogger } = {}) {
+  logger("RUN STARTED");
 
-      try {
-        await page.waitForSelector("#ui-id-1", { timeout: 5000 });
-      } catch {
-        console.log(`⚠️ No results found for ${primaryOdscode} in ${name}`);
-        continue;
-      }
+  await initExecution({ logger, requireEnv: false });
 
-      const items = await page.$$("#ui-id-1 li");
-      for (const item of items) {
-        const text = await item.textContent();
-        if (text.includes("No matches")) {
-          console.log(`🚫 No matches in ${name}`);
-          continue;
-        }
+  // Config flags
+  const human = process.env.CONFIG_HUMAN === "true" || process.env.HUMAN === "true";
+  const intensity = Number(process.env.CONFIG_INTENSITY || 1);
+  const headless = process.env.CONFIG_HEADLESS === "true" || process.env.HEADLESS === "true";
+  const recordVideo = process.env.CONFIG_RECORD_VIDEO === "true";
+  const recordTrace = process.env.CONFIG_RECORD_TRACE === "true";
+  const advancedStepsText = process.env.ADVANCED_STEPS || "";
+  const runDir = process.env.RUN_DIR
 
-        const csvRow = `"${primaryOdscode}","${name}","${text.trim()}"`;
-        console.log(`✅ Found: ${csvRow}`);
+  // CSV input path from runner
+  const csvPath = process.env.CSV_PATH;
+  if (!csvPath) throw new Error("CSV_PATH not provided");
 
-        fs.appendFileSync("results/Regions.csv", csvRow + "\n");
-      }
-      await page.click('[value="Exit"]');
-    }
+  logger("📄 Reading CSV:", csvPath);
+
+  let rows;
+  try {
+    const csvText = await fsp.readFile(csvPath, "utf8");
+    rows = parseCSV(csvText);
+  } catch (err) {
+    logger("❌ Failed to read CSV:", err?.message);
+    throw err;
   }
 
-  const endTime = new Date();
-  const duration = ((endTime - startTime) / 1000).toFixed(2);
-  console.log(`⏱️ Script completed in ${duration} seconds`);
+  logger(`📦 Loaded ${rows.length} rows from CSV`);
 
-  await browser.close();
-})();
+  // Prepare results file inside run directory
+  const notFoundResultsPath = path.join(process.env.RUN_DIR, "notFound.csv");
+  const foundResultsPath = path.join(process.env.RUN_DIR, "Found.csv");
+
+  fs.writeFileSync(notFoundResultsPath, "ODSCode,Timestamp\n");
+  fs.writeFileSync(foundResultsPath, "ODSCode, Region, Timestamp\n");
+
+  let browser = null;
+  let context = null;
+  let page = null;
+
+  try {
+    logger("🔧 setupContext starting");
+    ({ browser, context, page } = await setupContext({
+      headless: process.env.CONFIG_HEADLESS === "true",
+      human: process.env.CONFIG_HUMAN === "true",
+      runDir: process.env.RUN_DIR
+    }));
+    logger("✅ Browser/context/page created");
+
+    const startTime = Date.now();
+    const DRY_RUN = process.env.DRY_RUN === "true";
+
+    if (DRY_RUN) {
+      logger("⚠️ DRY RUN mode enabled - no actions will be performed");
+    }
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const odsKey = process.env.ODS_COLUMN;
+      const odsCode = row[odsKey];
+
+      if (!odsCode) {
+        logger(`⚠️ Missing ODS in column "${odsKey}"`);
+        continue;
+      }
+
+      logger(`\n==============================`);
+      logger(`🔄 Processing ${i + 1}/${rows.length}: ${odsCode}`);
+
+      try {
+        // ✅ ALWAYS start from clean state
+        await page.goto("https://outcomes4health.org/o4h/", {
+          waitUntil: "networkidle"
+        });
+
+        const result = await resolveOdsContext(page, odsCode, logger);
+
+        logger(`✅ Exists: ${result.exists}`);
+        logger(`📍 Region: ${result.region || "Unknown"}`);
+
+        if (!result.exists) {
+          const csvRow = `"${odsCode}","${new Date().toISOString()}"\n`;
+          fs.appendFileSync(notFoundResultsPath, csvRow);
+        } else {
+          const csvRow = `"${odsCode}","${result.region || "Unknown"}","${new Date().toISOString()}"\n`;
+          fs.appendFileSync(foundResultsPath, csvRow);
+        }
+
+      } catch (err) {
+        logger(`❌ ODS lookup failed for ${odsCode}: ${err?.message}`);
+
+        const csvRow = `"${odsCode}","${new Date().toISOString()}"\n`;
+        fs.appendFileSync(notFoundResultsPath, csvRow);
+      }
+
+      await page.context().clearCookies();
+    }
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    logger(`⏱️ Script completed in ${duration} seconds`);
+
+    // Video
+    logger(`Record video? : ${recordVideo}`);
+    logger(`save video? : ${page.saveVideo}`);
+    if (recordVideo && page.saveVideo) {
+      await page.saveVideo(`run-${Date.now()}`);
+    }
+
+    // Trace
+    if (recordTrace) {
+      const tracePath = path.join(runDir, "trace.zip");
+      await context.tracing.stop({ path: tracePath });
+    }
+
+    if (human) {
+      logger("🕒 Browser will remain open...");
+      await new Promise(() => { });
+    }
+
+  } catch (err) {
+    logger("❌ Run error:", err?.stack || err);
+    throw err;
+
+  } finally {
+    logger("__RUN_COMPLETE__");
+
+    try { if (page && !page.isClosed()) await page.close(); } catch { }
+    try { if (context) await context.close(); } catch { }
+    try { if (browser) await browser.close(); } catch { }
+
+    logger("👋 Cleanup complete");
+  }
+}
+
+run().catch(err => {
+  console.error("Script failed:", err?.stack || err);
+  process.exit(1);
+});

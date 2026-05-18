@@ -175,11 +175,6 @@ export async function createBrowserContext(options = {}) {
     const videoDir = `${runDir}/videos`;
     if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
-    // Log everything so you can see why headless was chosen
-    console.log("createBrowserContext config ->", {
-        human, intensity, headless: effectiveHeadless, devtools, recordVideo, recordTrace, runDir
-    });
-
     const browser = await chromium.launch({
         headless: effectiveHeadless,
         slowMo: human ? intensity * 100 : 0,

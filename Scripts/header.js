@@ -19,5 +19,3 @@ function closeEditUserModal() {
 
 document.getElementById("closeEditModalBtn")
     ?.addEventListener("click", closeEditUserModal);
-
-

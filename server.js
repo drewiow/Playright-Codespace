@@ -185,7 +185,7 @@ app.post("/api/login", upload.single("envFile"), async (req, res) => {
         const session = {
             sessionId,
             userId: envVars.USER_ID || "unknown",
-            displayName: envVars.DISPLAY_NAME || "User",
+            displayName: envVars.USER_DISPLAY_NAME || "User",
             email: envVars.EMAIL || "",
             roles: (envVars.ROLES || "").split(",").map(r => r.trim()).filter(Boolean),
             envFingerprint: crypto.createHash("sha256").update(decryptedText).digest("hex"),
@@ -292,12 +292,13 @@ app.post("/api/run/:runId/stop", requireAuthAPI, (req, res) => {
     const child = runningProcesses[runId];
 
     if (!child) {
-        return res.status(404).json({ error: "Run not found or already finished" });
+        return res.json({
+            ok: true,
+            message: "Run already finished"
+        });
     }
 
-    // Graceful stop
     child.kill("SIGTERM");
-
     res.json({ ok: true, message: "Stop signal sent" });
 });
 
@@ -395,11 +396,15 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
             childEnv.RUN_DIR = runDir;
             childEnv.REGION = req.body.region;   // REQUIRED
 
+            childEnv.ODS_COLUMN = req.body.odsColumn;
+
             // Map ALL dynamic inputs from meta.json into environment variables
             for (const [key, value] of Object.entries(req.body)) {
                 if (key === "region" || key === "passphrase" || key === "options") continue;
                 childEnv[key.toUpperCase()] = value;
             }
+
+            console.log("OPTIONS RECEIVED:", options);
 
             if (options.humanMode !== undefined)
                 childEnv.CONFIG_HUMAN = options.humanMode ? "true" : "false";
@@ -623,18 +628,26 @@ app.get("/api/run/:runId", requireAuthAPI, (req, res) => {
     }
 });
 
-app.get("/api/run/:runId/logs", requireAuthAPI, (req, res) => {
-    const runId = req.params.runId;
-    const runDir = path.join(__dirname, "runs", runId);
+app.get("/api/run/:id/logs", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-    const stdoutPath = path.join(runDir, "stdout.log");
-    const stderrPath = path.join(runDir, "stderr.log");
+    const runId = req.params.id;
 
-    res.json({
-        stdout: fs.existsSync(stdoutPath) ? fs.readFileSync(stdoutPath, "utf8") : "",
-        stderr: fs.existsSync(stderrPath) ? fs.readFileSync(stderrPath, "utf8") : ""
+    const send = (entry) => {
+        if (entry.runId === runId) {
+            res.write(`data: ${JSON.stringify(entry)}\n\n`);
+        }
+    };
+
+    logEmitter.on("log", send);
+
+    req.on("close", () => {
+        logEmitter.off("log", send);
     });
 });
+
 app.get("/api/run/:runId/artifacts", requireAuthAPI, (req, res) => {
     const runId = req.params.runId;
     const runDir = path.join(__dirname, "runs", runId);

@@ -282,8 +282,7 @@ Scripts exposing advanced behaviour include the Options step.
 
 The wizard adapts automatically to script capabilities without backend awareness.
 
-Navigation Semantics
-
+#Navigation Semantics
 Wizard progression is user‑driven, not automatic.
 wizardState.stepIndex is the single source of truth for current step.
 Next advances steps.
@@ -292,31 +291,25 @@ Run replaces Next on the final step and commits execution.
 No implicit looping or auto‑advance occurs.
 
 
-Review Step (Current State)
-
+#Review Step (Current State)
 The Review step currently acts as a structural checkpoint before execution.
 It is intentionally separated from execution.
 Future work may replace this with a read‑only, text‑based summary, but execution semantics are already correctly isolated.
 
-
-Non‑Goals
-
+#Non‑Goals
 The wizard does not change backend execution logic.
 The wizard does not validate or reinterpret script semantics.
 The wizard does not introduce new execution states.
 Logs are not partially visible or “previewed” before Run.
 
-
-Rationale
-
+#Rationale
 Reduces cognitive load by sequencing required decisions.
 Makes the runner approachable without constraining advanced users.
 Aligns UI shape with user intent (configuration vs execution).
 Preserves a clean separation between UI orchestration and backend determinism.
 Enables future UX refinement without architectural churn.
 
-
-Outcome
+#Outcome
 The runner now has:
 
 A clear configuration → execution boundary
@@ -328,3 +321,137 @@ The wizard separates script configuration, automation behaviour, and execution b
 Execution does not begin until the Review step; logs are hidden prior to commitment.
 
 The script overview is intentionally separated from the configuration wizard to distinguish orientation from commitment. The wizard only begins after explicit user intent.
+
+## UI Behaviour Patterns (Playwright Observations)
+
+The target application contains several non-standard UI behaviours that affect automation.
+
+### Dynamic DOM Mutation
+- Certain actions (e.g. deaccredit) modify the DOM immediately.
+- Element indices are not stable after mutation.
+- Pattern:
+  - Do not iterate with fixed indexes
+  - Re-query elements after each mutation
+  - Use a loop that performs one action per iteration
+
+### Relative URLs
+- Links are often relative (e.g. `/o4h/...`)
+- HTML may encode query parameters using `&amp;`
+- Prefer:
+  - Clicking elements instead of `page.goto`
+  - Avoid manual URL construction where possible
+
+### Lazy / Deferred Rendering
+- Some UI sections (e.g. service accreditation table) are rendered after page load
+- Must explicitly wait for:
+  - Specific selectors (`a[href*="deaccredit"]`)
+  - Not just page navigation
+
+### Inline Edit Controls
+- Elements such as journal editors are JS-driven inline editors
+- The DOM element remains the same (`<span>`)
+- Input is handled via keyboard events
+- Pattern:
+  - Use `page.keyboard.type()`, not `.type()` or `.fill()`
+
+### Visibility vs Interactivity
+- Elements may exist in DOM but not be interactable or “visible” in Playwright terms
+- Avoid relying purely on `visible` state
+- Prefer behavioural readiness (e.g. ability to receive input)
+
+
+## Advanced DSL Execution Model
+
+### Command Model
+- Each step is parsed into:
+  `{ command: string, args: string[] }`
+- Arguments are tokenized by whitespace.
+- Command handlers are responsible for interpreting args correctly.
+
+### Execution Flow
+- Steps are resolved per CSV row
+- Execution order:
+  - Parse steps
+  - Resolve CSV tokens
+  - Execute step-by-step
+
+### Command Categories
+- Navigation: `goto`
+- Interaction: `click`, `type`, `select`
+- Timing: `wait`
+- Input: `press`
+
+### Important Constraints
+- All commands operate on the active page context
+- Commands must be idempotent or fail-safe
+- Failures are logged, not fatal
+
+### Known Limitations
+- No native support for conditionals (future extension possible)
+- No recovery/retry layer at command level (script handles resilience)
+
+## Automation Reliability Principles
+
+The system follows these rules to ensure stable execution:
+
+- Never assume DOM structure remains constant after interaction
+- Always wait for the *specific element needed*, not generic page load
+- Prefer user-like actions (`click`, `keyboard.type`) over direct manipulation
+- Do not rely on element visibility alone
+- Do not rely on static selectors without validation
+- Always log before and after critical actions
+- Treat each CSV row as an isolated workflow
+
+These principles take precedence over implementation convenience.
+
+## Row Execution Contract
+
+Each CSV row is processed independently.
+
+### Guarantees
+- A failure in one row does not stop execution
+- Each row attempts the full workflow sequence
+
+### Typical Flow
+- login
+- navigate to provider
+- perform scripted actions
+- execute advanced steps (if provided)
+- persist result
+
+### Side Effects
+- The application state may mutate between steps
+- Scripts must re-establish correct state per row
+
+## Performance Strategy
+
+### Current Model
+- Sequential row processing
+- Single browser context per run
+
+### Future Direction
+- Introduce controlled concurrency using multiple browser contexts
+- Each context operates independently per batch of rows
+
+### Constraints
+- Authentication must be handled per context or via shared storage state
+- UI stability must not be compromised by concurrency
+
+### Non-Goals
+- No parallelisation at UI thread level
+- No shared mutable browser state across workers
+
+## Debugging Toolkit
+
+Recommended debugging techniques:
+
+- `page.pause()` to inspect runtime DOM
+- `page.url()` to confirm navigation state
+- `page.content().includes(...)` for quick DOM checks
+- `locator.count()` to verify selector correctness
+- Strategic logging before/after actions
+
+Debugging should always verify:
+1. Correct page
+2. Expected DOM present
+3. Element interaction behaviour

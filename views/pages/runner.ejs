@@ -41,10 +41,17 @@
 
                 <!-- STEP: CSV -->
                 <section id="csvPanel" class="wizard-step">
+
                     <div class="field">
                         <label>CSV File</label>
                         <input type="file" id="csvFile" accept=".csv">
                     </div>
+                    <label>Select ODS Code column</label>
+                    <select id="odsColumnSelect">
+                        <option value="">-- Select column --</option>
+                    </select>
+                    <div id="odsPreview" class="step-status hidden"></div>
+                    <div id="csvStatus" class="step-status hidden"></div>
                 </section>
 
                 <!-- STEP: SCRIPT INPUTS -->
@@ -55,11 +62,19 @@
                 <!-- STEP: ACTIONS -->
                 <section id="actionsPanel" class="wizard-step">
 
-
                     <div class="advanced-steps">
 
-                        <textarea id="advancedSteps" rows="10" placeholder="click #save
+                        <div class="advanced-editor">
+
+                            <!-- Highlight layer -->
+                            <pre id="advancedEditorHighlight" class="advanced-editor-highlight"></pre>
+
+                            <!-- Real textarea -->
+                            <textarea id="advancedSteps" class="advanced-editor-textarea" placeholder="click #save
 wait 500"></textarea>
+
+                        </div>
+
 
                         <!-- Optional helpers below the editor -->
                         <div class="advanced-inline-tools">
@@ -148,6 +163,8 @@ wait 500"></textarea>
                         <div id="reviewOptions"></div>
                     </div>
                 </section>
+
+                <div id="stepStatus" class="step-status hidden"></div>
 
                 <!-- WIZARD NAVIGATION -->
                 <nav class="wizard-nav">

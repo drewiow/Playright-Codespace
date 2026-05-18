@@ -1,0 +1,19 @@
+{
+    "id": "ProviderStatusOnODSPortal",
+    "title": "Provider Status on ODS Portal",
+    "description": "Automation script for retrieving provider status on the ODS portal",
+    "logo": "/images/ods-logo.png",
+    "scripts": [
+        {
+            "id": "ODSCode",
+            "name": "ODS Code",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": false,
+            "optionalEnvFile": false,
+            "advanced": true
+        }
+    ]
+}

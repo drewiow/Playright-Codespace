@@ -1,0 +1,13 @@
+{
+    "name": "ODS Code",
+    "description": "Retrieves the status of a provider on the ODS portal",
+    "inputs": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. F12345"
+        }
+    ]
+}

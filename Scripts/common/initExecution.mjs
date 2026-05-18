@@ -1,15 +1,25 @@
 import fs from "fs";
 import { decryptEnv } from "./common.mjs";
 
-export async function initExecution({ logger }) {
-
-    logger("🔧 initExecution starting");
+export async function initExecution({ logger, requireEnv = true } = {}) {
 
     const envPath = process.env.ENV_ENC_PATH;
     const passphrase = process.env.ENV_PASSPHRASE;
 
-    if (!envPath) throw new Error("ENV_ENC_PATH missing");
-    if (!passphrase) throw new Error("ENV_PASSPHRASE missing");
+    // ✅ Case 1: ENV not provided
+    if (!envPath) {
+        if (requireEnv) {
+            throw new Error("ENV_ENC_PATH missing");
+        } else {
+            logger?.("ℹ️ No ENV file provided (not required for this script)");
+            return; // ✅ EXIT EARLY — nothing else runs
+        }
+    }
+
+    // ✅ From here on, ENV is REQUIRED
+    if (!passphrase) {
+        throw new Error("ENV_PASSPHRASE missing");
+    }
 
     // ✅ read file
     const encryptedBuffer = fs.readFileSync(envPath);
@@ -25,17 +35,5 @@ export async function initExecution({ logger }) {
         process.env[key.trim()] = rest.join("=").trim();
     });
 
-    logger("🔍 ENV CHECK →");
-
-    const debugEnv = {
-        USERNAME: process.env.USERNAME,
-        PASSWORD: process.env.PASSWORD ? "****" : undefined,
-        SECRET_KEY: process.env.SECRET_KEY ? "****" : undefined,
-        ODSCODE: process.env.ODSCODE
-    };
-
-    logger(debugEnv);
-
-    logger("✅ Environment loaded");
-
+    logger?.("✅ Environment variables loaded from env.enc");
 }

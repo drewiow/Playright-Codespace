@@ -1,13 +1,16 @@
-
-export async function clickCommand({ args, page }) {
-    const selector = args;
+export async function clickCommand({ args, page, log, rowIndex }) {
+    const selector = args.join(" "); // ✅ FIX
 
     if (!selector) {
-        throw new Error("missing selector");
+        log(`[Advanced] row ${rowIndex}: click requires selector`);
+        return;
     }
 
-    // Playwright auto-waits for element to be attached + actionable
-    await page.click(selector, {
-        timeout: 5000
-    });
+    log(`[Advanced] clicking ${selector}`);
+
+    try {
+        await page.click(selector);
+    } catch (err) {
+        log(`[Advanced] row ${rowIndex}: FAILED "${selector}" (${err.message})`);
+    }
 }

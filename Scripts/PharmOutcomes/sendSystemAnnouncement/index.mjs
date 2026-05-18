@@ -82,12 +82,10 @@ export default async function run({ logger = defaultLogger } = {}) {
     for (const { name, odscode } of regions) {
       logger("🔧 setupContext starting for region:", name, odscode);
       ({ browser, context, page } = await setupContext({ headless: false, human: true }));
-      logger("✅ Browser/context/page created");
 
       // Login as normal user for this region
       logger("➡️ Logging in as user for region", odscode);
       await login(page, process.env.USERNAME, process.env.PASSWORD, odscode);
-      logger("✅ User login complete");
 
       // Navigate to system announcement page
       logger("➡️ Navigating to system announcement page");

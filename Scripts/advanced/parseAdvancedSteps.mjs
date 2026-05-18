@@ -14,20 +14,20 @@ export function parseAdvancedSteps(text) {
             if (firstSpace === -1) {
                 return {
                     command: raw.toLowerCase(),
-                    args: "",
+                    args: [],
                     raw
                 };
             }
 
             return {
                 command: raw.slice(0, firstSpace).toLowerCase(),
-                args: raw.slice(firstSpace + 1).trim(),
+                args: raw.slice(firstSpace + 1).trim().split(/\s+/),
                 raw
             };
         });
 }
 
-export function resolveCsvTokens(text, row) {
+export function resolveCsvTokens(text, row, log = console.log) {
     if (!text) return text;
 
     return text.replace(

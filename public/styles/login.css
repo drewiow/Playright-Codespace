@@ -40,3 +40,47 @@
 .login-modal.hidden {
     display: none !important;
 }
+
+.landing-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    text-align: center;
+    padding: 2rem;
+}
+
+.landing-content {
+    max-width: 500px;
+}
+
+.landing-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.landing-content h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.landing-subtitle {
+    color: #555;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+/* Button */
+.primary-button {
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    padding: 0.75rem 1.4rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.primary-button:hover {
+    background: #1e4fd1;
+}

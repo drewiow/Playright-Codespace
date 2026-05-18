@@ -1,4 +1,3 @@
-// --- Login Modal Elements ---
 const loginModal = document.getElementById("loginModal");
 const loginBackdrop = document.getElementById("loginBackdrop");
 const envFileInput = document.getElementById("envFile");
@@ -8,22 +7,16 @@ const loginError = document.getElementById("loginError");
 const logoutBtn = document.getElementById("logoutBtn");
 let isAuthenticated = false;
 
-
 logoutBtn.addEventListener("click", async () => {
     await fetch("/api/logout", {
         method: "POST",
         credentials: "include"
     });
 
-    // Force fresh auth check
     showLoginModal();
 });
 
-
-
-// landing.js
 document.addEventListener("DOMContentLoaded", () => {
-
     checkAuth();
 });
 async function checkAuth() {
@@ -140,11 +133,15 @@ function setUserAvatar(name) {
 }
 
 function updateUserMenu(data) {
+
     const menu = document.getElementById("userMenu");
     const label = document.getElementById("userNameLabel");
 
     // Normalize shape
     const user = data.user ?? data;
+
+    console.log("🧠 User data:", data);
+    console.log("🧠 Normalised user:", user);
 
     setUserAvatar(user.displayName);
     label.textContent = `${user.displayName} (${user.roles})`;
@@ -178,6 +175,7 @@ document.addEventListener("click", (e) => {
 
     // If clicking a "?" button
     if (infoBtn) {
+        e.stopPropagation();
         const card = infoBtn.closest(".script-card");
         card.classList.toggle("show-info");
         return;
@@ -189,11 +187,10 @@ document.addEventListener("click", (e) => {
 });
 
 async function loadProducts() {
-    console.log("loadProducts() CALLED");
 
     const productGrid = document.getElementById("productGrid");
     console.log("productGrid =", productGrid);
-    if (!productGrid) return; // Not on the landing page
+    if (!productGrid) return;
 
     try {
         const res = await fetch("/api/products", {
@@ -227,12 +224,17 @@ async function loadProducts() {
 
 
 function attachProductHandlers() {
-
-
     document.querySelectorAll(".product-card").forEach(card => {
-        card.addEventListener("click", async () => {
-            const product = card.dataset.product;
+        const product = card.dataset.product;
 
+        card.addEventListener("click", async (e) => {  // ✅ e added
+
+            if (
+                e.target.closest(".info-btn") ||
+                e.target.closest(".script-help")
+            ) {
+                return;
+            }
 
             try {
                 const res = await fetch(`/api/products/${product}/manifest`, {
@@ -269,25 +271,22 @@ function showScriptPicker(product, scripts) {
 
         card.innerHTML = `
             <div class="script-icon">${icon}</div>
+            <div class="script-help">${script.description}</div>
             <div class="script-name">${script.title}</div>
             <button class="info-btn ${hidden}">?</button>
-            <div class="info-popover">${script.description}</div>
-            <button class="open-btn">Open</button>
+
         `;
 
-        card.addEventListener("click", () => {
+        card.addEventListener("click", (e) => {
+            if (
+                e.target.closest(".info-btn") ||
+                e.target.closest(".script-help")
+            ) {
+                return;
+            }
+
             window.location.href = `/run/${product}/${script.id}`;
         });
-
-        card.querySelector(".info-btn").addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-
-        card.querySelector(".open-btn").addEventListener("click", (e) => {
-            e.stopPropagation();
-            window.location.href = `/run/${product}/${script.id}`;
-        });
-
 
         grid.appendChild(card);
     });

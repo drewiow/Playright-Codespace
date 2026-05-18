@@ -1,13 +1,13 @@
-export async function gotoCommand({ args, page }) {
-    const url = args?.trim();
+export async function gotoCommand({ args, page, log, rowIndex }) {
+    const url = args.join(" ").replace(/&amp;/g, "&"); // ✅ FIX
 
     if (!url) {
-        throw new Error("goto requires a URL or path");
+        log?.(`[Advanced] row ${rowIndex}: invalid goto usage`);
+        return;
     }
 
-    // If relative, keep it relative (Playwright handles this fine
-    // as long as you’re already on the target domain)
-    await page.goto(url, {
-        waitUntil: "domcontentloaded"
-    });
+    log?.(`[Advanced] navigating to ${url}`);
+
+    await page.goto(url, { waitUntil: "networkidle" });
 }
+``

@@ -28,7 +28,7 @@
             "label": "Title",
             "type": "text",
             "required": true,
-            "placeholder": "e.g. 2My Announcement"
+            "placeholder": "e.g. My announcement"
         },
         {
             "key": "body",

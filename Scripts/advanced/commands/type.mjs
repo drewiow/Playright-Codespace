@@ -1,14 +1,17 @@
-// commands/type.mjs
-export async function typeCommand({ args, page }) {
-    const firstSpace = args.indexOf(" ");
+export async function typeCommand({ args, page, log, rowIndex }) {
+    const [selector, ...rest] = args;
+    const value = rest.join(" ");
 
-    if (firstSpace === -1) {
-        throw new Error("type requires selector and value");
+    if (!selector || !value) {
+        log(`[Advanced] row ${rowIndex}: type requires selector and value`);
+        return;
     }
 
-    const selector = args.slice(0, firstSpace);
-    const value = args.slice(firstSpace + 1);
+    log(`[Advanced] typing "${value}" into ${selector}`);
 
-    await page.fill(selector, value);
+    try {
+        await page.fill(selector, value);
+    } catch (err) {
+        log(`[Advanced] row ${rowIndex}: FAILED "${selector}" (${err.message})`);
+    }
 }
-``
