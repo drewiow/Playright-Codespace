@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import process from "process";
+import { initExecution } from "../../common/initExecution.mjs";
 
 import { login, editProvider, setupContext, parseCSV } from "../helpers.mjs";
 import { decryptEnv, logAction } from "../../common/common.mjs";
@@ -27,6 +28,8 @@ function defaultLogger(...args) {
 // ------------------------------------------------------------
 export default async function run({ logger = defaultLogger } = {}) {
   logger("RUN STARTED");
+
+  await initExecution({ logger });
 
   // Validate required env vars
   const username = process.env.USERNAME;
@@ -62,8 +65,14 @@ export default async function run({ logger = defaultLogger } = {}) {
       fs.mkdirSync(runDir, { recursive: true });
     }
 
-    const inputCsvPath = process.env.INPUT_CSV_PATH;
-    if (!inputCsvPath) throw new Error("INPUT_CSV_PATH not provided");
+    const inputCsvPath =
+      process.env.INPUT_CSV_PATH ||
+      process.env.CSV_PATH;
+
+    if (!inputCsvPath) {
+      throw new Error("No CSV path provided (INPUT_CSV_PATH or CSV_PATH)");
+    }
+
 
     // Load CSV
     let accounts;
@@ -88,7 +97,7 @@ export default async function run({ logger = defaultLogger } = {}) {
     // Prepare output CSV
     const resultsCsvPath = path.join(runDir, "LinkedAccounts.csv");
     if (!fs.existsSync(resultsCsvPath)) {
-      fs.writeFileSync(resultsCsvPath, "username,odsCode,fullName,email,linkedAt\n", "utf-8");
+      fs.writeFileSync(resultsCsvPath, "username,odsCode,fullname,email,linkedAt\n", "utf-8");
     }
 
     // -----------------------------
@@ -105,33 +114,30 @@ export default async function run({ logger = defaultLogger } = {}) {
     const created = [];
 
     for (let i = 0; i < accounts.length; i++) {
-      const { odsCode, newUser, fullName, email } = accounts[i];
-      const computedUsername = i === 0 ? newUser : `${newUser}.${odsCode}`;
+      const {
+        odscode,
+        newuser,
+        fullname,
+        email
+      } = accounts[i];
+
+      const computedUsername = i === 0 ? newuser : `${newuser}.${odscode}`;
+
 
       logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
-      logger(`   Provider ODS: ${odsCode}`);
-      logger(`   Full name: ${fullName}`);
+      logger(`   Provider ODS: ${odscode}`);
+      logger(`   Full name: ${fullname}`);
       logger(`   Email: ${email}`);
       logger(`   Username: ${computedUsername}`);
 
-      await logAction(`Edit provider ${odsCode}`, () =>
-        editProvider(page, odsCode),
+      await logAction(`Edit provider ${odscode}`, () =>
+        editProvider(page, odscode),
         logger
       );
 
-      // if the primary user, check if they exist before trying to create
-      let exists = false;
       if (i === 0) {
-        baseUser = { username: computedUsername, odsCode };
+        baseUser = { username: computedUsername, odscode };
         logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
-
-        const row = page.locator(`tr:has(span:has-text("(${baseUser.username})"))`);
-        exists = await row.count() > 0;
-      }
-
-      if (exists) {
-        logger(`⚠️ Base user ${baseUser.username} already exists! Will skip creation and attempt linking directly.`);
-        created.push(baseUser);
       }
       else {
 
@@ -146,7 +152,7 @@ export default async function run({ logger = defaultLogger } = {}) {
         );
 
         await logAction("Fill full name", () =>
-          page.fill("#inKnownName", fullName),
+          page.fill("#inKnownName", fullname),
           logger
         );
 
@@ -182,7 +188,14 @@ export default async function run({ logger = defaultLogger } = {}) {
           logger
         );
 
-        created.push({ username: computedUsername, odsCode, fullName, email });
+        created.push({ username: computedUsername, odscode, fullname, email });
+
+        const duplicateError = page.locator('p.error:has-text("User name already exists")');
+
+        if (await duplicateError.isVisible().catch(() => false)) {
+          logger(`User already exists → skipping`);
+          return;
+        }
       }
 
     }
@@ -196,8 +209,8 @@ export default async function run({ logger = defaultLogger } = {}) {
 
     if (!baseUser) throw new Error("baseUser was never set!");
 
-    await logAction(`Return to base provider ${baseUser.odsCode}`, () =>
-      editProvider(page, baseUser.odsCode),
+    await logAction(`Return to base provider ${baseUser.odscode}`, () =>
+      editProvider(page, baseUser.odscode),
       logger
     );
 
@@ -235,7 +248,7 @@ export default async function run({ logger = defaultLogger } = {}) {
         logger
       );
 
-      const csvRow = `"${entry.username}","${entry.odsCode}","${entry.fullName}","${entry.email}","${new Date().toISOString()}"\n`;
+      const csvRow = `"${entry.username}","${entry.odscode}","${entry.fullname}","${entry.email}","${new Date().toISOString()}"\n`;
       fs.appendFileSync(resultsCsvPath, csvRow);
     }
 

@@ -1,0 +1,4 @@
+firstname,lastname,email,deanery,jobroles, odsCode
+Alice,Smith,alice@example.com,RCPsych Test Deanery,"Educational Supervisor,Psychiatric Supervisor", "PSMR02"
+Alicia,Smith,alice@example.com,RCPsych Test Deanery,"Educational Supervisor,Psychiatric Supervisor", "PSMR02"
+Dave,Smith,dave'@example.com,RCPsych Test Deanery,"Educational Supervisor,Psychiatric Supervisor", "PSMR02"

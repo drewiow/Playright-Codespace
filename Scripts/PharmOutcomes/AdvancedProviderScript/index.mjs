@@ -4,7 +4,7 @@ import path from "path";
 import process from "process";
 import { fileURLToPath } from "url";
 import { initExecution } from "../../common/initExecution.mjs";
-import { login, editProvider, setupContext, parseCSV } from "../helpers.mjs";
+import { login, editProvider, setupContext, parseCSV, normaliseKey } from "../helpers.mjs";
 import { parseAdvancedSteps, resolveCsvTokens } from "../../advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "../../advanced/executeAdvancedSteps.mjs";
 
@@ -53,7 +53,10 @@ export default async function run({ logger = defaultLogger } = {}) {
   const advancedStepsText = process.env.ADVANCED_STEPS || "";
   const steps = parseAdvancedSteps(advancedStepsText);
   const runDir = process.env.RUN_DIR
-  const odsColumn = process.env.ODS_COLUMN || "ODSCode";
+
+
+  const odsColumnRaw = process.env.ODS_COLUMN || "odscode";
+  const odsColumn = normaliseKey(odsColumnRaw);
 
   // CSV input path from runner
   const csvPath = process.env.CSV_PATH;
@@ -102,14 +105,17 @@ export default async function run({ logger = defaultLogger } = {}) {
     for (let i = 0; i < rows.length; i++) {
 
       const row = rows[i];
+      logger("ODS Column:", odsColumn);
       const odsCode = row[odsColumn];
+
+      logger(`ROW ${i + 1}/${rows.length}`);
 
       if (!odsCode) {
         logger("⚠️ Skipping row with no ODS code:", row);
         continue;
       }
 
-      logger(`🔄 Updating ${odsCode}`);
+      logger(`🔄 Processing ODS: ${odsCode}`);
 
       try {
         await login(page, username, password, odsCode);
@@ -155,14 +161,15 @@ export default async function run({ logger = defaultLogger } = {}) {
       fs.appendFileSync(resultsPath, csvRow);
 
       await page.click('[value="Exit"]');
+
+      logger(`✅ Row completed: ${odsCode}`);
+
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger(`⏱️ Script completed in ${duration} seconds`);
 
     // Video
-    logger(`Record video? : ${recordVideo}`);
-    logger(`save video? : ${page.saveVideo}`);
     if (recordVideo && page.saveVideo) {
       await page.saveVideo(`run-${Date.now()}`);
     }

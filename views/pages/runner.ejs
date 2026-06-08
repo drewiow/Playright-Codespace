@@ -187,24 +187,60 @@ wait 500"></textarea>
     </aside>
 
     <!-- EXECUTION / LOGS AREA -->
-    <aside class="execution-column hidden" id="executionContainer">
+    <div class="execution-layout hidden" id="executionContainer">
 
-        <h2>Logs</h2>
+        <!-- LEFT SIDEBAR -->
+        <aside class="execution-sidebar">
 
-        <div id="logContainer" class="log-viewer"></div>
+            <section class="execution-summary">
+                <h3>Run Summary</h3>
 
-        <div id="stopRunContainer" class="hidden">
-            <button id="stopRunButton" class="stop-run-btn">
-                🛑 Stop Run
-            </button>
-        </div>
+                <div id="runMeta">
+                    <div><strong>Script:</strong> <span id="metaScript">—</span></div>
+                    <div><strong>Product:</strong> <span id="metaProduct">—</span></div>
+                    <div><strong>Status:</strong> <span id="metaStatus">Running…</span></div>
+                    <div><strong>Started:</strong> <span id="metaStart">—</span></div>
+                    <div><strong>Duration:</strong> <span id="metaDuration">—</span></div>
+                </div>
+            </section>
 
-        <section class="hidden" id="artifactSection">
-            <h3>Run Artifacts</h3>
-            <ul id="artifactList"></ul>
-        </section>
+            <section class="execution-progress">
+                <h3>Progress</h3>
+                <div id="progressText">0 / 0</div>
+                <div class="progress-bar">
+                    <div id="progressFill"></div>
+                </div>
+            </section>
 
-    </aside>
+            <section class="execution-current">
+                <h3>Currently Processing</h3>
+                <div id="currentItem">
+                    <div class="current-ods" id="currentOds">—</div>
+                    <div class="current-step" id="currentStep">Waiting…</div>
+                </div>
+            </section>
+
+            <section id="artifactSection" class="hidden">
+                <h3>Artifacts</h3>
+                <ul id="artifactList"></ul>
+            </section>
+
+            <div id="stopRunContainer" class="hidden">
+                <button id="stopRunButton" class="stop-run-btn">
+                    🛑 Stop Run
+                </button>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT LOG PANEL -->
+        <aside class="execution-logs">
+            <h2>Logs</h2>
+            <div id="logContainer" class="log-viewer"></div>
+        </aside>
+
+    </div>
+
 
 </main>
 

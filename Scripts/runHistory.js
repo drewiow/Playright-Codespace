@@ -241,15 +241,31 @@ async function loadAudit(runId) {
    LOAD LOGS
 ------------------------------------------------------- */
 async function loadLogs(runId) {
-    try {
-        const logs = await fetch(`/api/run/${runId}/logs`).then(r => r.json());
+    const stdoutEl = document.getElementById("stdoutLog");
+    const stderrEl = document.getElementById("stderrLog");
 
-        document.getElementById("stdoutLog").textContent = logs.stdout || "";
-        document.getElementById("stderrLog").textContent = logs.stderr || "";
+    stdoutEl.textContent = "Loading...";
+    stderrEl.textContent = "Loading...";
+
+    try {
+        const stdoutRes = await fetch(`/runs/${runId}/stdout.log`);
+        const stderrRes = await fetch(`/runs/${runId}/stderr.log`);
+
+        const stdout = stdoutRes.ok
+            ? await stdoutRes.text()
+            : "(no stdout log)";
+
+        const stderr = stderrRes.ok
+            ? await stderrRes.text()
+            : "(no stderr log)";
+
+        stdoutEl.textContent = stdout;
+        stderrEl.textContent = stderr;
 
     } catch (err) {
         console.error("Log load failed:", err);
-        document.getElementById("stdoutLog").textContent = "Failed to load logs.";
+        stdoutEl.textContent = "Failed to load logs.";
+        stderrEl.textContent = "Failed to load logs.";
     }
 }
 

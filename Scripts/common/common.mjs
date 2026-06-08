@@ -24,16 +24,38 @@ const PBKDF2_ITERATIONS = 310000;
 
 export async function logAction(actionDesc, fn, logger) {
     const start = Date.now();
-    logger(`➡️ ${actionDesc}`);
+    //logger(`➡️ ${actionDesc}`);
     try {
         const result = await fn();
-        logger(`✅ ${actionDesc} completed in ${Date.now() - start}ms`);
+        // logger(`✅ ${actionDesc} completed in ${Date.now() - start}ms`);
         return result;
     } catch (err) {
         logger(`❌ ${actionDesc} failed: ${err.message}`);
         throw err;
     }
 }
+
+export const scriptStatus = {
+    // Lifecycle
+    RUN_STARTED: "🚀 RUN STARTED",
+    RUN_COMPLETE: "__RUN_COMPLETE__",
+
+    // Row lifecycle
+    ROW_START: (ods) => `🔄 Processing ODS: ${ods}`,
+    ROW_PROGRESS: (i, total) => `ROW ${i}/${total}`,
+    ROW_COMPLETE: (ods) => `✅ Row completed: ${ods}`,
+    ROW_FAILED: (ods, msg) => `❌ Row failed (${ods}): ${msg}`,
+
+    // Steps
+    LOGIN: "🔐 Logging in...",
+    OPEN_PROVIDER: "👤 Opening provider...",
+    DEACCREDIT: "🔧 Deaccrediting...",
+    AUDIT: "📝 Adding audit...",
+    SAVE: "💾 Saving...",
+
+    // Misc
+    LOOKUP: "🔍 Looking up ODS...",
+};
 
 export async function encryptEnv(plaintext, password) {
     if (!password) throw new Error("Missing master password");
@@ -182,7 +204,6 @@ export async function createBrowserContext(options = {}) {
         executablePath: "C:\\Users\\Drew.Clarke\\AppData\\Local\\ms-playwright\\chromium_1150\\chrome-win\\chrome.exe"
     });
 
-    console.log("Browser launched version:", await browser.version());
     try {
         const proc = browser.process ? browser.process() : null;
     } catch (err) {

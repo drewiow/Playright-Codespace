@@ -635,16 +635,26 @@ app.get("/api/run/:id/logs", (req, res) => {
 
     const runId = req.params.id;
 
-    const send = (entry) => {
-        if (entry.runId === runId) {
-            res.write(`data: ${JSON.stringify(entry)}\n\n`);
-        }
+    const sendLog = (entry) => {
+        if (entry.runId !== runId) return;
+
+        res.write(`event: log\n`);
+        res.write(`data: ${JSON.stringify(entry)}\n\n`);
     };
 
-    logEmitter.on("log", send);
+    const sendFinish = (entry) => {
+        if (entry.runId !== runId) return;
+
+        res.write(`event: run:finished\n`);
+        res.write(`data: ${JSON.stringify(entry)}\n\n`);
+    };
+
+    logEmitter.on("log", sendLog);
+    logEmitter.on("run:finished", sendFinish);
 
     req.on("close", () => {
-        logEmitter.off("log", send);
+        logEmitter.off("log", sendLog);
+        logEmitter.off("run:finished", sendFinish);
     });
 });
 
@@ -755,6 +765,7 @@ app.get("/api/products", requireAuthAPI, async (req, res) => {
 
 app.get("/api/products/:id/manifest", requireAuthAPI, async (req, res) => {
     const manifestPath = path.join(__dirname, "scripts", req.params.id, "manifest.json");
+    console.log("Looking for manifest at:", manifestPath);
     if (!fs.existsSync(manifestPath)) return res.status(404).json({ error: "Not found" });
     const manifest = JSON.parse(await fs.promises.readFile(manifestPath, "utf8"));
     res.json(manifest);

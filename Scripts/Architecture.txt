@@ -455,3 +455,40 @@ Debugging should always verify:
 1. Correct page
 2. Expected DOM present
 3. Element interaction behaviour
+
+22026‑05‑26
+
+Decision: Introduce manifest-driven Advanced Action Sets via advancedOptions
+
+Context:
+Advanced Actions were previously defined as a single global constant, implicitly tied to specific UI workflows (e.g. provider screens). This caused irrelevant or invalid actions to appear for scripts operating in different contexts.
+
+Decision:
+Refactor Advanced Actions into named registry-based sets and allow scripts to declare which set to use via the manifest using a dedicated advancedOptions configuration object.
+
+Example:
+advancedOptions: {
+  actionSet: "providerDetails"
+}
+
+Behaviour:
+- The runner resolves the appropriate action set at runtime from advancedOptions.actionSet
+- If not specified, a default action set is used
+- Action definitions remain centrally managed in the runner UI
+- Rendering pipeline remains unchanged and consumes the resolved set
+
+Scope:
+- This change affects only the Advanced Steps authoring UI
+- No changes to DSL, executor, or backend behaviour
+- Actions still resolve to plain text steps before execution
+
+Rationale:
+- Decouples Advanced Actions from implicit UI context
+- Ensures only relevant actions are presented per script
+- Introduces a clear namespace (advancedOptions) for UI-level configuration
+- Supports future extensibility without altering execution semantics
+
+Alignment:
+- Reinforces manifest-driven architecture
+- Maintains separation between UI configuration and execution logic
+- Keeps Advanced Mode as a pure authoring-layer abstraction

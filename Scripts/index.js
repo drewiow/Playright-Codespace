@@ -114,7 +114,6 @@ function showLoginModal() {
 
 // Hide modal
 function hideLoginModal() {
-    console.log("Hiding login modal");
     loginModal.classList.add("hidden");
     loginBackdrop.classList.add("hidden");
     document.body.style.overflow = "";
@@ -139,9 +138,6 @@ function updateUserMenu(data) {
 
     // Normalize shape
     const user = data.user ?? data;
-
-    console.log("🧠 User data:", data);
-    console.log("🧠 Normalised user:", user);
 
     setUserAvatar(user.displayName);
     label.textContent = `${user.displayName} (${user.roles})`;
@@ -189,7 +185,6 @@ document.addEventListener("click", (e) => {
 async function loadProducts() {
 
     const productGrid = document.getElementById("productGrid");
-    console.log("productGrid =", productGrid);
     if (!productGrid) return;
 
     try {

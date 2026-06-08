@@ -5,6 +5,37 @@
     "logo": "/images/pharmoutcomes-logo.jpg",
     "scripts": [
         {
+            "id": "DailyChecks",
+            "title": "Daily Checks",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Runs the daily checks",
+            "icon": "🏥",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
+            "id": "claimAdjustments",
+            "title": "Manual Claim Adjustment",
+            "requiresCsv": true,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Loops through a list of ODS Codes and then navigates to the claim edit screen to then perform manual scripting to perform actions",
+            "icon": "🏥",
+            "animation": "pulse",
+            "advanced": true,
+            "advancedOptions": {
+                "actionSet": "adjustmentDetails"
+            }
+        },
+        {
             "id": "advancedProviderScript",
             "title": "Advanced Provider Script",
             "requiresCsv": true,
@@ -16,7 +47,41 @@
             "description": "Loops through a list of ODS Codes and then navigates to the Provider edit screen to then perform manual scripting to perform actions",
             "icon": "🏥",
             "animation": "pulse",
-            "advanced": true
+            "advanced": true,
+            "advancedOptions": {
+                "actionSet": "providerDetails"
+            }
+        },
+        {
+            "id": "PGDAcreditationScript",
+            "title": "PGD Accreditation Script",
+            "requiresCsv": true,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Loops through a list of ODS Codes and then navigates to the commissioner and accredits the services defined in the script inputs",
+            "icon": "👁️",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
+            "id": "advancedViewerScript",
+            "title": "Advanced Viewer Script",
+            "requiresCsv": true,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Loops through a list of ODS Codes and then navigates to the Viewer edit screen to then perform manual scripting to perform actions",
+            "icon": "👁️",
+            "animation": "pulse",
+            "advanced": true,
+            "advancedOptions": {
+                "actionSet": "providerDetails"
+            }
         },
         {
             "id": "advancedCommissionerScript",

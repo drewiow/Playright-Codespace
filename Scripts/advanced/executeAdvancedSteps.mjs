@@ -31,7 +31,7 @@ export async function executeAdvancedSteps({ steps, page, rowIndex, log }) {
 
         try {
             if (DRY_RUN) {
-                log(`[DRY RUN] Would execute: ${step.action} ${step.selector || ""} ${step.value || ""}`);
+                log(`[DRY RUN] Would execute: ${raw}`);
                 continue;
             }
             const handler = commandHandlers[command];

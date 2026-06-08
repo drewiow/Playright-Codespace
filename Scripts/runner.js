@@ -1,15 +1,17 @@
 import { marked } from "/vendor/marked/lib/marked.esm.js";
 
-
 const artifactList = document.getElementById("artifactList");
 const logContainer = document.getElementById("logContainer");
 const runnerRoot = document.getElementById("runnerRoot");
-
-// Parse URL path: /run/<product>/<scriptId>
+const backBtn = document.getElementById("wizardBackBtn");
+const nextBtn = document.getElementById("wizardNextBtn");
 const parts = window.location.pathname.split("/");
 const product = parts[2];
 const scriptId = parts[3];
 let currentCsvRows = [];
+let wizardStarted = false;
+let lastLogLength = 0;
+let runTimer = null;
 
 
 if (!product || !scriptId) {
@@ -21,19 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
     runnerRoot.classList.add("wizard-mode");
 });
 
-let lastLogLength = 0;
-
 let wizardState = {
     stepIndex: 0,
     steps: [],
-
     env: { ready: false },
     csv: { ready: false },
     options: { ready: true },
     advanced: { ready: true },
 };
-
-let wizardStarted = false;
 
 const wizardData = {
     env: {},
@@ -77,7 +74,6 @@ document
     .getElementById("startWizardBtn")
     .addEventListener("click", () => {
         wizardStarted = true;
-        console.log("[Wizard] Started");
         document.getElementById("scriptOverview").classList.add("hidden");
         document.getElementById("wizardContainer").classList.remove("hidden");
 
@@ -89,19 +85,22 @@ document
         renderWizardStep();
     });
 
+function normaliseHeader(header) {
+    return header
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "_");
+}
+
 function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
 
-    // ✅ CSV-safe split (handles quoted commas)
     const splitLine = (line) =>
-        line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+        line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g)
             ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
 
-    // ✅ Normalize headers
     const rawHeaders = splitLine(lines[0]);
-    const headers = rawHeaders.map(h =>
-        h.toLowerCase().replace(/[^a-z0-9]/g, "")
-    );
+    const headers = rawHeaders.map(normaliseHeader);
 
     return lines.slice(1).map(line => {
         const cols = splitLine(line);
@@ -269,7 +268,7 @@ function areInputsValid() {
 
     // ✅ Show completion message
     statusEl.innerHTML = `
-    ✅ Step complete < br >
+    ✅ Step complete <br>
         ${Object.entries(values)
             .map(([k, v]) => `${k}: ${v}`)
             .join("<br>")
@@ -288,21 +287,17 @@ function goToPreviousStep() {
     }
 }
 
-const backBtn = document.getElementById("wizardBackBtn");
 if (backBtn) {
     backBtn.addEventListener("click", goToPreviousStep);
 }
 
-const nextBtn = document.getElementById("wizardNextBtn");
 if (nextBtn) {
     nextBtn.addEventListener("click", goToNextStep);
 }
 
-
 function renderWizardStep() {
     if (!wizardStarted) return;
     const step = getCurrentStep();
-    console.log("[Wizard] Rendering step:", step);
 
     // Panels
     const envPanel = document.getElementById("envPanel");
@@ -385,8 +380,6 @@ function renderWizardStep() {
             step === "review" ? "" : "none";
     }
 }
-
-
 
 async function loadScriptMeta(product, scriptId) {
     const res = await fetch(`/scripts/${product}/${scriptId}/meta.json`);
@@ -500,6 +493,7 @@ function updateCsvStatus(rows) {
 
     statusEl.classList.remove("hidden");
 }
+
 function getWizardSteps(script) {
     const steps = [];
 
@@ -557,12 +551,16 @@ async function initRunner() {
         const manifest = await loadManifest(product);
         const script = manifest.scripts.find(s => s.id === scriptId);
 
+        document.getElementById("metaScript").textContent =
+            script.title || script.name || script.id;
+
+        document.getElementById("metaProduct").textContent =
+            manifest.title || manifest.name || product;
+
+
         window.currentScript = script;
         wizardState.steps = getWizardSteps(script);
         wizardState.stepIndex = 0;
-
-        console.log("[Wizard] Steps:", wizardState.steps);
-        console.log("[Wizard] Current step:", getCurrentStep());
 
         if (!script) {
             console.error("Script not found in manifest:", scriptId);
@@ -587,12 +585,166 @@ async function initRunner() {
     }
 }
 
+const ADVANCED_ACTION_SETS = {
+    default: [
+        {
+            group: "Navigation",
+            actions: [
+                { id: "save", label: "Save", steps: `click [value="Save"]` }
+            ]
+        }
+    ],
+    adjustmentDetails: [
+        {
+            group: "Mode",
+            actions: [
+                {
+                    id: "enable-manual",
+                    label: "Enable Manual Entry",
+                    steps: `click #manual
+wait 200`
+                },
+                {
+                    id: "reset-form",
+                    label: "Reset Form",
+                    steps: `click #reset`
+                }
+            ]
+        },
+
+        {
+            group: "Selections",
+            actions: [
+                {
+                    id: "select-service",
+                    label: "Select Service",
+                    steps: `select #inService {{SERVICE}}`
+                },
+                {
+                    id: "select-provider",
+                    label: "Select Provider",
+                    steps: `select #inProvider {{PROVIDER}}`
+                },
+                {
+                    id: "select-date-auto",
+                    label: "Select Date (Auto)",
+                    steps: `select #inDateAuto {{DATE}}`
+                },
+                {
+                    id: "select-funding",
+                    label: "Select Invoice Details",
+                    steps: `select #inServiceFunding {{FUNDING}}`
+                }
+            ]
+        },
+
+        {
+            group: "Manual Date",
+            actions: [
+                {
+                    id: "enable-manual-date",
+                    label: "Enable Manual Date Entry",
+                    steps: `click #inDateFully
+wait 100`
+                },
+                {
+                    id: "enter-manual-date",
+                    label: "Enter Manual Date",
+                    steps: `type #inDateManual {{DATE_MANUAL}}`
+                }
+            ]
+        },
+
+        {
+            group: "Amounts",
+            actions: [
+                {
+                    id: "set-all-amounts",
+                    label: "Set All Adjustment Amounts",
+                    steps: `type .adjustmentAmountInput {{AMOUNT}}`
+                },
+                {
+                    id: "set-first-amount",
+                    label: "Set First Adjustment Amount",
+                    steps: `type .adjustmentAmountInput:first-of-type {{AMOUNT}}`
+                },
+                {
+                    id: "set-specific-amount",
+                    label: "Set Specific Amount (by ID)",
+                    steps: `type #inAmount-{{FUNDING_ID}} {{AMOUNT}}`
+                }
+            ]
+        },
+
+        {
+            group: "Description",
+            actions: [
+                {
+                    id: "enter-description",
+                    label: "Enter Description",
+                    steps: `type #inDescription {{DESCRIPTION}}`
+                }
+            ]
+        },
+
+        {
+            group: "Actions",
+            actions: [
+                {
+                    id: "save-adjustment",
+                    label: "Save Adjustment",
+                    steps: `click #submit`
+                },
+                {
+                    id: "save-and-new",
+                    label: "Save & Create Another",
+                    steps: `click #save`
+                }
+            ]
+        }
+    ],
+
+    providerDetails: [
+        {
+            group: "Fields",
+            actions: [
+                { id: "update-orgname", label: "Update Organisation Name", steps: `type #inOrganisationName {{ORGANISATION_NAME}}` },
+                { id: "update-identifier", label: "Update Identifier", steps: `type #inOrganisationIdentifier {{ORGANISATION_IDENTIFIER}}` },
+                { id: "update-branchNumber", label: "Update Branch Number", steps: `type #inBranch {{BRANCH_NUMBER}}` },
+                { id: "update-address", label: "Update Address", steps: `type #inAddress {{ADDRESS}}` },
+                { id: "update-cdb", label: "Update CDB Number", steps: `type #inCDBNumber {{CDB_NUMBER}}` },
+                { id: "change-ods", label: "Update ODS Code", steps: `type #inNHSCode {{ODS_CODE}}` },
+                { id: "change-telephone", label: "Update Telephone", steps: `type #inTelephone {{TELEPHONE}}` },
+                { id: "change-secure-email", label: "Update Secure Email", steps: `type #inSecureEmail {{SECURE_EMAIL}}` },
+                { id: "change-inAccountRef", label: "Update Account Reference", steps: `type #inAccountRef {{ACCOUNT_REF}}` },
+                {
+                    id: "update-mesh",
+                    label: "Update Covid MESH Details",
+                    steps: `click text="[+] MESH Mailbox settings"
+wait 300
+type input[name="inMESHMailboxIDs[]"]:first-of-type {{MESH_USERNAME}}
+wait 150
+type input[name="inMESHMailboxPasswords[]"]:first-of-type {{MESH_PASSWORD}}`
+                }
+            ]
+        },
+        {
+            group: "Navigation",
+            actions: [
+                { id: "save-provider", label: "Save Provider", steps: `click [value="Save"]` }
+            ]
+        }
+    ]
+};
+
+function resolveAdvancedActions(script) {
+    const setName = script?.advancedOptions?.actionSet || "default";
+    return ADVANCED_ACTION_SETS[setName] || ADVANCED_ACTION_SETS.default;
+}
+
+
 function SetupAdvancedUI() {
-    console.log("[AdvancedUI] setup running");
-
     const inlineTextarea = document.getElementById("advancedSteps");
-    console.log("[AdvancedUI] textarea found:", inlineTextarea);
-
 
     function initAdvancedHelp() {
         const panel = document.getElementById("advanced-help-panel");
@@ -669,38 +821,7 @@ click #saveMigration`
         presetSelect.appendChild(opt);
     });
 
-    const ADVANCED_ACTIONS = [
-        {
-            group: "Fields",
-            actions: [
-                { id: "update-orgname", label: "Update Organisation Name", steps: `type #inOrganisationName {{ORGANISATION_NAME}} ` },
-                { id: "update-identifier", label: "Update Identifier", steps: `type #inOrganisationIdentifier {{ORGANISATION_IDENTIFIER}} ` },
-                { id: "update-branchNumber", label: "Update Branch Number", steps: `type #inBranch {{BRANCH_NUMBER}} ` },
-                { id: "update-address", label: "Update Address", steps: `type #inAddress {{ADDRESS}} ` },
-                { id: "update-cdb", label: "Update CDB Number", steps: `type #inCDBNumber {{CDB_NUMBER}} ` },
-                { id: "change-ods   ", label: "Update ODS Code", steps: `type #inNHSCode {{ODS_CODE}} ` },
-                { id: "change-telephone", label: "Update Telephone", steps: `type #inTelephone {{TELEPHONE}} ` },
-                { id: "change-secure-email", label: "Update Secure Email", steps: `type #inSecureEmail {{SECURE_EMAIL}} ` },
-                { id: "change-inAccountRef", label: "Update Account Reference", steps: `type #inAccountRef {{ACCOUNT_REF}} ` },
-                {
-                    id: "update-mesh", label: "Update Covid MESH Details", steps: `# Open MESH Mailbox settings
-                        click text="[+] MESH Mailbox settings"
-                        wait 300
 
-                        # Update primary MESH mailbox credentials
-type input[name="inMESHMailboxIDs[]"]:first-of-type {{ MESH_USERNAME }}
-                        wait 150
-type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
-                }
-            ]
-        },
-        {
-            group: "Navigation",
-            actions: [
-                { id: "save-provider", label: "Save Provider", steps: `click [value="Save"]` }
-            ]
-        }
-    ];
 
     const csvFileInput = document.getElementById("csvFile");
 
@@ -774,11 +895,15 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
     }
 
     const actionsContainer = document.getElementById("advancedActions");
+    const actions = resolveAdvancedActions(window.currentScript);
+
     renderAdvancedActions(
-        ADVANCED_ACTIONS,
+        actions,
         actionsContainer,
         inlineTextarea
     );
+
+
 
     function renderTokenPanel(headers) {
         console.log("[Tokens] rendering", headers);
@@ -790,13 +915,14 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
 
         headers.forEach(header => {
             const btn = document.createElement("button");
+
             btn.type = "button";
-            btn.textContent = `{ { ${header} } } `;
+            btn.textContent = `{{${header}}}`;
 
             btn.addEventListener("click", () => {
                 insertSteps(
                     inlineTextarea,
-                    `{ {${header} } } `
+                    `{{${header}}} `
                 );
             });
 
@@ -821,8 +947,6 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
         updateHighlight();
 
     }
-
-    console.log("[CSV] file", csvFileInput);
 
     if (csvFileInput) {
         csvFileInput.addEventListener("change", (e) => {
@@ -889,7 +1013,6 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
     }
 
     function populateOdsColumnSelect(rows) {
-        console.log("[ODS Select] populating", rows);
         const select = document.getElementById("odsColumnSelect");
         if (!select || !rows.length) return;
 
@@ -911,18 +1034,26 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
 
         if (guess) {
             select.value = guess;
-            console.log("Auto-selected ODS column:", guess);
         }
     }
+
+    function normaliseKey(key) {
+        return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
     function buildHighlightedText(rawText, csvHeaders) {
         return rawText.replace(TOKEN_REGEX, (fullMatch, tokenName) => {
-            const normalized = tokenName.toUpperCase();
+            const normalizedToken = normaliseKey(tokenName);
 
-            if (csvHeaders.includes(normalized)) {
-                return `< span class="valid-token" > ${fullMatch}</span > `;
+            const match = csvHeaders.some(h =>
+                normaliseKey(h) === normalizedToken
+            );
+
+            if (match) {
+                return `<span class="valid-token">${fullMatch}</span>`;
             }
 
-            return `< span class="invalid-token" > ${fullMatch}</span > `;
+            return `<span class="invalid-token">${fullMatch}</span>`;
         });
     }
     const textarea = inlineTextarea
@@ -936,7 +1067,6 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
         e.preventDefault();
         e.stopPropagation();
     });
-
 
     textarea.addEventListener("input", updateHighlight);
 
@@ -973,7 +1103,6 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
         }
     }
 
-
     function positionNear(anchorEl, popupEl) {
         const rect = anchorEl.getBoundingClientRect();
 
@@ -999,8 +1128,6 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
             return;
         }
 
-
-
         const picker = document.createElement("div");
         picker.className = "token-picker";
 
@@ -1010,7 +1137,7 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
         csvHeaders.forEach(header => {
             const btn = document.createElement("button");
             btn.type = "button";
-            btn.textContent = `{ { ${header} } } `;
+            btn.textContent = `{{ ${header} }}`;
             btn.addEventListener("click", () => {
                 replaceToken(tokenEl.textContent, header);
                 removeTokenPicker();
@@ -1050,13 +1177,15 @@ type input[name="inMESHMailboxPasswords[]"]:first-of-type {{ MESH_PASSWORD }} `
         textarea.focus();
     }
 
+
+
     function parseCsvHeaders(csvText) {
         const firstLine = csvText.split(/\r?\n/)[0];
         if (!firstLine) return [];
 
         return firstLine
             .split(",")
-            .map(h => h.trim().toUpperCase()) // ✅ normalize here
+            .map(normaliseHeader)
             .filter(Boolean);
     }
 
@@ -1196,6 +1325,62 @@ function renderReview() {
 
 }
 
+// ---- SIDEBAR STATE SYNC ----
+
+function handleSidebarUpdates(line) {
+
+    // Detect NEW ROW
+    const rowMatch = line.match(/Processing ODS:\s*(\S+)/i);
+    if (rowMatch) {
+        updateCurrentOds(rowMatch[1]);
+        updateCurrentStep("Starting...");
+        return;
+    }
+
+    // Detect PROGRESS
+    const progressMatch = line.match(/ROW\s+(\d+)\/(\d+)/i);
+    if (progressMatch) {
+        updateProgress(
+            Number(progressMatch[1]),
+            Number(progressMatch[2])
+        );
+    }
+
+    // Detect STEPS
+    if (line.includes("Logging in")) {
+        updateCurrentStep("🔐 Logging in...");
+    }
+    else if (line.includes("Opening provider")) {
+        updateCurrentStep("👤 Opening provider...");
+    }
+    else if (line.includes("Deaccrediting")) {
+        updateCurrentStep("🔧 Deaccrediting...");
+    }
+    else if (line.includes("Audit")) {
+        updateCurrentStep("📝 Adding audit...");
+    }
+    else if (line.includes("Saving")) {
+        updateCurrentStep("💾 Saving...");
+    }
+    else if (line.includes("Row completed")) {
+        updateCurrentStep("✅ Completed");
+    }
+    else if (line.includes("__RUN_COMPLETE__")) {
+        updateStatus("Completed ✅");
+
+        if (runTimer) {
+            clearInterval(runTimer);
+            runTimer = null;
+        }
+
+    }
+    else if (line.includes("❌")) {
+        updateStatus("Completed with errors");
+    }
+
+}
+
+
 async function populateDescription(product, script) {
     const descEl = document.getElementById("descriptionContent");
 
@@ -1212,12 +1397,15 @@ async function populateDescription(product, script) {
         descEl.textContent = "Failed to load description.";
     }
 }
+
 function appendLogEntry(entry) {
     const div = document.createElement("div");
     div.classList.add("log-entry");
 
     const time = new Date(entry.time).toLocaleTimeString();
     const line = entry.line;
+
+    handleSidebarUpdates(line);
 
     let levelClass = "log-info";
 
@@ -1241,10 +1429,15 @@ function appendLogEntry(entry) {
 function startLogStream(runId) {
     const evtSource = new EventSource(`/api/run/${runId}/logs`);
 
-    evtSource.onmessage = (event) => {
+    evtSource.addEventListener("log", (event) => {
         const entry = JSON.parse(event.data);
-        appendLogEntry(entry);   // ✅ key change
-    };
+        appendLogEntry(entry);
+    });
+
+    evtSource.addEventListener("run:finished", (event) => {
+        const data = JSON.parse(event.data);
+        console.log("✅ Run finished", data);
+    });
 
     evtSource.onerror = (err) => {
         console.error("Log stream error:", err);
@@ -1262,6 +1455,31 @@ async function startRun(product, script, formData) {
     if (status) {
         status.textContent = "Starting run…";
     }
+
+    updateCurrentOds("—");
+    updateCurrentStep("Starting...");
+    updateProgress(0, 0);
+    updateStatus("Running...");
+
+    const startTime = new Date();
+
+    document.getElementById("metaStart").textContent =
+        startTime.toLocaleTimeString();
+
+    const durationEl = document.getElementById("metaDuration");
+
+    if (runTimer) clearInterval(runTimer); // safety reset
+
+    runTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+
+        document.getElementById("metaDuration").textContent =
+            `${mins}:${secs.toString().padStart(2, "0")}`;
+    }, 1000);
+
 
     try {
         const res = await fetch(
@@ -1322,6 +1540,13 @@ function enterExecutionMode() {
     const wizard = document.getElementById("wizardContainer");
     const execution = document.getElementById("executionContainer");
 
+
+    updateStatus("Starting...");
+    updateCurrentOds("—");
+    updateCurrentStep("Starting...");
+    updateProgress(0, 0);
+
+
     // Ensure layout switches to execution view if needed
     if (root) {
         root.classList.remove("wizard-mode");
@@ -1356,9 +1581,7 @@ document.getElementById("odsColumnSelect").addEventListener("change", e => {
     updateOdsPreview(currentCsvRows, e.target.value);
 });
 
-
 function setupRunForm(product, script) {
-    console.log("setupRunForm CALLED");
 
     const form = document.getElementById("run-form");
     if (!form) {
@@ -1387,6 +1610,11 @@ function setupRunForm(product, script) {
                 method: "POST",
                 credentials: "include"
             });
+
+            if (runTimer) {
+                clearInterval(runTimer);
+                runTimer = null;
+            }
 
             stopRunButton.textContent = "Stopping…";
         });
@@ -1484,6 +1712,9 @@ function updateLogs(jobData) {
         else if (line.includes("👤")) levelClass = "log-user";
         else if (line.includes("🛠")) levelClass = "log-job";
 
+        if (line.includes("__RUN_COMPLETE__")) {
+            clearInterval(timer);
+        }
         div.classList.add(levelClass);
         div.innerHTML = `<span class="log-time">${timeStr}</span><span class="log-text">${escapeHtml(
             line
@@ -1581,5 +1812,23 @@ function escapeHtml(text) {
         .replace(/>/g, "&gt;");
 }
 
+function updateStatus(text) {
+    document.getElementById("metaStatus").textContent = text;
+}
+function updateProgress(current, total) {
+    const percent = total ? (current / total) * 100 : 0;
 
+    document.getElementById("progressText").textContent =
+        `${current} / ${total}`;
+
+    document.getElementById("progressFill").style.width =
+        `${percent}%`;
+}
+function updateCurrentOds(ods) {
+    document.getElementById("currentOds").textContent = ods;
+}
+
+function updateCurrentStep(step) {
+    document.getElementById("currentStep").textContent = step;
+}
 

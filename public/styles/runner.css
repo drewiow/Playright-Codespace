@@ -679,3 +679,37 @@ body {
     border-bottom: 1px dashed red;
     cursor: pointer;
 }
+
+.execution-layout {
+    display: flex;
+    height: 100%;
+}
+
+.execution-sidebar {
+    width: 260px;
+    padding: 16px;
+    background: #f7f9fc;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.execution-logs {
+    flex: 1;
+    padding: 16px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#progressFill {
+    height: 100%;
+    width: 0%;
+    background: #4caf50;
+    transition: width 0.3s;
+}

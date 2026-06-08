@@ -30,12 +30,18 @@ export function parseAdvancedSteps(text) {
 export function resolveCsvTokens(text, row, log = console.log) {
     if (!text) return text;
 
+    function normaliseKey(key) {
+        return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
     return text.replace(
         /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g,
         (_, key) => {
-            // Case‑insensitive lookup
+
+            const normalizedToken = normaliseKey(key);
+
             const foundKey = Object.keys(row).find(
-                k => k.toLowerCase() === key.toLowerCase()
+                k => normaliseKey(k) === normalizedToken
             );
 
             if (!foundKey) {
@@ -43,7 +49,6 @@ export function resolveCsvTokens(text, row, log = console.log) {
                 return `{{${key}}}`;
             }
 
-            // Convert to string defensively
             return String(row[foundKey] ?? "");
         }
     );

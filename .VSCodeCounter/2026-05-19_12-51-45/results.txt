@@ -1,0 +1,41 @@
+Date : 2026-05-19 12:51:45
+Directory : c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views
+Total : 14 files,  493 codes, 27 comments, 147 blanks, all 667 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| HTML     |         14 |        493 |         27 |        147 |        667 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                    | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                       |         14 |        493 |         27 |        147 |        667 |
+| layouts                                                                                 |          1 |         29 |          4 |         11 |         44 |
+| pages                                                                                   |          6 |        354 |         23 |        109 |        486 |
+| partials                                                                                |          7 |        110 |          0 |         27 |        137 |
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                | language | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\layouts\main.ejs          | HTML     |         29 |          4 |         11 |         44 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\createUser.ejs      | HTML     |        125 |          2 |         39 |        166 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\index.ejs           | HTML     |         11 |          2 |          3 |         16 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\login.ejs           | HTML     |         12 |          0 |          7 |         19 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\run-ddetail.ejs     | HTML     |          5 |          0 |          2 |          7 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\runHistory.ejs      | HTML     |         53 |          2 |         12 |         67 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\runner.ejs          | HTML     |        148 |         17 |         46 |        211 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\footer.ejs       | HTML     |          3 |          0 |          0 |          3 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\header.ejs       | HTML     |         28 |          0 |         13 |         41 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\login-form.ejs   | HTML     |         27 |          0 |          7 |         34 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\login-modal.ejs  | HTML     |         27 |          0 |          7 |         34 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\product-card.ejs | HTML     |          9 |          0 |          0 |          9 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\script-card.ejs  | HTML     |          8 |          0 |          0 |          8 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\sidebar.ejs      | HTML     |          8 |          0 |          0 |          8 |
+| Total                                                                                   |          |        493 |         27 |        147 |        667 |
++-----------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+

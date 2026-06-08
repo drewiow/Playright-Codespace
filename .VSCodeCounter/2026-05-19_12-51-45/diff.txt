@@ -1,0 +1,55 @@
+Date : 2026-05-19 12:51:45
+Directory : c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views
+Total : 22 files,  -740 codes, -148 comments, -157 blanks, all -1045 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| HTML     |         14 |        493 |         27 |        147 |        667 |
+| XML      |          1 |        -15 |          0 |         -1 |        -16 |
+| PostCSS  |          7 |     -1,218 |       -175 |       -303 |     -1,696 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                    | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                       |         22 |       -740 |       -148 |       -157 |     -1,045 |
+| ..                                                                                      |          8 |     -1,233 |       -175 |       -304 |     -1,712 |
+| ..\public                                                                               |          8 |     -1,233 |       -175 |       -304 |     -1,712 |
+| ..\public\images                                                                        |          1 |        -15 |          0 |         -1 |        -16 |
+| ..\public\styles                                                                        |          7 |     -1,218 |       -175 |       -303 |     -1,696 |
+| layouts                                                                                 |          1 |         29 |          4 |         11 |         44 |
+| pages                                                                                   |          6 |        354 |         23 |        109 |        486 |
+| partials                                                                                |          7 |        110 |          0 |         27 |        137 |
++-----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                | language | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\images\duck-logo.svg     | XML      |        -15 |          0 |         -1 |        -16 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\createUser.css    | PostCSS  |       -126 |        -11 |        -32 |       -169 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\header.css        | PostCSS  |        -89 |        -15 |        -31 |       -135 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\index.css         | PostCSS  |       -170 |        -39 |        -47 |       -256 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\login.css         | PostCSS  |        -73 |         -1 |        -12 |        -86 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\runHistory.css    | PostCSS  |       -199 |        -24 |        -35 |       -258 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\runner.css        | PostCSS  |       -474 |        -75 |       -132 |       -681 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\public\styles\styles.css        | PostCSS  |        -87 |        -10 |        -14 |       -111 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\layouts\main.ejs          | HTML     |         29 |          4 |         11 |         44 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\createUser.ejs      | HTML     |        125 |          2 |         39 |        166 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\index.ejs           | HTML     |         11 |          2 |          3 |         16 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\login.ejs           | HTML     |         12 |          0 |          7 |         19 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\run-ddetail.ejs     | HTML     |          5 |          0 |          2 |          7 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\runHistory.ejs      | HTML     |         53 |          2 |         12 |         67 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\pages\runner.ejs          | HTML     |        148 |         17 |         46 |        211 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\footer.ejs       | HTML     |          3 |          0 |          0 |          3 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\header.ejs       | HTML     |         28 |          0 |         13 |         41 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\login-form.ejs   | HTML     |         27 |          0 |          7 |         34 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\login-modal.ejs  | HTML     |         27 |          0 |          7 |         34 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\product-card.ejs | HTML     |          9 |          0 |          0 |          9 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\script-card.ejs  | HTML     |          8 |          0 |          0 |          8 |
+| c:\Users\Drew.Clarke\Documents\Code\Playright-Codespace\views\partials\sidebar.ejs      | HTML     |          8 |          0 |          0 |          8 |
+| Total                                                                                   |          |       -740 |       -148 |       -157 |     -1,045 |
++-----------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
