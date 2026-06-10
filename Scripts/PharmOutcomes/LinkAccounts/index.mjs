@@ -1,284 +1,243 @@
+import { runScript } from "../../common/runScript.mjs";
+
+import {
+  login,
+  editProvider,
+  parseCSV
+} from "../helpers.mjs";
+
+import { logAction } from "../../common/common.mjs";
+
 import fs from "node:fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import process from "process";
-import { initExecution } from "../../common/initExecution.mjs";
+import path from "node:path";
 
-import { login, editProvider, setupContext, parseCSV } from "../helpers.mjs";
-import { decryptEnv, logAction } from "../../common/common.mjs";
+export default async function run() {
+  await runScript({
+    async main({ page, logger, username, password, config }) {
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+      logger("🚀 Starting script...");
 
-console.log("SCRIPT BOOT:", __filename, new Date().toISOString());
+      const runDir = config.runDir;
+      if (runDir && !fs.existsSync(runDir)) {
+        fs.mkdirSync(runDir, { recursive: true });
+      }
 
-process.on("uncaughtException", err =>
-  console.error("UNCAUGHT EXCEPTION:", err?.stack || err)
-);
-process.on("unhandledRejection", r =>
-  console.error("UNHANDLED REJECTION:", r?.stack || r)
-);
+      const inputCsvPath =
+        process.env.INPUT_CSV_PATH ||
+        process.env.CSV_PATH;
 
-function defaultLogger(...args) {
-  console.log(...args);
-}
+      if (!inputCsvPath) {
+        throw new Error("No CSV path provided (INPUT_CSV_PATH or CSV_PATH)");
+      }
 
-// ------------------------------------------------------------
-// MAIN RUN FUNCTION
-// ------------------------------------------------------------
-export default async function run({ logger = defaultLogger } = {}) {
-  logger("RUN STARTED");
+      // ✅ Load CSV
+      let accounts;
+      try {
+        const raw = fs.readFileSync(inputCsvPath, "utf-8");
+        accounts = parseCSV(raw);
+        logger(`✅ Loaded ${accounts.length} accounts from CSV`);
+      } catch (err) {
+        logger("❌ Error reading CSV:", err.message);
+        throw err;
+      }
 
-  await initExecution({ logger });
+      // ✅ Prepare output CSV
+      const resultsCsvPath = path.join(runDir, "LinkedAccounts.csv");
 
-  // Validate required env vars
-  const username = process.env.USERNAME;
-  const password = process.env.PASSWORD;
+      if (!fs.existsSync(resultsCsvPath)) {
+        fs.writeFileSync(
+          resultsCsvPath,
+          "username,odsCode,fullname,email,linkedAt\n",
+          "utf-8"
+        );
+      }
 
-  if (!username) throw new Error("Missing USERNAME");
-  if (!password) throw new Error("Missing PASSWORD");
+      const startTime = Date.now();
 
-  // Config flags
-  const human = process.env.CONFIG_HUMAN === "true" || process.env.HUMAN === "true";
-  const intensity = Number(process.env.CONFIG_INTENSITY || 1);
-  const headless = process.env.CONFIG_HEADLESS === "true" || process.env.HEADLESS === "true";
-  const recordVideo = process.env.CONFIG_RECORD_VIDEO === "true";
-  const recordTrace = process.env.CONFIG_RECORD_TRACE === "true";
-  const DRY_RUN = process.env.DRY_RUN === "true";
+      // -----------------------------
+      // 1. CREATE ALL ACCOUNTS FIRST
+      // -----------------------------
+      logger("🔧 BEGIN ACCOUNT CREATION LOOP");
 
-  logger("CONFIG → human:", human);
-  logger("CONFIG → intensity:", intensity);
-  logger("CONFIG → headless:", headless);
-  logger("CONFIG → recordVideo:", recordVideo);
-  logger("CONFIG → recordTrace:", recordTrace);
-  logger("CONFIG → DRY_RUN:", DRY_RUN);
-
-  let browser = null;
-  let context = null;
-  let page = null;
-
-  try {
-    logger("🚀 Starting script...");
-
-    const runDir = process.env.RUN_DIR;
-    if (!fs.existsSync(runDir)) {
-      fs.mkdirSync(runDir, { recursive: true });
-    }
-
-    const inputCsvPath =
-      process.env.INPUT_CSV_PATH ||
-      process.env.CSV_PATH;
-
-    if (!inputCsvPath) {
-      throw new Error("No CSV path provided (INPUT_CSV_PATH or CSV_PATH)");
-    }
-
-
-    // Load CSV
-    let accounts;
-    try {
-      const raw = fs.readFileSync(inputCsvPath, "utf-8");
-      accounts = parseCSV(raw);
-      logger(`✅ Loaded ${accounts.length} accounts from CSV`);
-    } catch (err) {
-      logger("❌ Error reading CSV:", err.message);
-      throw err;
-    }
-
-    // Setup Playwright
-    logger("🔧 setupContext starting");
-    ({ browser, context, page } = await setupContext({
-      headless,
-      human,
-      runDir
-    }));
-    logger("✅ Browser/context/page created");
-
-    // Prepare output CSV
-    const resultsCsvPath = path.join(runDir, "LinkedAccounts.csv");
-    if (!fs.existsSync(resultsCsvPath)) {
-      fs.writeFileSync(resultsCsvPath, "username,odsCode,fullname,email,linkedAt\n", "utf-8");
-    }
-
-    // -----------------------------
-    // 1. CREATE ALL ACCOUNTS FIRST
-    // -----------------------------
-    logger("🔧 BEGIN ACCOUNT CREATION LOOP");
-
-    await logAction("Login", () =>
-      login(page, username, password, "PRIM"),
-      logger
-    );
-
-    let baseUser = null;
-    const created = [];
-
-    for (let i = 0; i < accounts.length; i++) {
-      const {
-        odscode,
-        newuser,
-        fullname,
-        email
-      } = accounts[i];
-
-      const computedUsername = i === 0 ? newuser : `${newuser}.${odscode}`;
-
-
-      logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
-      logger(`   Provider ODS: ${odscode}`);
-      logger(`   Full name: ${fullname}`);
-      logger(`   Email: ${email}`);
-      logger(`   Username: ${computedUsername}`);
-
-      await logAction(`Edit provider ${odscode}`, () =>
-        editProvider(page, odscode),
+      await logAction("Login", () =>
+        login(page, username, password, "PRIM"),
         logger
       );
 
-      if (i === 0) {
-        baseUser = { username: computedUsername, odscode };
-        logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
-      }
-      else {
+      let baseUser = null;
+      const created = [];
 
-        await logAction("Click New User", () =>
-          page.locator('a.full-lock[href^="/o4h/admin/users?new"]').click(),
+      for (let i = 0; i < accounts.length; i++) {
+
+        const {
+          odscode,
+          newuser,
+          fullname,
+          email
+        } = accounts[i];
+
+        const computedUsername = i === 0
+          ? newuser
+          : `${newuser}.${odscode}`;
+
+        logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
+        logger(`   Provider ODS: ${odscode}`);
+        logger(`   Full name: ${fullname}`);
+        logger(`   Email: ${email}`);
+        logger(`   Username: ${computedUsername}`);
+
+        await logAction(`Edit provider ${odscode}`, () =>
+          editProvider(page, odscode),
           logger
         );
 
-        await logAction("Fill username", () =>
-          page.fill("#inUserName", computedUsername),
-          logger
-        );
+        if (i === 0) {
+          baseUser = { username: computedUsername, odscode };
+          logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
+        } else {
 
-        await logAction("Fill full name", () =>
-          page.fill("#inKnownName", fullname),
-          logger
-        );
-
-        await logAction("Fill email", () =>
-          page.fill("#inContactEmail", email),
-          logger
-        );
-
-        await logAction("Save user (first save)", () =>
-          page.click('input[type="submit"][name="update"]'),
-          logger
-        );
-
-        if (i > 1) {
-          await logAction("Uncheck Reset Password", () =>
-            page.uncheck('input[name="inResetPassword"]'),
+          await logAction("Click New User", () =>
+            page.locator('a.full-lock[href^="/o4h/admin/users?new"]').click(),
             logger
           );
 
-          await logAction("Uncheck Cross Login", () =>
-            page.uncheck('input[name="inCrossLogin"]'),
+          await logAction("Fill username", () =>
+            page.fill("#inUserName", computedUsername),
             logger
           );
-        }
 
-        await logAction("Tick all permissions", () =>
-          page.click('input[type="button"][value="Tick all"]'),
-          logger
-        );
+          await logAction("Fill full name", () =>
+            page.fill("#inKnownName", fullname),
+            logger
+          );
 
-        await logAction("Save user (permissions save)", () =>
-          page.click('input[type="submit"][name="update"]'),
-          logger
-        );
+          await logAction("Fill email", () =>
+            page.fill("#inContactEmail", email),
+            logger
+          );
 
-        created.push({ username: computedUsername, odscode, fullname, email });
+          await logAction("Save user (first save)", () =>
+            page.click('input[type="submit"][name="update"]'),
+            logger
+          );
 
-        const duplicateError = page.locator('p.error:has-text("User name already exists")');
+          if (i > 1) {
+            await logAction("Uncheck Reset Password", () =>
+              page.uncheck('input[name="inResetPassword"]'),
+              logger
+            );
 
-        if (await duplicateError.isVisible().catch(() => false)) {
-          logger(`User already exists → skipping`);
-          return;
+            await logAction("Uncheck Cross Login", () =>
+              page.uncheck('input[name="inCrossLogin"]'),
+              logger
+            );
+          }
+
+          await logAction("Tick all permissions", () =>
+            page.click('input[type="button"][value="Tick all"]'),
+            logger
+          );
+
+          await logAction("Save user (permissions save)", () =>
+            page.click('input[type="submit"][name="update"]'),
+            logger
+          );
+
+          const duplicateError = page.locator(
+            'p.error:has-text("User name already exists")'
+          );
+
+          if (await duplicateError.isVisible().catch(() => false)) {
+            logger(`⚠️ User already exists → skipping`);
+            continue;
+          }
+
+          created.push({
+            username: computedUsername,
+            odscode,
+            fullname,
+            email
+          });
         }
       }
 
+      logger("🎉 Finished creating all accounts");
+
+      // -----------------------------
+      // 2. FINAL LINKING PASS
+      // -----------------------------
+      logger("\n🔗 BEGIN FINAL LINKING PASS");
+
+      if (!baseUser) {
+        throw new Error("baseUser was never set!");
+      }
+
+      await logAction(`Return to base provider ${baseUser.odscode}`, () =>
+        editProvider(page, baseUser.odscode),
+        logger
+      );
+
+      const row = page.locator(
+        `tr:has(span:has-text("(${baseUser.username})"))`
+      );
+
+      await logAction("Open base user row", () =>
+        row.locator('a.full-lock:has-text("Edit")').click(),
+        logger
+      );
+
+      await logAction("Click Link User", () =>
+        page.click('input.submit.full-lock[name="submit"][value="Link User"]'),
+        logger
+      );
+
+      for (const entry of created.slice(1)) {
+
+        logger(`➡️ Linking username: ${entry.username}`);
+
+        await logAction(`Fill linking search for ${entry.username}`, () =>
+          page.fill("#inUserID_typedown", entry.username),
+          logger
+        );
+
+        await logAction("Wait for autocomplete", () =>
+          page.waitForSelector("#ui-id-1"),
+          logger
+        );
+
+        await logAction("Select first autocomplete result", () =>
+          page.locator("#ui-id-1 li").first().click(),
+          logger
+        );
+
+        await logAction("Click AddLinkedUser", () =>
+          page.click('input[type="submit"][name="AddLinkedUser"]'),
+          logger
+        );
+
+        const csvRow =
+          `"${entry.username}","${entry.odscode}","${entry.fullname}","${entry.email}","${new Date().toISOString()}"\n`;
+
+        fs.appendFileSync(resultsCsvPath, csvRow);
+      }
+
+      logger("🎉 All accounts linked successfully");
+
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      logger(`⏱️ Script completed in ${duration} seconds`);
+
+      // ✅ Trace
+      if (config.recordTrace) {
+        const tracePath = path.join(config.runDir, "trace.zip");
+        await page.context().tracing.stop({ path: tracePath });
+      }
+
+      logger("🏁 Script finished");
     }
-
-    logger("🎉 Finished creating all accounts");
-
-    // -----------------------------
-    // 2. FINAL LINKING PASS
-    // -----------------------------
-    logger("\n🔗 BEGIN FINAL LINKING PASS");
-
-    if (!baseUser) throw new Error("baseUser was never set!");
-
-    await logAction(`Return to base provider ${baseUser.odscode}`, () =>
-      editProvider(page, baseUser.odscode),
-      logger
-    );
-
-    const row = page.locator(`tr:has(span:has-text("(${baseUser.username})"))`);
-    await logAction("Open base user row", () =>
-      row.locator('a.full-lock:has-text("Edit")').click(),
-      logger
-    );
-
-    await logAction("Click Link User", () =>
-      page.click('input.submit.full-lock[name="submit"][value="Link User"]'),
-      logger
-    );
-
-    for (const entry of created.slice(1)) {
-      logger(`➡️ Linking username: ${entry.username}`);
-
-      await logAction(`Fill linking search for ${entry.username}`, () =>
-        page.fill("#inUserID_typedown", entry.username),
-        logger
-      );
-
-      await logAction("Wait for autocomplete", () =>
-        page.waitForSelector("#ui-id-1"),
-        logger
-      );
-
-      await logAction("Select first autocomplete result", () =>
-        page.locator("#ui-id-1 li").first().click(),
-        logger
-      );
-
-      await logAction("Click AddLinkedUser", () =>
-        page.click('input[type="submit"][name="AddLinkedUser"]'),
-        logger
-      );
-
-      const csvRow = `"${entry.username}","${entry.odscode}","${entry.fullname}","${entry.email}","${new Date().toISOString()}"\n`;
-      fs.appendFileSync(resultsCsvPath, csvRow);
-    }
-
-    logger("🎉 All accounts linked successfully");
-
-    // Trace
-    if (recordTrace) {
-      const tracePath = path.join(runDir, "trace.zip");
-      await context.tracing.stop({ path: tracePath });
-    }
-
-    logger("🏁 Script finished");
-
-  } catch (err) {
-    logger("❌ Unhandled error:", err?.stack || err);
-    throw err;
-
-  } finally {
-    logger("__RUN_COMPLETE__");
-    await new Promise(r => setTimeout(r, 50));
-
-    try { if (page && !page.isClosed()) await page.close(); } catch { }
-    try { if (context) await context.close(); } catch { }
-    try { if (browser) await browser.close(); } catch { }
-
-    logger("👋 Cleanup complete");
-  }
+  });
 }
 
-// Runner always invokes this script directly
+// ✅ required for your runner
 run().catch(err => {
   console.error("Script failed:", err?.stack || err);
   process.exit(1);

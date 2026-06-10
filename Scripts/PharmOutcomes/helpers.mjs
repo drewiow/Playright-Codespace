@@ -265,6 +265,34 @@ export async function addAudit(page, caseRef) {
   console.log("✅ Journal entry submitted");
 }
 
+export async function accredit(page, serviceIDs = []) {
+  await page.waitForSelector('a[href*="accredit="]', { timeout: 10000 });
+
+  for (const serviceID of serviceIDs) {
+
+    const link = page.locator(`a[href*="accredit=${serviceID}"]`).first();
+
+    const exists = await link.isVisible().catch(() => false);
+
+    if (!exists) {
+      console.log(`⚠️ Service ${serviceID} not found (already accredited?)`);
+      continue;
+    }
+
+    console.log(`✅ Accrediting service ${serviceID}`);
+
+    await Promise.all([
+      page.waitForLoadState("networkidle"),
+      link.click()
+    ]);
+
+    // ✅ wait for list to refresh (important)
+    await page.waitForSelector('a[href*="accredit="]', { timeout: 10000 });
+  }
+}
+
+
+
 export async function deaccredit(page, PIDService) {
   await page.waitForSelector('a[href*="deaccredit="]', { timeout: 10000 });
 
@@ -401,3 +429,48 @@ export async function loginCommissioner(page, odsCode) {
 
   await securityWord(page);
 }
+export async function addCommissioner(page, commissionerID, services, log = console.log) {
+  log("👤 Adding commissioner");
+
+  const link = page
+    .locator('p:has(strong:has-text("Commissioners"))')
+    .locator('a[href*="commissioner="]');
+
+  // ✅ retry-safe click (handles DOM redraws)
+  for (let i = 0; i < 3; i++) {
+    try {
+      await link.waitFor({ state: "visible", timeout: 5000 });
+
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle" }),
+        link.click()
+      ]);
+
+      break;
+    } catch (err) {
+      log("🔄 Retry clicking commissioner add link...");
+      await page.waitForTimeout(300);
+    }
+  }
+
+  // ✅ wait for typedown to be ready
+  await page.waitForSelector("#inOrganisationID_typedown", { timeout: 5000 });
+
+  // ✅ type value
+  await page.fill("#inOrganisationID_typedown", commissionerID);
+
+  // ✅ wait for dropdown results
+  await page.waitForSelector("#ui-id-1 li", { timeout: 5000 });
+
+  // ✅ click first result safely
+  await page.locator("#ui-id-1 li").first().click();
+
+  // ✅ submit form (wait for navigation)
+  await Promise.all([
+    page.waitForLoadState("domcontentloaded"),
+    page.locator("#submit").click()
+  ]);
+
+  log("✅ Commissioner added");
+}
+

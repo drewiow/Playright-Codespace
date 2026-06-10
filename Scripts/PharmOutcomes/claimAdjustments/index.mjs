@@ -1,207 +1,102 @@
+import { runScript } from "../../common/runScript.mjs";
+
+import {
+  login,
+  loginCommissioner
+} from "../helpers.mjs";
+
 import fs from "node:fs";
-import fsp from "node:fs/promises";
-import path from "path";
-import process from "process";
-import { fileURLToPath } from "url";
-import { initExecution } from "../../common/initExecution.mjs";
-import { login, editProvider, setupContext, parseCSV, loginCommissioner } from "../helpers.mjs";
-import { parseAdvancedSteps, resolveCsvTokens } from "../../advanced/parseAdvancedSteps.mjs";
-import { executeAdvancedSteps } from "../../advanced/executeAdvancedSteps.mjs";
+import path from "node:path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+export default async function run() {
+  await runScript({
+    async main({ page, rows, logger, username, password, runAdvanced, config }) {
 
-console.log("SCRIPT BOOT:", __filename);
+      function normaliseKey(key) {
+        return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+      }
 
-process.on("uncaughtException", err =>
-  console.error("UNCAUGHT EXCEPTION:", err?.stack || err)
-);
-process.on("unhandledRejection", r =>
-  console.error("UNHANDLED REJECTION:", r?.stack || r)
-);
+      const odsColumn = normaliseKey(
+        process.env.ODS_COLUMN || "odscode"
+      );
 
-function defaultLogger(...args) {
-  console.log(...args);
-}
-
-process.on("SIGTERM", async () => {
-  console.log("🛑 Stop requested — cleaning up…");
-
-  try { if (page && !page.isClosed()) await page.close(); } catch { }
-  try { if (context) await context.close(); } catch { }
-  try { if (browser) await browser.close(); } catch { }
-
-  console.log("__RUN_STOPPED__");
-  process.exit(0);
-});
-
-export default async function run({ logger = defaultLogger } = {}) {
-  logger("RUN STARTED");
-
-  await initExecution({ logger });
-  const username = process.env.USERNAME;
-  const password = process.env.PASSWORD;
-
-  if (!username) throw new Error("Missing USERNAME");
-  if (!password) throw new Error("Missing PASSWORD");
-  // Config flags
-  const human = process.env.CONFIG_HUMAN === "true" || process.env.HUMAN === "true";
-  const intensity = Number(process.env.CONFIG_INTENSITY || 1);
-  const headless = process.env.CONFIG_HEADLESS === "true" || process.env.HEADLESS === "true";
-  const recordVideo = process.env.CONFIG_RECORD_VIDEO === "true";
-  const recordTrace = process.env.CONFIG_RECORD_TRACE === "true";
-  const advancedStepsText = process.env.ADVANCED_STEPS || "";
-  const steps = parseAdvancedSteps(advancedStepsText);
-  const runDir = process.env.RUN_DIR
-
-  function normaliseKey(key) {
-    return key.toLowerCase().replace(/[^a-z0-9]/g, "");
-  }
-
-  const odsColumn = normaliseKey(
-    process.env.ODS_COLUMN || "odscode"
-  );
-
-
-
-  // CSV input path from runner
-  const csvPath = process.env.CSV_PATH;
-  if (!csvPath) throw new Error("CSV_PATH not provided");
-
-  logger("📄 Reading CSV:", csvPath);
-
-  let rows;
-  try {
-    const csvText = await fsp.readFile(csvPath, "utf8");
-    rows = parseCSV(csvText);
-  } catch (err) {
-    logger("❌ Failed to read CSV:", err?.message);
-    throw err;
-  }
-
-  logger(`📦 Loaded ${rows.length} rows from CSV`);
-
-  // Prepare results file inside run directory
-  const resultsPath = path.join(process.env.RUN_DIR, "meshUpdated.csv");
-  fs.writeFileSync(resultsPath, "ODSCode,Timestamp\n");
-
-  let browser = null;
-  let context = null;
-  let page = null;
-
-  try {
-    logger("🔧 setupContext starting");
-    ({ browser, context, page } = await setupContext({
-      headless: process.env.CONFIG_HEADLESS === "true",
-      human: process.env.CONFIG_HUMAN === "true",
-      runDir: process.env.RUN_DIR
-    }));
-    logger("✅ Browser/context/page created");
-
-    const startTime = Date.now();
-    const DRY_RUN = process.env.DRY_RUN === "true";
-
-    logger("dryRun:", process.env.DRY_RUN);
-
-    if (DRY_RUN) {
-      logger("⚠️ DRY RUN mode enabled - no actions will be performed");
-    }
-
-    for (let i = 0; i < rows.length; i++) {
-
-      const row = rows[i];
-      const odsCode = row[odsColumn];
       const commissioner = process.env.COMMISSIONER;
-      logger(`ROW ${i + 1}/${rows.length}`);
 
       if (!commissioner) {
         logger("❌ COMMISSIONER environment variable not set");
         throw new Error("COMMISSIONER env var required");
       }
 
-      if (!odsCode) {
-        logger("⚠️ Skipping row with no ODS code:", row);
-        continue;
+      const resultsPath = path.join(config.runDir, "meshUpdated.csv");
+      fs.writeFileSync(resultsPath, "ODSCode,Timestamp\n");
+
+      const startTime = Date.now();
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const odsCode = row[odsColumn];
+
+        logger(`ROW ${i + 1}/${rows.length}`);
+
+        if (!odsCode) {
+          logger("⚠️ Skipping row with no ODS code:", row);
+          continue;
+        }
+
+        logger(`🔄 Processing ODS: ${odsCode}`);
+
+        try {
+          // ✅ primary login
+          await login(page, username, password, "prim", logger);
+
+          // ✅ switch to commissioner
+          await loginCommissioner(page, commissioner);
+
+          // ✅ go directly to adjustment page
+          await page.goto(
+            "https://outcomes4health.org/o4h/claims/adjustment/?edit&id=0"
+          );
+
+          // ✅ centralised advanced logic
+          await runAdvanced(row, i + 1);
+
+          const csvRow = `"${odsCode}","${new Date().toISOString()}"\n`;
+          fs.appendFileSync(resultsPath, csvRow);
+
+          await page.click('[value="Exit"]');
+
+          logger(`✅ Row completed: ${odsCode}`);
+
+        } catch (err) {
+          logger(`❌ Failed for ${odsCode}: ${err?.message}`);
+          continue;
+        }
       }
 
-      logger(`🔄 Processing ODS: ${odsCode}`);
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      logger(`⏱️ Script completed in ${duration} seconds`);
 
-      try {
-        await login(page, username, password, "prim", logger);
-      } catch (err) {
-        logger(`❌ Login failed for ${odsCode}: ${err?.message}`);
-        continue;
+      // ✅ video
+      if (config.recordVideo && page.saveVideo) {
+        await page.saveVideo(`run-${Date.now()}`);
       }
 
-      try {
-        await loginCommissioner(page, commissioner);
-      } catch (err) {
-        logger(`❌ Failed to find commissioner for ${commissioner}: ${err?.message}`);
-        continue;
+      // ✅ trace
+      if (config.recordTrace) {
+        const tracePath = path.join(config.runDir, "trace.zip");
+        await page.context().tracing.stop({ path: tracePath });
       }
 
-      await page.goto("https://outcomes4health.org/o4h/claims/adjustment/?edit&id=0");
-      //Do the advanced script
-      const resolvedStepsText = resolveCsvTokens(
-        advancedStepsText,
-        row
-      );
-
-      const resolvedSteps = parseAdvancedSteps(resolvedStepsText);
-
-      if (resolvedSteps.length > 0) {
-        logger(`🚀 Executing advanced steps`);
-        await executeAdvancedSteps({
-          steps: resolvedSteps,
-          page,
-          rowIndex: 1, // no row index in this script, but keeping for consistency
-          log: logger
-        });
+      // ✅ human mode
+      if (config.human) {
+        logger("🕒 Browser will remain open...");
+        await new Promise(() => { });
       }
-
-      const csvRow = `"${odsCode}","${new Date().toISOString()}"\n`;
-      fs.appendFileSync(resultsPath, csvRow);
-
-      await page.click('[value="Exit"]');
-
-      logger(`✅ Row completed: ${odsCode}`);
-
     }
-
-    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    logger(`⏱️ Script completed in ${duration} seconds`);
-
-    // Video
-    if (recordVideo && page.saveVideo) {
-      await page.saveVideo(`run-${Date.now()}`);
-    }
-
-    // Trace
-    if (recordTrace) {
-      const tracePath = path.join(runDir, "trace.zip");
-      await context.tracing.stop({ path: tracePath });
-    }
-
-    if (human) {
-      logger("🕒 Browser will remain open...");
-      await new Promise(() => { });
-    }
-
-  } catch (err) {
-    logger("❌ Run error:", err?.stack || err);
-    throw err;
-
-  } finally {
-    logger("__RUN_COMPLETE__");
-
-    try { if (page && !page.isClosed()) await page.close(); } catch { }
-    try { if (context) await context.close(); } catch { }
-    try { if (browser) await browser.close(); } catch { }
-
-    logger("👋 Cleanup complete");
-  }
+  });
 }
 
+// ✅ keep this (runner requirement for now)
 run().catch(err => {
   console.error("Script failed:", err?.stack || err);
   process.exit(1);
