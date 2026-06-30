@@ -1,4 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
+import { formatDateToUKDisplay } from "../../common/dateUtils.mjs";
+import { customToBBCode } from "../../common/bbcode.mjs"
 
 import {
   login
@@ -22,16 +24,16 @@ export default async function run() {
       const to = process.env.TO;
       const until = process.env.UNTIL;
       const title = process.env.TITLE;
-      const body = process.env.BODY;
+      const bodyRaw = process.env.BODY;
+      const bodyBBCode = customToBBCode(bodyRaw);
 
       const primary = ["1", "true", "on", "yes"]
         .includes((process.env.PRIMARY || "").toLowerCase());
 
       if (!from) throw new Error("Missing FROM");
-      if (!to) throw new Error("Missing TO");
       if (!until) throw new Error("Missing UNTIL");
       if (!title) throw new Error("Missing TITLE");
-      if (!body) throw new Error("Missing BODY");
+      if (!bodyRaw) throw new Error("Missing BODY");
 
       // ✅ regions
       const regionsPath = path.resolve(__dirname, "../input/regions.json");
@@ -59,92 +61,24 @@ export default async function run() {
 
           // ✅ navigate
           await page.goto(
-            "https://pharmoutcomes.org/pharmoutcomes/home/announcement?id=0",
+            "https://outcomes4health.org/o4h/home/announcement?id=0",
             { waitUntil: "networkidle" }
           );
 
-          // ✅ from date
-          try {
-            await page.locator('input[name="inFromDate"]').fill(from);
-          } catch {
-            logger(`⚠️ From date not found (${name})`);
+          await page.locator('input[name="inFromDate"]').fill(formatDateToUKDisplay(from));
+          await page.locator('input[name="inToDate"]').fill(formatDateToUKDisplay(until));
+
+          if (to) {
+            await page.locator('input[name="inToOrg"], input[name="inTo"]').fill(to);
           }
 
-          // ✅ until date
-          try {
-            await page.locator('input[name="inToDate"]').fill(until);
-          } catch {
-            logger(`⚠️ To date not found (${name})`);
-          }
+          await page.locator('input[name="inTitle"], input[name="title"]').fill(title);
+          await page.locator('textarea[name="inMessage"]').fill(bodyBBCode);
 
-          // ✅ to field
-          try {
-            const toLocator = page.locator('input[name="inToOrg"], input[name="inTo"]');
-            if (await toLocator.count()) {
-              await toLocator.first().fill(to);
-            }
-          } catch {
-            logger(`⚠️ To/org field not found (${name})`);
-          }
+          //await page.pause();
 
-          // ✅ title
-          try {
-            const titleLocator = page.locator('input[name="inTitle"], input[name="title"]');
-            if (await titleLocator.count()) {
-              await titleLocator.first().fill(title);
-            }
-          } catch {
-            logger(`⚠️ Title field not found (${name})`);
-          }
-
-          // ✅ body (covers textarea, iframe, contenteditable)
-          let bodyFilled = false;
-
-          if (await page.locator('textarea[name="inBody"]').count()) {
-            await page.locator('textarea[name="inBody"]').fill(body);
-            bodyFilled = true;
-
-          } else if (await page.locator('iframe[title="Rich Text Area"]').count()) {
-            const frame = page.frameLocator('iframe[title="Rich Text Area"]');
-            await frame.locator('body#tinymce').fill(body);
-            bodyFilled = true;
-
-          } else if (await page.locator('div[contenteditable="true"]').count()) {
-            await page.locator('div[contenteditable="true"]').fill(body);
-            bodyFilled = true;
-          }
-
-          if (!bodyFilled) {
-            logger(`⚠️ Body field not found (${name})`);
-          }
-
-          await page.waitForTimeout(500);
-
-          // ✅ save
-          try {
-            if (await page.locator('input[type="submit"][value="Save"]').count()) {
-              await page.click('input[type="submit"][value="Save"]');
-            } else if (await page.locator('button:has-text("Save")').count()) {
-              await page.click('button:has-text("Save")');
-            } else {
-              await page.keyboard.press("Enter");
-            }
-          } catch (err) {
-            logger(`⚠️ Save failed (${name}): ${err?.message}`);
-          }
-
+          await page.locator('input[type="submit"][value="Save"]').click();
           logger(`✅ Message saved for ${name}`);
-
-          // ✅ exit
-          try {
-            if (await page.locator('[value="Exit"]').count()) {
-              await page.click('[value="Exit"]');
-            } else if (await page.locator('a:has-text("Exit")').count()) {
-              await page.click('a:has-text("Exit")');
-            }
-          } catch (err) {
-            logger(`⚠️ Exit failed (${name}): ${err?.message}`);
-          }
 
         } catch (err) {
           logger(`❌ Failed for region ${name}: ${err?.message}`);
@@ -156,6 +90,17 @@ export default async function run() {
           logger("PRIMARY flag set — stopping after first region");
           break;
         }
+      }
+
+      // ✅ exit
+      try {
+        if (await page.locator('[value="Exit"]').count()) {
+          await page.click('[value="Exit"]');
+        } else if (await page.locator('a:has-text("Exit")').count()) {
+          await page.click('a:has-text("Exit")');
+        }
+      } catch (err) {
+        logger(`⚠️ Exit failed (${name}): ${err?.message}`);
       }
 
       logger("✅ Script complete");

@@ -242,8 +242,6 @@ body {
     color: white;
 }
 
-
-
 /* =======================================================
    FORM FIELDS
 ======================================================= */
@@ -266,6 +264,10 @@ body {
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-soft);
     font-size: 0.9rem;
+}
+
+input[type="date"] {
+    width: 30%;
 }
 
 .field textarea {

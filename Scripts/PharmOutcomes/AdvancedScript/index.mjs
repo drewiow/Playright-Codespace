@@ -2,8 +2,12 @@ import { runScript } from "../../common/runScript.mjs";
 
 import {
   login,
-  editProvider
+  editProvider,
+  editCommissioner,
+  editViewer,
+  openOrganisation
 } from "../helpers.mjs";
+
 
 export default async function run() {
   await runScript({
@@ -20,12 +24,22 @@ export default async function run() {
           continue;
         }
 
-        logger(`🔄 Processing ${odsCode}`);
+        logger(`🔄 Processing ODS: ${odsCode}`);
 
         try {
-          await login(page, username, password, odsCode);
 
-          await editProvider(page, odsCode);
+          // ✅ HARD RESET
+          await page.goto("https://outcomes4health.org/o4h/", {
+            waitUntil: "networkidle"
+          });
+
+          await login(page, username, password, odsCode);
+          const type = await openOrganisation(
+            page,
+            odsCode,
+            { editProvider, editViewer, editCommissioner },
+            logger
+          );
 
           // ✅ advanced feature (centralised)
           await runAdvanced(row, i + 1);

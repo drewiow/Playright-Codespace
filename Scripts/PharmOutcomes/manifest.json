@@ -19,7 +19,21 @@
             "advanced": false
         },
         {
-            "id": "claimAdjustments",
+            "id": "UnlockPrimaryNHSmail",
+            "title": "Unlock Primary NHSmail",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": false,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": false,
+            "description": "Unlocks Primary NHSmail",
+            "icon": "🏥",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
+            "id": "ClaimAdjustments",
             "title": "Manual Claim Adjustment",
             "requiresCsv": true,
             "requiresPassword": true,
@@ -36,15 +50,15 @@
             }
         },
         {
-            "id": "advancedProviderScript",
-            "title": "Advanced Provider Script",
+            "id": "AdvancedScript",
+            "title": "Advanced Script",
             "requiresCsv": true,
             "requiresPassword": true,
             "showOptionsPanel": true,
             "descriptionFile": "description.md",
             "requiresEnvFile": true,
             "optionalEnvFile": true,
-            "description": "Loops through a list of ODS Codes and then navigates to the Provider edit screen to then perform manual scripting to perform actions",
+            "description": "Loops through a list of ODS Codes and then navigates to the right edit screen edit screen to then perform manual scripting to perform actions",
             "icon": "🏥",
             "animation": "pulse",
             "advanced": true,
@@ -67,38 +81,7 @@
             "advanced": false
         },
         {
-            "id": "advancedViewerScript",
-            "title": "Advanced Viewer Script",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Loops through a list of ODS Codes and then navigates to the Viewer edit screen to then perform manual scripting to perform actions",
-            "icon": "👁️",
-            "animation": "pulse",
-            "advanced": true,
-            "advancedOptions": {
-                "actionSet": "providerDetails"
-            }
-        },
-        {
-            "id": "advancedCommissionerScript",
-            "title": "Advanced Commissioner Script",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Loops through a list of ODS Codes and then navigates to the Commissioner edit screen to then perform manual scripting to perform actions",
-            "icon": "📋",
-            "animation": "pulse",
-            "advanced": true
-        },
-        {
-            "id": "advancedViewerScript",
+            "id": "AdvancedViewerScript",
             "title": "Advanced Viewer Script",
             "requiresCsv": true,
             "requiresPassword": true,
@@ -154,7 +137,7 @@
             "advanced": false
         },
         {
-            "id": "findSitesOnAllRegions",
+            "id": "FindSitesOnAllRegions",
             "title": "Find Sites On All Regions",
             "requiresCsv": false,
             "requiresPassword": true,
@@ -196,7 +179,7 @@
             "advanced": false
         },
         {
-            "id": "makeSiteDormant",
+            "id": "MakeSiteDormant",
             "title": "Make Site Dormant",
             "requiresCsv": true,
             "requiresPassword": true,
@@ -210,35 +193,7 @@
             "advanced": false
         },
         {
-            "id": "NewProvider",
-            "title": "New Provider",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will take all of the details needed to make a new provider in Primary",
-            "icon": "➕🏥",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "nhsEmailCheck",
-            "title": "Check NHS Mail Lock",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will log into all regions and check the status of the NHS mail lock, and unlock of it is,",
-            "icon": "✉️🔒",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "poUdates",
+            "id": "POUpdates",
             "title": "Purchase Order Updates",
             "requiresCsv": false,
             "requiresPassword": true,
@@ -252,21 +207,7 @@
             "advanced": false
         },
         {
-            "id": "sendNotification",
-            "title": "Send a Notification",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will take all details needed for a notification to be added to all regions",
-            "icon": "🔔",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "sendSystemAnnouncement",
+            "id": "SendSystemAnnouncement",
             "title": "Send a System Announcement",
             "requiresCsv": false,
             "requiresPassword": true,

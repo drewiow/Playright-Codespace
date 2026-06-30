@@ -238,25 +238,44 @@ function areEnvInputsValid() {
 }
 
 function areInputsValid() {
-    let valid = true;
 
     const statusEl = document.getElementById("stepStatus");
 
-    if (!window.currentScriptMeta?.inputs) return true;
+    if (!window.currentScriptMeta?.inputs) {
+        return true;
+    }
 
+    let valid = true;
     const values = {};
 
     window.currentScriptMeta.inputs.forEach(input => {
-        const el = document.getElementById(`input-${input.key} `);
-        const value = el?.value?.trim();
 
-        if (input.required && !value) {
+        const el = document.getElementById(`input-${input.key}`);
+
+        if (!el) {
+            console.warn(`Missing element: input-${input.key}`);
+            valid = false;
+            return;
+        }
+
+        const isCheckbox = el.type === "checkbox";
+
+        const value = isCheckbox
+            ? el.checked
+            : (el.value || "").trim();
+
+        const isValid = isCheckbox
+            ? (!input.required || el.checked)
+            : (!input.required || value !== "");
+        console.log(`Input ${input.key}: value="${value}", required=${input.required}, valid=${isValid}`);
+        if (!isValid) {
             valid = false;
             el.classList.add("input-error");
         } else {
             el.classList.remove("input-error");
-            values[input.key] = value;
         }
+
+        values[input.key] = value;
     });
 
     if (!valid) {
@@ -265,19 +284,20 @@ function areInputsValid() {
     }
 
     wizardData.inputs = values;
+    console.log(values);
 
-    // ✅ Show completion message
     statusEl.innerHTML = `
-    ✅ Step complete <br>
+        ✅ Step complete<br>
         ${Object.entries(values)
             .map(([k, v]) => `${k}: ${v}`)
-            .join("<br>")
-        }
+            .join("<br>")}
     `;
+
     statusEl.classList.remove("hidden");
 
     return true;
 }
+
 
 
 function goToPreviousStep() {
@@ -404,18 +424,37 @@ function renderScriptInputs(meta) {
     }
 
     meta.inputs.forEach(input => {
+
         const field = document.createElement("div");
         field.className = "field";
 
         const label = document.createElement("label");
         label.textContent = input.label;
-        label.setAttribute("for", `input-${input.key} `);
+        label.setAttribute("for", `input-${input.key}`);
 
         let control;
 
         switch (input.type) {
+
+            case "checkbox":
+
+                field.innerHTML = `
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input
+                            type="checkbox"
+                            id="input-${input.key}"
+                            name="${input.key}">
+                        ${input.label}
+                    </label>
+                `;
+
+                container.appendChild(field);
+                return;
+
             case "select":
+
                 control = document.createElement("select");
+
                 if (Array.isArray(input.options)) {
                     input.options.forEach(opt => {
                         const option = document.createElement("option");
@@ -424,18 +463,167 @@ function renderScriptInputs(meta) {
                         control.appendChild(option);
                     });
                 }
+
                 break;
 
             case "textarea":
+
+                const wrapper = document.createElement("div");
+                wrapper.style.display = "flex";
+                wrapper.style.flexDirection = "column";
+                wrapper.style.gap = "12px";
+
+                // Editor
                 control = document.createElement("textarea");
-                break;
+                control.id = `input-${input.key}`;
+                control.name = input.key;
+
+                if (input.placeholder) {
+                    control.placeholder = input.placeholder;
+                }
+
+                if (input.required) {
+                    control.required = true;
+                }
+                control.style.width = "100%";
+                control.style.minHeight = "250px";
+
+                const previewLabel = document.createElement("div");
+                previewLabel.textContent = "Preview";
+                previewLabel.style.fontWeight = "600";
+                previewLabel.style.color = "#555";
+
+                // Preview container
+                const previewContainer = document.createElement("div");
+                previewContainer.style.display = "flex";
+                previewContainer.style.justifyContent = "center";
+
+
+                // Preview panel
+                const preview = document.createElement("div");
+
+                preview.style.width = "100%";
+                preview.style.maxWidth = "640px";
+                preview.style.minHeight = "200px";
+
+                preview.style.padding = "18px";
+
+                preview.style.background = "#ffffff";
+                preview.style.border = "1px solid #cfcfcf";
+                preview.style.borderRadius = "4px";
+                preview.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+
+                preview.style.boxSizing = "border-box";
+                preview.style.overflowY = "auto";
+
+                preview.style.fontFamily = "Arial, Helvetica, sans-serif";
+                preview.style.fontSize = "14px";
+                preview.style.lineHeight = "1.6";
+                preview.style.color = "#666";
+
+                previewContainer.appendChild(preview);
+
+                function renderBBCode(text) {
+
+                    let html = text;
+
+                    // Bold
+                    html = html.replace(
+                        /\[b\](.*?)\[\/b\]/gi,
+                        "<strong>$1</strong>"
+                    );
+
+                    // Links with text
+                    html = html.replace(
+                        /\.*?\[\/url\]/gi,
+                        '$1'
+                    );
+
+                    // Bare links
+                    html = html.replace(
+                        /\.*?\[\/url\]/gi,
+                        '$1$1</a>'
+                    );
+
+                    // Images
+                    html = html.replace(
+                        /\.*?\[\/img\]/gi,
+                        '" style="max-width:100%; max-height:250px;">'
+                    );
+
+                    // Non-breaking spaces
+                    html = html.replace(
+                        /\[\s\]/g,
+                        "&nbsp;"
+                    );
+
+                    // Bullets
+                    html = html.replace(
+                        /\[\.\]\s*/g,
+                        "• "
+                    );
+
+                    // Indented dash bullets
+                    html = html.replace(
+                        /(^|<br>)\s*-\s*/g,
+                        "$1&nbsp;&nbsp;&nbsp;• "
+                    );
+
+                    // Line breaks LAST
+                    html = html.replace(
+                        /\[br\]/gi,
+                        "<br>"
+                    );
+
+                    return html;
+                }
+
+                function updatePreview() {
+
+                    const titleInput =
+                        document.querySelector('[name="TITLE"]') ||
+                        document.querySelector('#input-title');
+
+                    const title = titleInput?.value || "Announcement Title";
+
+                    preview.innerHTML = `
+        <div style="
+            font-size:20px;
+            font-weight:600;
+            color:#444;
+            margin-bottom:16px;
+            border-bottom:1px solid #ddd;
+            padding-bottom:10px;
+        ">
+            ${title}
+        </div>
+
+        <div>
+            ${renderBBCode(control.value)}
+        </div>
+    `;
+                }
+
+                control.addEventListener("input", updatePreview);
+
+                wrapper.appendChild(control);
+                wrapper.appendChild(previewLabel);
+                wrapper.appendChild(previewContainer);
+
+                field.appendChild(label);
+                field.appendChild(wrapper);
+
+                container.appendChild(field);
+
+                return;
 
             default:
+
                 control = document.createElement("input");
                 control.type = input.type || "text";
         }
 
-        control.id = `input-${input.key} `;
+        control.id = `input-${input.key}`;
         control.name = input.key;
 
         if (input.placeholder) {
@@ -448,6 +636,7 @@ function renderScriptInputs(meta) {
 
         field.appendChild(label);
         field.appendChild(control);
+
         container.appendChild(field);
     });
 }

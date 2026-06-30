@@ -20,7 +20,7 @@
             "key": "to",
             "label": "To",
             "type": "text",
-            "required": true,
+            "required": false,
             "placeholder": "e.g. P, V, C"
         },
         {
@@ -33,7 +33,7 @@
         {
             "key": "body",
             "label": "Body",
-            "type": "text",
+            "type": "textarea",
             "required": true,
             "placeholder": "e.g. This is my announcement"
         },
@@ -41,7 +41,7 @@
             "key": "primary",
             "label": "Just Primary?",
             "type": "checkbox",
-            "required": true,
+            "required": false,
             "placeholder": ""
         }
     ]

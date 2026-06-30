@@ -1,5 +1,3 @@
-console.log("🔥 Script starting");
-
 import fsp from "node:fs/promises";
 import process from "node:process";
 import { initExecution } from "./initExecution.mjs";
@@ -7,11 +5,9 @@ import { setupContext, parseCSV } from "../pharmoutcomes/helpers.mjs";
 import { parseAdvancedSteps, resolveCsvTokens } from "../advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "../advanced/executeAdvancedSteps.mjs";
 
-console.log("✅ Imports complete");
-
 export async function runScript({ logger = console.log, main }) {
 
-    logger("SCRIPT BOOT");
+    // logger("SCRIPT BOOT");
 
     // ✅ prevent duplicate handlers
     if (!process.__handlersAttached) {
@@ -77,7 +73,7 @@ export async function runScript({ logger = console.log, main }) {
             config,
 
             runAdvanced: async (row = {}, rowIndex = 1) => {
-                if (!isAdvanced || baseSteps.length === 0) return;
+                if (baseSteps.length === 0) return;
 
                 await page.waitForLoadState("networkidle");
 

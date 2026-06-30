@@ -492,3 +492,68 @@ Alignment:
 - Reinforces manifest-driven architecture
 - Maintains separation between UI configuration and execution logic
 - Keeps Advanced Mode as a pure authoring-layer abstraction
+
+--------------------------------------------------------------------------------
+BASE EXECUTION ARCHITECTURE (runScript)
+
+The automation framework has been refactored to use a single shared execution
+engine (`runScript`) that acts as a “base class” for all scripts.
+
+All scripts now delegate infrastructure concerns to this engine and focus only
+on business logic.
+
+Key responsibilities of runScript:
+- Initialises environment (including decryption via initExecution)
+- Validates required credentials
+- Parses CSV input (optional)
+- Creates and manages Playwright browser/context/page lifecycle
+- Provides consistent logging interface
+- Handles cleanup and error boundaries
+- Supports advanced step execution (runAdvanced)
+- Exposes standardised config (headless, human, trace, video, dryRun, runDir)
+
+Script structure:
+
+  export default async function run() {
+    await runScript({
+      async main({ page, rows, logger, username, password, runAdvanced, config }) {
+        // business logic only
+      }
+    });
+  }
+
+  run().catch(...);
+
+Key design principles:
+- Single responsibility: scripts only contain workflow logic
+- No duplicated setup (browser, env, CSV, cleanup all centralised)
+- Consistent execution model across all scripts
+- Supports multiple input modes:
+    - CSV-driven scripts
+    - JSON/config-driven scripts
+    - Single-run utility scripts
+- Centralised feature upgrades (retry, logging, tracing, etc.)
+
+Benefits:
+- Significant reduction in duplicated code across scripts
+- Easier maintenance and debugging (fix once in runScript)
+- Faster development of new scripts (minimal boilerplate)
+- Improved reliability and consistency
+- Clear separation between framework and business logic
+
+Notes:
+- Legacy scripts previously handled their own setup, CSV parsing, and cleanup.
+  These concerns have now been fully migrated into runScript.
+- Scripts should not perform manual setupContext/initExecution/CSV parsing.
+- The runner currently requires scripts to self-invoke via run().catch().
+  This may be refactored in future so the runner calls the default export.
+
+Future enhancements (to be implemented centrally in runScript):
+- Retry logic for failed rows/steps
+- Screenshot/video capture on error
+- Per-step and per-row timing metrics
+- Enhanced structured logging
+
+This architecture effectively transforms the codebase from a collection of
+standalone scripts into a unified automation framework.
+--------------------------------------------------------------------------------

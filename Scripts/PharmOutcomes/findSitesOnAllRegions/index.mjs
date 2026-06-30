@@ -18,18 +18,20 @@ export default async function run() {
       if (!targetOdsCode) {
         throw new Error("Missing ODSCODE dynamic input");
       }
-
+      logger(`🔄 Processing ODS: ${targetOdsCode}`);
       // ✅ load regions
       const regionsPath = path.resolve(__dirname, "../input/regions.json");
       const regions = JSON.parse(fs.readFileSync(regionsPath, "utf-8"));
 
       const startTime = Date.now();
-
+      let i = 0;
       for (const { name, odscode } of regions) {
 
-        logger(`🔍 Checking region: ${name} (${odscode})`);
+        logger(`ROW ${i + 1}/${regions.length}`);
+
 
         try {
+          logger(`🔄 Logging in to ${name} (${odscode})`);
           await login(page, username, password, odscode);
         } catch (err) {
           logger(`❌ Login failed for ${name}: ${err?.message}`);
@@ -37,7 +39,6 @@ export default async function run() {
         }
 
         await page.goto("https://outcomes4health.org/o4h/admin/providers");
-
         await page.fill("#providerlookup", targetOdsCode);
 
         try {
@@ -58,8 +59,10 @@ export default async function run() {
             logger(`✅ Found match in ${name}: ${text}`);
           }
         }
+        logger(`✅ Row completed ${name} (${odscode})`);
 
         await page.click('[value="Exit"]');
+        i++;
       }
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);

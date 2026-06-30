@@ -291,8 +291,6 @@ export async function accredit(page, serviceIDs = []) {
   }
 }
 
-
-
 export async function deaccredit(page, PIDService) {
   await page.waitForSelector('a[href*="deaccredit="]', { timeout: 10000 });
 
@@ -345,6 +343,62 @@ export async function deaccredit(page, PIDService) {
   }
 }
 
+export async function openOrganisation(page, odsCode, helpers, logger) {
+  const type = getOrganisationType(odsCode);
+
+  logger(`🏷️ Detected type: ${type}`);
+
+  switch (type) {
+    case "provider":
+      await helpers.editProvider(page, odsCode);
+      break;
+
+    case "viewer":
+      await helpers.editViewer(page, odsCode);
+      break;
+
+    case "commissioner":
+      await helpers.editCommissioner?.(page, odsCode)
+        || helpers.loginCommissioner?.(page, odsCode);
+      break;
+
+    default:
+      throw new Error(`Unknown ODS type: ${odsCode}`);
+  }
+
+  return type;
+}
+
+export function getOrganisationType(odsCode, logger = null) {
+  if (!odsCode) return "unknown";
+
+  const code = odsCode.trim().toUpperCase();
+
+  // ✅ Provider (Pharmacy: Fxxxx)
+  if (/^F[A-Z0-9]{4}$/.test(code)) {
+    return "provider";
+  }
+
+  // ✅ Provider (GP + child codes)
+  if (/^[A-Z]\d{4,5}(\d{3})?$/.test(code)) {
+    return "provider";
+  }
+
+  // ✅ Commissioner (3 chars)
+  if (/^[A-Z0-9]{3}$/.test(code)) {
+    return "commissioner";
+  }
+
+  // ✅ Viewer (fallback for 4–5 char orgs)
+  if (/^[A-Z0-9]{4,5}$/.test(code)) {
+    return "viewer";
+  }
+
+  logger?.(`⚠️ UNKNOWN ODS TYPE → ${code}`);
+
+  return "unknown";
+}
+
 export async function editProvider(page, odsCode, log = console.log) {
   log("👤 Opening provider");
 
@@ -352,6 +406,7 @@ export async function editProvider(page, odsCode, log = console.log) {
   await page.goto("https://outcomes4health.org/o4h/admin/providers");
 
   // Search for provider
+  if (odsCode.length < 4) { odsCode = odsCode.padStart(4, " ") } // pad to 4 digits if needed
   await page.fill("#providerlookup", odsCode);
 
   // Wait for the autocomplete dropdown to appear
