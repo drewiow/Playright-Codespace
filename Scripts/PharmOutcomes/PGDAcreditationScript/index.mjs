@@ -31,7 +31,13 @@ export default async function run() {
 
           await addCommissioner(page, "46871614");
 
-          await accredit(page, ["167009", "166874"]);
+          /*
+          COVID Vaccine - 167009
+          Meningitis B Vaccination - 166874
+          Period Delay - 167126
+          Pneumococcal Vaccine PCV - 167139
+          */
+          await accredit(page, ["167009", "166874", "167126", "167139"]);
 
           // ✅ optional advanced feature
           await runAdvanced(row, i + 1);

@@ -69,7 +69,7 @@ export default async function run() {
           await page.locator('input[name="inToDate"]').fill(formatDateToUKDisplay(until));
 
           if (to) {
-            await page.locator('input[name="inToOrg"], input[name="inTo"]').fill(to);
+            await page.locator('input[name="inOrganisationTypes"]').fill(to);
           }
 
           await page.locator('input[name="inTitle"], input[name="title"]').fill(title);

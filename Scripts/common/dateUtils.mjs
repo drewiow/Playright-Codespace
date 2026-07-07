@@ -1,4 +1,4 @@
-export function (input) {
+export function formatDateToUKDisplay(input) {
     if (!input) throw new Error("No date provided");
 
     const date = new Date(input);
