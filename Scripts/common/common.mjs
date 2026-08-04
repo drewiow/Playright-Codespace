@@ -240,3 +240,7 @@ export async function createBrowserContext(options = {}) {
 
     return { browser, context, page, effectiveHeadless, recordTrace };
 }
+
+export function normaliseKey(key) {
+    return key.toLowerCase().replace(/[^a-z0-9]/g, "");
+}

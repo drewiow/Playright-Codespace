@@ -19,15 +19,29 @@
             "advanced": false
         },
         {
-            "id": "UnlockPrimaryNHSmail",
-            "title": "Unlock Primary NHSmail",
-            "requiresCsv": false,
+            "id": "AddUsers",
+            "title": "Add Users",
+            "requiresCsv": true,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Adds new users to the system",
+            "icon": "🏥",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
+            "id": "GetProvisionDate",
+            "title": "Get Provision Date",
+            "requiresCsv": true,
             "requiresPassword": true,
             "showOptionsPanel": false,
             "descriptionFile": "description.md",
             "requiresEnvFile": true,
             "optionalEnvFile": false,
-            "description": "Unlocks Primary NHSmail",
+            "description": "Retrieves the provision date for a given provider",
             "icon": "🏥",
             "animation": "pulse",
             "advanced": false

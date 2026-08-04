@@ -217,7 +217,6 @@ export function normaliseKey(key) {
   return key.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
   console.log("passcode", passcode);
   const positionMap = {
@@ -229,15 +228,24 @@ export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
     sixth: 5,
   };
 
+  await page.waitForSelector("div.required input", {
+    state: "visible",
+    timeout: 10000
+  });
+
   const divs = await page.$$("div.required");
+  console.log(`🔑 Found ${divs.length} security word input fields`);
   for (const div of divs) {
+    console.log("🔑 Processing security word input field...");
     const labelHandle = await div.$("label");
     if (!labelHandle) continue;
 
     const label = await labelHandle.textContent();
+    console.log(`🔑 Label text: ${label}`);
     const match = label.trim().match(/(First|Second|Third|Fourth|Fifth|Sixth)/i);
 
     if (match) {
+      console.log(`🔑 Entering ${match[1]} character of security word`);
       const position = positionMap[match[1].toLowerCase()];
       const letter = passcode[position];
       const input = await div.$("input");
@@ -400,7 +408,7 @@ export function getOrganisationType(odsCode, logger = null) {
 }
 
 export async function editProvider(page, odsCode, log = console.log) {
-  log("👤 Opening provider");
+  log(`🏥 Opening provider ${odsCode}`);
 
   // Navigate to the Manage Providers page
   await page.goto("https://outcomes4health.org/o4h/admin/providers");
@@ -448,7 +456,7 @@ export async function editViewer(page, odsCode, log = console.log) {
 }
 
 export async function editCommissioner(page, odsCode, log = console.log) {
-  log("👤 Opening commisioner");
+  log("👤 Opening commissioner");
 
   // Navigate to the Manage Providers page
   await page.goto("https://outcomes4health.org/o4h/admin/commissioners");
@@ -472,6 +480,25 @@ export async function loginCommissioner(page, odsCode) {
 
   // Search for provider
   await page.fill("#organisationLookup", odsCode);
+
+  // Wait for the autocomplete dropdown to appear
+  await page.waitForSelector("#ui-id-1", { timeout: 5000 });
+
+  // Click the first result
+  await page.locator("#ui-id-1 li").first().click();
+
+  // Click the edit button
+  await page.locator("#crossloginusers_small a.full-lock").first().click();
+
+  await securityWord(page);
+}
+
+export async function loginProvider(page, odsCode) {
+  // Navigate to the Manage Providers page
+  await page.goto("https://outcomes4health.org/o4h/admin/providers");
+
+  // Search for provider
+  await page.fill("#providerlookup", odsCode);
 
   // Wait for the autocomplete dropdown to appear
   await page.waitForSelector("#ui-id-1", { timeout: 5000 });

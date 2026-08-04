@@ -1,4 +1,5 @@
 import { runScript } from "../../common/runScript.mjs";
+import { normaliseKey } from "../../common/common.mjs";
 
 import {
   login,
@@ -11,10 +12,6 @@ import path from "node:path";
 export default async function run() {
   await runScript({
     async main({ page, rows, logger, username, password, runAdvanced, config }) {
-
-      function normaliseKey(key) {
-        return key.toLowerCase().replace(/[^a-z0-9]/g, "");
-      }
 
       const odsColumn = normaliseKey(
         process.env.ODS_COLUMN || "odscode"
