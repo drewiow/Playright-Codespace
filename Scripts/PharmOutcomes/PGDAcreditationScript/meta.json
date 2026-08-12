@@ -1,5 +1,77 @@
 {
     "name": "",
     "description": "",
-    "inputs": []
+    "inputs": [],
+    "requiredColumns": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "required": true
+        },
+        {
+            "key": "sysId",
+            "label": "Sys ID",
+            "required": true
+        },
+        {
+            "key": "provisionDate",
+            "label": "Provision Date",
+            "required": true
+        },
+        {
+            "key": "provider",
+            "label": "Provider",
+            "required": false
+        },
+        {
+            "key": "covidVaccination",
+            "label": "Covid Vaccination (Private)",
+            "required": false
+        },
+        {
+            "key": "seasonalFluVaccination",
+            "label": "Seasonal Flu Vaccination (Private)",
+            "required": false
+        },
+        {
+            "key": "meningitisBVaccination",
+            "label": "Meningitis B Vaccination (Private)",
+            "required": false
+        },
+        {
+            "key": "periodDelay",
+            "label": "Period Delay",
+            "required": false
+        },
+        {
+            "key": "pneumococcalVaccination",
+            "label": "Pneumococcal Vaccination PCV",
+            "required": false
+        },
+        {
+            "key": "otherService",
+            "label": "Other Service",
+            "required": false
+        },
+        {
+            "key": "pharmacistName",
+            "label": "Pharmacist Name",
+            "required": false
+        },
+        {
+            "key": "telephoneNumber",
+            "label": "Telephone Number",
+            "required": false
+        },
+        {
+            "key": "notificationStatus",
+            "label": "Notification Status",
+            "required": false
+        },
+        {
+            "key": "recordStatus",
+            "label": "Record / Claim Status",
+            "required": false
+        }
+    ]
 }

@@ -1,13 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
-
-import {
-  login,
-  editProvider,
-  parseCSV
-} from "../helpers.mjs";
-
-import { logAction } from "../../common/common.mjs";
-
+import { login, editProvider, parseCSV } from "../helpers.mjs";
+import { logAction, getMappedValue } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -53,6 +46,8 @@ export default async function run() {
       }
 
       const startTime = Date.now();
+      const mappings = JSON.parse(process.env.COLUMN_MAPPINGS || "{}");
+
 
       // -----------------------------
       // 1. CREATE ALL ACCOUNTS FIRST
@@ -69,30 +64,32 @@ export default async function run() {
 
       for (let i = 0; i < accounts.length; i++) {
 
-        const {
-          odscode,
-          newuser,
-          fullname,
-          email
-        } = accounts[i];
+        let row = accounts[i];
+        const user = {
+          odsCode: getMappedValue(row, mappings, "odsCode"),
+          userName: getMappedValue(row, mappings, "firstname"),
+          fullName: getMappedValue(row, mappings, "lastname"),
+          email: getMappedValue(row, mappings, "email"),
+
+        };
 
         const computedUsername = i === 0
-          ? newuser
-          : `${newuser}.${odscode}`;
+          ? user.userName
+          : `${user.userName}.${user.odsCode}`;
 
         logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
-        logger(`   Provider ODS: ${odscode}`);
-        logger(`   Full name: ${fullname}`);
-        logger(`   Email: ${email}`);
+        logger(`   Provider ODS: ${user.odsCode}`);
+        logger(`   Full name: ${user.fullName}`);
+        logger(`   Email: ${user.email}`);
         logger(`   Username: ${computedUsername}`);
 
-        await logAction(`Edit provider ${odscode}`, () =>
-          editProvider(page, odscode),
+        await logAction(`Edit provider ${user.odsCode}`, () =>
+          editProvider(page, user.odsCode),
           logger
         );
 
         if (i === 0) {
-          baseUser = { username: computedUsername, odscode };
+          baseUser = { username: computedUsername, odsCode: user.odsCode };
           logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
         } else {
 
@@ -107,12 +104,12 @@ export default async function run() {
           );
 
           await logAction("Fill full name", () =>
-            page.fill("#inKnownName", fullname),
+            page.fill("#inKnownName", user.fullName),
             logger
           );
 
           await logAction("Fill email", () =>
-            page.fill("#inContactEmail", email),
+            page.fill("#inContactEmail", user.email),
             logger
           );
 
@@ -154,9 +151,9 @@ export default async function run() {
 
           created.push({
             username: computedUsername,
-            odscode,
-            fullname,
-            email
+            odsCode: user.odsCode,
+            fullName: user.fullName,
+            email: user.email
           });
         }
       }

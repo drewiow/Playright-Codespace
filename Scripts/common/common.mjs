@@ -35,6 +35,61 @@ export async function logAction(actionDesc, fn, logger) {
     }
 }
 
+export function getMappedValue(row, mappings, field, logger = console.log) {
+
+    const actualField =
+        Object.keys(mappings).find(
+            k => k.toLowerCase() === field.toLowerCase()
+        );
+
+    if (!actualField) {
+        logger(`⚠️ No column mapping for field "${field}"`);
+        return "";
+    }
+
+    const column = mappings[actualField];
+
+    const normalise = value =>
+        value
+            ?.toString()
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+
+    const actualColumn =
+        Object.keys(row).find(
+            k => normalise(k) === normalise(column)
+        );
+
+    if (!actualColumn) {
+        logger(
+            `⚠️ Column "${column}" not present in CSV row`
+        );
+        return "";
+    }
+
+    return String(row[actualColumn] ?? "");
+}
+
+export function toTitleCase(value) {
+    return value
+        ?.toLowerCase()
+        .replace(
+            /(^|[\s'-])\w/g,
+            char => char.toUpperCase()
+        )
+        .trim() || "";
+}
+
+export function cleanEmail(value) {
+    const email = value?.trim().toLowerCase();
+
+    if (!email || email === "none") {
+        return "";
+    }
+
+    return email;
+};
+
 export const scriptStatus = {
     // Lifecycle
     RUN_STARTED: "🚀 RUN STARTED",

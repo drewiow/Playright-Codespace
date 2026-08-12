@@ -14,7 +14,21 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Runs the daily checks",
-            "icon": "🏥",
+            "icon": "✅",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
+            "id": "AIRunner",
+            "title": "AI Runner",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": false,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Runs natural language processing to convert requests into actionable tasks",
+            "icon": "AI",
             "animation": "pulse",
             "advanced": false
         },
@@ -28,7 +42,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Adds new users to the system",
-            "icon": "🏥",
+            "icon": "👤",
             "animation": "pulse",
             "advanced": false
         },
@@ -42,7 +56,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": false,
             "description": "Retrieves the provision date for a given provider",
-            "icon": "🏥",
+            "icon": "📅",
             "animation": "pulse",
             "advanced": false
         },
@@ -56,7 +70,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Loops through a list of ODS Codes and then navigates to the claim edit screen to then perform manual scripting to perform actions",
-            "icon": "🏥",
+            "icon": "🛠️",
             "animation": "pulse",
             "advanced": true,
             "advancedOptions": {
@@ -73,7 +87,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Loops through a list of ODS Codes and then navigates to the right edit screen edit screen to then perform manual scripting to perform actions",
-            "icon": "🏥",
+            "icon": "⚙️",
             "animation": "pulse",
             "advanced": true,
             "advancedOptions": {
@@ -90,23 +104,9 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Loops through a list of ODS Codes and then navigates to the commissioner and accredits the services defined in the script inputs",
-            "icon": "👁️",
+            "icon": "🎓",
             "animation": "pulse",
             "advanced": false
-        },
-        {
-            "id": "AdvancedViewerScript",
-            "title": "Advanced Viewer Script",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Loops through a list of ODS Codes and then navigates to the Viewer edit screen to then perform manual scripting to perform actions",
-            "icon": "👁️",
-            "animation": "pulse",
-            "advanced": true
         },
         {
             "id": "AddSuperUser",
@@ -145,7 +145,7 @@
             "requiresEnvFile": false,
             "optionalEnvFile": false,
             "descriptionFile": "description.md",
-            "icon": "📁",
+            "icon": "📄",
             "description": "This will loop through a CSV of ODS Codes and find out if they have a COV site and report on what region they are on.",
             "animation": "pulse",
             "advanced": false
@@ -159,7 +159,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "descriptionFile": "description.md",
-            "icon": "🗺️",
+            "icon": "🔍",
             "description": "This will loop through all regions find out if they have a site and report on what region they are on.",
             "animation": "pulse",
             "advanced": false

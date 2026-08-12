@@ -317,6 +317,8 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
             const options = req.body.options ? JSON.parse(req.body.options) : {};
             console.log("BACKEND OPTIONS:", options);
 
+
+
             // 1. Create run directory FIRST
             const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
             const runDir = path.join(runsDir, runId);
@@ -396,7 +398,9 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
             childEnv.RUN_DIR = runDir;
             childEnv.REGION = req.body.region;   // REQUIRED
 
-            childEnv.ODS_COLUMN = req.body.odsColumn;
+            console.log("Column Mappings:", req.body.columnMappings);
+            const columnMappings = req.body.columnMappings || "{}";
+            childEnv.COLUMN_MAPPINGS = columnMappings;
 
             // Map ALL dynamic inputs from meta.json into environment variables
             for (const [key, value] of Object.entries(req.body)) {

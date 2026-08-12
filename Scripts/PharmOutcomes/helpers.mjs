@@ -408,6 +408,9 @@ export function getOrganisationType(odsCode, logger = null) {
 }
 
 export async function editProvider(page, odsCode, log = console.log) {
+
+  console.log("Received:", odsCode);
+
   log(`🏥 Opening provider ${odsCode}`);
 
   // Navigate to the Manage Providers page

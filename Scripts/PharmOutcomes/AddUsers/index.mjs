@@ -1,7 +1,6 @@
-
 import { runScript } from "../../common/runScript.mjs";
 import { login, editProvider, parseCSV } from "../helpers.mjs";
-import { logAction, normaliseKey } from "../../common/common.mjs";
+import { logAction, getMappedValue, toTitleCase, cleanEmail } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -54,86 +53,59 @@ export default async function run() {
         );
       }
 
-      logger(`Success CSV: ${resultsCsvPath}`);
-      logger(`Failed CSV: ${failedCsvPath}`);
-
       const startTime = Date.now();
-
-      // -----------------------------
-      // 1. CREATE ALL ACCOUNTS FIRST
-      // -----------------------------
-      logger("🔧 BEGIN ACCOUNT CREATION LOOP");
+      const mappings = JSON.parse(process.env.COLUMN_MAPPINGS || "{}");
+      let successCount = 0;
+      let failedCount = 0;
+      let skippedCount = 0;
 
       await logAction("Login", () =>
         login(page, username, password, "PRIM"),
         logger
       );
 
-      const odsColumn = normaliseKey(
-        process.env.ODS_COLUMN || "odscode"
-      );
-      logger(`Using ODS column: ${odsColumn}`);
+      logger("🔧 BEGIN ACCOUNT CREATION LOOP");
 
-      let successCount = 0;
-      let failedCount = 0;
-      let skippedCount = 0;
 
       for (let i = 0; i < accounts.length; i++) {
 
         const row = accounts[i];
-        const odsCode = row[odsColumn];
-        if (!odsCode) {
-          logger(`⚠️ Skipping row ${i + 1}: no value found in column '${odsColumn}'`);
+        const user = {
+          odsCode: getMappedValue(row, mappings, "odsCode"),
+          firstName: toTitleCase(getMappedValue(row, mappings, "firstname")),
+          lastName: toTitleCase(getMappedValue(row, mappings, "lastname")),
+          email: getMappedValue(row, mappings, "email"),
+          otherEmail: getMappedValue(row, mappings, "otherEmail"),
+          telephone: getMappedValue(row, mappings, "telephone").trim().replace(/[^\d+]/g, ""),
+          registrationNumber: getMappedValue(row, mappings, "registrationNumber").replace(/\s+/g, ""),
+          professionalBody: getMappedValue(row, mappings, "professionalBody").trim().toLowerCase()
+        };
+
+        if (!user.odsCode) {
+          logger(`⚠️ Skipping row ${i + 1}: no ODS code provided`);
           skippedCount++;
           continue;
         }
 
-        const registrationNumber = row.gphcregistration?.replace(/\s+/g, "") || "";
-        const professionalBody = row.professionalbody.trim().toLowerCase();
-        const toTitleCase = value =>
-          value
-            ?.toLowerCase()
-            .replace(/(^|[\s'-])\w/g, char => char.toUpperCase())
-            .trim() || "";
+        const validFormat = /^(\+44\d{10}|0\d{9,10})$/.test(user.telephone);
+        const allZeros = /^0+$/.test(user.telephone);
 
-        const firstName = toTitleCase(row.firstname);
-        const lastName = toTitleCase(row.lastname);
-        const accountUsername =
-          `${firstName}.${lastName}`
-            .replace(/\s+/g, "")
-            .replace(/[^a-zA-Z0-9.-]/g, "");
+        if (!validFormat || allZeros) {
+          user.telephone = "";
+        }
 
-        const fullname = `${firstName} ${lastName}`.trim();
-        const telephone = row["telnum"]?.trim();
-        const cleanEmail = value => {
-          const email = value?.trim().toLowerCase();
-
-          if (!email || email === "none") {
-            return "";
-          }
-
-          return email;
-        };
-
-        const nhsEmail = cleanEmail(row.nhsemailaddress);
-        const otherEmail = cleanEmail(row.otheremail);
-
-        const isNhsEmail = email =>
-          /@nhs\.(net|uk|scot)$/i.test(email || "");
-
-        const email = isNhsEmail(nhsEmail)
-          ? nhsEmail
-          : otherEmail;
-        logger(
-          `[ROW ${i + 1}/${accounts.length}] User: ${fullname} | Username: ${accountUsername} | ODS: ${odsCode} | Email: ${email} | Professional Body: ${professionalBody} | Registration: ${registrationNumber} | Tel: ${telephone}`
-        );
-        const csvLine = `"${accountUsername}","${odsCode}","${fullname}","${email}","${professionalBody}","${registrationNumber}","${telephone}"," ${Date.now()}"\n`;
+        const accountUsername = `${user.firstName}.${user.lastName}`.replace(/\s+/g, "").replace(/[^a-zA-Z0-9.-]/g, "");
+        const nhsEmail = cleanEmail(user.email);
+        const otherEmail = cleanEmail(user.otherEmail);
+        const isNhsEmail = email => /@nhs\.(net|uk|scot)$/i.test(email || "");
+        const email = isNhsEmail(nhsEmail) ? nhsEmail : otherEmail;
+        const csvLine = `"${accountUsername}","${user.odsCode}","${user.firstName} ${user.lastName}","${email}","${user.professionalBody}","${user.registrationNumber}","${user.telephone}"," ${Date.now()}"\n`;
 
         // Try and catch to handle any errors during user creation, write errors to the filedCSV
         try {
 
-          await logAction(`Edit provider ${odsCode}`, () =>
-            editProvider(page, odsCode),
+          await logAction(`Edit provider ${user.odsCode}`, () =>
+            editProvider(page, user.odsCode),
             logger
           );
 
@@ -148,33 +120,59 @@ export default async function run() {
           );
 
           await logAction("Fill full name", () =>
-            page.fill("#inKnownName", fullname),
+            page.fill("#inKnownName", `${user.firstName} ${user.lastName}`),
             logger
           );
 
-          if (professionalBody === "gphc") {
+          await logAction("Fill contact phone", () =>
+            page.fill("#inContactPhone", user.telephone),
+            logger
+          );
+
+          if (user.professionalBody === "gphc") {
             await logAction("Select Gphc Professional Body", () =>
               page.selectOption("#inGPCProfessionalBody", "General Pharmaceutical Council"),
               logger
             );
           }
 
-          if (registrationNumber && registrationNumber !== "N/A") {
+          if (user.registrationNumber && user.registrationNumber !== "N/A") {
             await logAction("Fill GPHC Registration", () =>
-              page.fill("#inGPCRegistration", registrationNumber),
+              page.fill("#inGPCRegistration", user.registrationNumber),
               logger
             );
           }
 
-          await logAction("Fill email", () =>
-            page.fill("#inContactEmail", email),
-            logger
-          );
+          if (email && email != "") {
+            await logAction("Fill email", () =>
+              page.fill("#inContactEmail", email),
+              logger
+            );
+          }
 
           await logAction("Save user (first save)", () =>
             page.click('input[type="submit"][name="update"]'),
             logger
           );
+
+          await page.waitForTimeout(1000);
+
+          const errors = await page.locator('p.error').allTextContents();
+          const duplicateError = page.locator(
+            'p.error:has-text("User name already exists")'
+          );
+
+          if (await duplicateError.isVisible().catch(() => false)) {
+            logger(`⚠️ User already exists → skipping`);
+            const failedCsvLine = `"${accountUsername}","${user.odsCode}","${user.firstName} ${user.lastName}","${email}","${user.professionalBody}","${user.registrationNumber}","${user.telephone}","${Date.now()}","Duplicate Username"\n`;
+            fs.appendFileSync(
+              failedCsvPath,
+              failedCsvLine,
+              "utf8"
+            );
+            skippedCount++;
+            continue;
+          }
 
           await logAction("Uncheck Cross Login", () =>
             page.uncheck('input[name="inCrossLogin"]'),
@@ -192,34 +190,19 @@ export default async function run() {
             logger
           );
 
-          const duplicateError = page.locator(
-            'p.error:has-text("User name already exists")'
-          );
-
-          if (await duplicateError.isVisible().catch(() => false)) {
-            logger(`⚠️ User already exists → skipping`);
-            const failedCsvLine = `"${accountUsername}","${odsCode}","${fullname}","${email}","${professionalBody}","${registrationNumber}","${telephone}","${Date.now()}","Duplicate Username"\n`;
-            fs.appendFileSync(
-              failedCsvPath,
-              failedCsvLine,
-              "utf8"
-            );
-            skippedCount++;
-            continue;
-          }
 
           fs.appendFileSync(
             resultsCsvPath,
             csvLine,
             "utf8"
           );
-          logger(`✅ Created ${accountUsername} in provider ${odsCode}`);
+          logger(`✅ Created ${accountUsername} in provider ${user.odsCode}`);
           successCount++;
         }
 
         catch (err) {
           logger(`❌ Failed to create user ${accountUsername}: ${err?.message}`);
-          const failedCsvLine = `"${accountUsername}","${odsCode}","${fullname}","${email}","${professionalBody}","${Date.now()}","${err?.message}"\n`;
+          const failedCsvLine = `"${accountUsername}","${user.odsCode}","${user.firstName} ${user.lastName}","${email}","${user.professionalBody}","${Date.now()}","${err?.message}"\n`;
           failedCount++;
           fs.appendFileSync(
             failedCsvPath,
@@ -229,16 +212,14 @@ export default async function run() {
         }
 
       }
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      logger(`⏱️ Script completed in ${duration} seconds`);
 
       logger("🎉 Finished creating all accounts");
-
       logger("📊 Summary");
       logger(`✅ Created: ${successCount}`);
       logger(`❌ Failed: ${failedCount}`);
       logger(`⚠️ Skipped: ${skippedCount}`);
-
-      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-      logger(`⏱️ Script completed in ${duration} seconds`);
 
       // ✅ Trace
       if (config.recordTrace) {

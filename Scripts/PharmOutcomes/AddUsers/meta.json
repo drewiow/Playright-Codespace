@@ -1,3 +1,45 @@
 {
-    "inputs": []
+    "inputs": [],
+    "requiredColumns": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "required": true
+        },
+        {
+            "key": "firstname",
+            "label": "First Name",
+            "required": true
+        },
+        {
+            "key": "lastname",
+            "label": "Last Name",
+            "required": true
+        },
+        {
+            "key": "email",
+            "label": "Email",
+            "required": true
+        },
+        {
+            "key": "telephone",
+            "label": "Telephone",
+            "required": false
+        },
+        {
+            "key": "registrationNumber",
+            "label": "Registration Number",
+            "required": false
+        },
+        {
+            "key": "professionalBody",
+            "label": "Professional Body",
+            "required": false
+        },
+        {
+            "key": "otherEmail",
+            "label": "Other Email",
+            "required": false
+        }
+    ]
 }

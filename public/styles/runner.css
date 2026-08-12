@@ -715,3 +715,48 @@ input[type="date"] {
     background: #4caf50;
     transition: width 0.3s;
 }
+
+#columnMappingsContainer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(300px, 1fr));
+    gap: 16px;
+    max-width: 900px;
+}
+
+.mapping-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 0;
+    width: 400px;
+}
+
+.mapping-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.mapping-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.mapping-badge {
+    color: #107c10;
+    font-size: 12px;
+    font-weight: 600;
+    background: #edf7ed;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.mapping-card select {
+    width: 100%;
+}
+
+.csvStatus {
+    margin-bottom: 16px;
+}

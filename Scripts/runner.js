@@ -35,7 +35,8 @@ let wizardState = {
 const wizardData = {
     env: {},
     inputs: {},
-    csv: {}
+    csv: {},
+    columnMappings: {}
 };
 
 const WIZARD_STEP_META = {
@@ -49,6 +50,10 @@ const WIZARD_STEP_META = {
         subtitle: "Choose the CSV file that defines the records this script will process"
     },
 
+    mappings: {
+        title: "Map CSV columns",
+        subtitle: "Map the columns in your CSV to the fields this script requires"
+    },
     inputs: {
         title: "Script inputs",
         subtitle: "Enter the information required by this script to run correctly"
@@ -216,6 +221,9 @@ function areCsvInputsValid() {
     if (!rows || rows.length === 0) {
         return false;
     }
+    if (!areColumnMappingsValid()) {
+        return false;
+    }
 
     showStepStatus(`CSV loaded (${rows.length} rows)`);
 
@@ -284,6 +292,8 @@ function areInputsValid() {
     }
 
     wizardData.inputs = values;
+    saveColumnMappings();
+
     console.log(values);
 
     statusEl.innerHTML = `
@@ -297,8 +307,6 @@ function areInputsValid() {
 
     return true;
 }
-
-
 
 function goToPreviousStep() {
     if (wizardState.stepIndex > 0) {
@@ -660,29 +668,6 @@ function getCurrentStep() {
     return wizardState.steps[wizardState.stepIndex];
 }
 
-function updateCsvStatus(rows) {
-    const statusEl = document.getElementById("csvStatus");
-
-    // ✅ hard guard – prevents crash
-    if (!statusEl) return;
-
-    if (!rows || rows.length === 0) {
-        statusEl.classList.add("hidden");
-        return;
-    }
-
-    const keys = Object.keys(rows[0] || {});
-    const rowCount = rows.length;
-
-    statusEl.innerHTML = `
-        ✅ CSV loaded successfully<br>
-        Rows: ${rowCount}<br>
-        Fields: ${keys.join(", ")}
-    `;
-
-    statusEl.classList.remove("hidden");
-}
-
 function getWizardSteps(script) {
     const steps = [];
 
@@ -718,6 +703,19 @@ function getWizardSteps(script) {
     steps.push("review");
 
     return steps;
+}
+function areColumnMappingsValid() {
+    const requiredColumns = window.currentScriptMeta?.requiredColumns;
+
+    if (!requiredColumns?.length) {
+        return true;
+    }
+
+    return requiredColumns
+        .filter(column => column.required)
+        .every(column =>
+            wizardData.columnMappings[column.key]
+        );
 }
 
 async function initRunner() {
@@ -930,7 +928,6 @@ function resolveAdvancedActions(script) {
     const setName = script?.advancedOptions?.actionSet || "default";
     return ADVANCED_ACTION_SETS[setName] || ADVANCED_ACTION_SETS.default;
 }
-
 
 function SetupAdvancedUI() {
     const inlineTextarea = document.getElementById("advancedSteps");
@@ -1189,10 +1186,7 @@ click #saveMigration`
             renderTokenPanel(headers);
             updateHighlight();
 
-            // ✅ NEW: update status panel
-            updateCsvStatus(rows);
-
-            populateOdsColumnSelect(rows);
+            populateColumnMappings(rows);
 
             // ✅ NEW: enable Next button if valid
             updateNextButtonState();
@@ -1201,29 +1195,299 @@ click #saveMigration`
         reader.readAsText(file);
     }
 
-    function populateOdsColumnSelect(rows) {
-        const select = document.getElementById("odsColumnSelect");
-        if (!select || !rows.length) return;
+    function normaliseName(value) {
+        return value
+            .toLowerCase()
+            .replace(/[_\-\s]/g, "")
+            .replace(/[^a-z0-9]/g, "");
+    }
 
-        const keys = Object.keys(rows[0]);
+    function findBestMatch(fieldName, headers) {
 
-        select.innerHTML = `< option value = "" > --Select ODS column--</option > `;
+        const target = normaliseName(fieldName);
 
-        keys.forEach(key => {
-            const opt = document.createElement("option");
-            opt.value = key;
-            opt.textContent = key;
-            select.appendChild(opt);
-        });
+        // Synonym lookup first
+        const synonyms = COLUMN_SYNONYMS[target];
 
-        // ✅ Auto-detect best guess
-        const guess = keys.find(k =>
-            /ods|nhs.*code|organisation.*code/i.test(k)
+        if (synonyms) {
+
+            const synonymMatch = headers.find(header => {
+
+                const headerName =
+                    normaliseName(header);
+
+                return synonyms.some(synonym =>
+                    headerName === synonym ||
+                    headerName.includes(synonym) ||
+                    synonym.includes(headerName)
+                );
+
+            });
+
+            if (synonymMatch) {
+                return synonymMatch;
+            }
+        }
+
+        // Exact match
+        let match = headers.find(
+            h => normaliseName(h) === target
         );
 
-        if (guess) {
-            select.value = guess;
-        }
+        if (match) return match;
+
+        // Contains match
+        match = headers.find(
+            h => normaliseName(h).includes(target)
+        );
+
+        if (match) return match;
+
+        // Reverse contains
+        match = headers.find(
+            h => target.includes(normaliseName(h))
+        );
+
+        return match || "";
+    }
+
+    const COLUMN_SYNONYMS = {
+        sysid: [
+            "sysid",
+            "systemid"
+        ],
+
+        provisiondate: [
+            "provisiondate",
+            "dateprovided"
+        ],
+
+        pharmacistname: [
+            "pharmacistname",
+            "pharmacist"
+        ],
+
+        telephonenumber: [
+            "telephone",
+            "telephonenumber",
+            "phone",
+            "tel",
+            "telnum"
+        ],
+
+        notificationstatus: [
+            "notificationstatus",
+            "privatpgdrequestnotificationstatus"
+        ],
+
+        recordstatus: [
+            "recordclaimstatus",
+            "recordstatus",
+            "claimstatus"
+        ],
+        odscode: [
+            "odscode",
+            "ods_code",
+            "organisationcode",
+            "nhscode",
+            "ods"
+        ],
+
+        firstname: [
+            "firstname",
+            "forename",
+            "givenname"
+        ],
+
+        lastname: [
+            "lastname",
+            "surname",
+            "familyname"
+        ],
+
+        email: [
+            "email",
+            "emailaddress",
+            "secureemail"
+        ],
+
+        telephone: [
+            "telephone",
+            "phone",
+            "phonenumber",
+            "tel"
+        ],
+
+        proffesionalbody: [
+            "professionalbody",
+            "professionalorganisation",
+            "professionalorganisationname"
+        ],
+
+        registrationnumber: [
+            "registrationnumber",
+            "registrationid",
+            "registration"
+        ],
+
+        otheremail: [
+            "otheremail",
+            "secondaryemail",
+            "alternateemail"
+        ]
+    };
+
+    function populateColumnMappings(rows) {
+
+        console.log("populateColumnMappings called");
+
+        const container =
+            document.getElementById("columnMappingsContainer");
+
+        console.log("container", container);
+
+        if (!container) return;
+
+        container.innerHTML = "";
+
+        const required =
+            window.currentScriptMeta?.requiredColumns;
+
+        console.log("requiredColumns", required);
+
+        if (!required?.length) return;
+
+        const headers = Object.keys(rows[0]);
+        let autoMapped = 0;
+
+
+        required.forEach(field => {
+
+            const card = document.createElement("div");
+            card.className = "mapping-card";
+
+            const header = document.createElement("div");
+            header.className = "mapping-header";
+
+            const title = document.createElement("div");
+            title.className = "mapping-title";
+            title.textContent = field.label;
+
+            header.appendChild(title);
+
+            const label =
+                document.createElement("label");
+
+            label.textContent = field.label;
+
+            const select =
+                document.createElement("select");
+
+            select.addEventListener("change", () => {
+
+                if (!select.value) {
+                    delete wizardData.columnMappings[field.key];
+                    return;
+                }
+
+                wizardData.columnMappings[field.key] =
+                    select.value;
+            });
+
+            select.dataset.key = field.key;
+
+            headers.forEach(header => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = header;
+                option.textContent = header;
+
+                select.appendChild(option);
+
+            });
+
+            const guess =
+                findBestMatch(
+                    field.key,
+                    headers
+                );
+
+            if (!guess && !field.required) {
+                select.value = "";
+            }
+
+            if (guess) {
+
+                autoMapped++;
+
+                select.value = guess;
+
+                wizardData.columnMappings[field.key] = guess;
+
+                const badge = document.createElement("span");
+                badge.className = "mapping-badge";
+                badge.textContent = "✓ Auto Matched";
+
+                header.appendChild(badge);
+
+            }
+            else if (field.required) {
+
+                const badge = document.createElement("span");
+                badge.className = "mapping-badge warning";
+                badge.textContent = "⚠ Required";
+
+                header.appendChild(badge);
+            }
+            else if (!field.required) {
+                select.value = "";
+            }
+
+            card.appendChild(header);
+            card.appendChild(select);
+
+            container.appendChild(card);
+
+        });
+        const requiredFields =
+            required.filter(f => f.required);
+
+        const matchedRequired =
+            requiredFields.filter(f =>
+                wizardData.columnMappings[f.key]
+            ).length;
+
+        const missingRequired =
+            requiredFields.length - matchedRequired;
+
+        const summary =
+            document.getElementById("csvStatus");
+
+        summary.innerHTML +=
+            missingRequired === 0
+                ? `✅ All ${requiredFields.length} required fields mapped`
+                : `⚠ ${missingRequired} required fields need attention`;
+
+        summary.classList.remove("hidden");
+    }
+
+    function saveColumnMappings() {
+
+        wizardData.columnMappings = {};
+
+        document
+            .querySelectorAll(
+                "#columnMappings select"
+            )
+            .forEach(select => {
+
+                wizardData.columnMappings[
+                    select.dataset.key
+                ] = select.value;
+
+            });
     }
 
     function normaliseKey(key) {
@@ -1569,7 +1833,6 @@ function handleSidebarUpdates(line) {
 
 }
 
-
 async function populateDescription(product, script) {
     const descEl = document.getElementById("descriptionContent");
 
@@ -1752,23 +2015,69 @@ function enterExecutionMode() {
     }
 }
 
-function updateOdsPreview(rows, selectedKey) {
-    const el = document.getElementById("odsPreview");
-    if (!el || !selectedKey) return;
+function populateColumnMappings(rows) {
 
-    const preview = rows.slice(0, 5).map(r => r[selectedKey]).join("<br>");
+    const container =
+        document.getElementById("columnMappingsContainer");
 
-    el.innerHTML = `
-    Preview (first 5 rows):<br>
-    ${preview}
-  `;
+    if (!container) return;
 
-    el.classList.remove("hidden");
+    container.innerHTML = "";
+
+    const requiredColumns =
+        window.currentScriptMeta?.requiredColumns;
+
+    if (!requiredColumns?.length) {
+        return;
+    }
+
+    const headers = Object.keys(rows[0] || {});
+
+    requiredColumns.forEach(column => {
+
+        const field =
+            document.createElement("div");
+
+        field.className = "field";
+
+        const label =
+            document.createElement("label");
+
+        label.textContent = column.label;
+
+        const select = document.createElement("select");
+
+        select.dataset.key = field.key;
+
+        const blankOption = document.createElement("option");
+
+        blankOption.value = "";
+        blankOption.textContent =
+            field.required
+                ? "-- Select Column --"
+                : "-- Not Mapped --";
+
+        select.appendChild(blankOption);
+
+        headers.forEach(header => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = header;
+            option.textContent = header;
+
+            select.appendChild(option);
+
+        });
+
+        field.appendChild(label);
+        field.appendChild(select);
+
+        container.appendChild(field);
+
+    });
 }
-
-document.getElementById("odsColumnSelect").addEventListener("change", e => {
-    updateOdsPreview(currentCsvRows, e.target.value);
-});
 
 function setupRunForm(product, script) {
 
@@ -1781,13 +2090,8 @@ function setupRunForm(product, script) {
     const envFileInput = document.getElementById("runnerEnvFile");
     const csvFileInput = document.getElementById("csvFile");
     const advancedStepsEl = document.getElementById("advancedSteps");
-    const odsColumnSelect = document.getElementById("odsColumnSelect");
-
-    const odsColumn = odsColumnSelect ? odsColumnSelect.value : "";
-
-    wizardData.odsColumn = odsColumn;
-
     const stopRunButton = document.getElementById("stopRunButton");
+
     if (stopRunButton) {
         stopRunButton.addEventListener("click", async () => {
             if (!currentRunId) return;
@@ -1817,14 +2121,11 @@ function setupRunForm(product, script) {
         enterExecutionMode();
 
         const dryRunCheckbox = document.getElementById("dryRunCheckbox");
-        const odsColumn = document.getElementById("odsColumnSelect")?.value;
 
-        if (!odsColumn && script.requiresCsv) {
+        if (script.requiresCsv && !wizardData.columnMappings.odsCode) {
             alert("Please select the ODS Code column");
             return;
         }
-
-        wizardData.odsColumn = odsColumn;
 
         const options = {
             autoScrollLogs: true,
@@ -1840,12 +2141,10 @@ function setupRunForm(product, script) {
             recordTrace: document.getElementById("recordTrace")?.checked ?? false,
         };
 
-
-
         const formData = new FormData();
 
-        formData.append("odsColumn", wizardData.odsColumn);
-
+        formData.append("columnMappings", JSON.stringify(wizardData.columnMappings));
+        console.log("FormData columnMappings:", wizardData.columnMappings);
         if (script.advanced && advancedStepsEl?.value.trim()) {
             formData.append("advancedSteps", advancedStepsEl.value.trim());
         }
@@ -2004,6 +2303,7 @@ function escapeHtml(text) {
 function updateStatus(text) {
     document.getElementById("metaStatus").textContent = text;
 }
+
 function updateProgress(current, total) {
     const percent = total ? (current / total) * 100 : 0;
 
@@ -2013,6 +2313,7 @@ function updateProgress(current, total) {
     document.getElementById("progressFill").style.width =
         `${percent}%`;
 }
+
 function updateCurrentOds(ods) {
     document.getElementById("currentOds").textContent = ods;
 }

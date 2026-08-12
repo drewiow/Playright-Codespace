@@ -58,6 +58,10 @@ export async function runScript({ logger = console.log, main }) {
 
     const { browser, context, page } = await setupContext(config);
 
+    const columnMappings =
+        JSON.parse(
+            process.env.COLUMN_MAPPINGS || "{}"
+        );
     const advancedStepsText = process.env.ADVANCED_STEPS || "";
     const isAdvanced = process.env.ADVANCED === "true";
     const baseSteps = parseAdvancedSteps(advancedStepsText);
@@ -71,6 +75,10 @@ export async function runScript({ logger = console.log, main }) {
             username,
             password,
             config,
+            columnMappings,
+            advancedStepsText,
+            isAdvanced,
+            baseSteps,
 
             runAdvanced: async (row = {}, rowIndex = 1) => {
                 if (baseSteps.length === 0) return;
