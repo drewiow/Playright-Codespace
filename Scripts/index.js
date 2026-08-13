@@ -202,11 +202,15 @@ async function loadProducts() {
             card.className = "product-card";
             card.dataset.product = product.id;
 
-            card.innerHTML = `
-    <img src="${product.logo}" alt="${product.title}">
-    <h3>${product.title}</h3>
-    <p>${product.description}</p>
-`;
+            if (product.layout !== "full") {
+                card.innerHTML = `<img src="${product.logo}" alt="${product.title}">
+                    <h3>${product.title}</h3>
+                    <p>${product.description}</p>`;
+            }
+            else {
+                card.classList.add("product-card-full");
+                card.innerHTML = `<img src="${product.logo}" alt="${product.title}">`;
+            }
 
             grid.appendChild(card);
         });

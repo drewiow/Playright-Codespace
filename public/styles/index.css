@@ -65,12 +65,22 @@
     gap: 0.5rem;
 }
 
+.product-card-full {
+    text-align: center;
+}
+
 .product-card:hover {
     border-color: var(--color-accent);
 }
 
 .product-card img {
     width: 140px;
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.product-card-full img {
+    width: 500px;
     max-width: 100%;
     margin-bottom: 0.5rem;
 }

@@ -1,5 +1,5 @@
 import { marked } from "/vendor/marked/lib/marked.esm.js";
-import { ADVANCED_ACTION_SETS } from "./common/advancedActions.js";
+import { ADVANCED_ACTION_SETS } from "./advanced/advancedActions.js";
 
 const artifactList = document.getElementById("artifactList");
 const logContainer = document.getElementById("logContainer");
