@@ -23,7 +23,7 @@
             "title": "AI Runner",
             "requiresCsv": false,
             "requiresPassword": true,
-            "showOptionsPanel": false,
+            "showOptionsPanel": true,
             "descriptionFile": "description.md",
             "requiresEnvFile": true,
             "optionalEnvFile": true,
