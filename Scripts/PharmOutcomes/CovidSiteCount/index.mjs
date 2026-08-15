@@ -63,14 +63,14 @@ export default async function run() {
 
         try {
           await page.goto(
-            "https://outcomes4health.org/o4h/admin/loginas?id=881686",
+            "/admin/loginas?id=881686",
             { waitUntil: "networkidle" }
           );
 
           await securityWord(page);
 
           await page.goto(
-            "https://outcomes4health.org/o4h/admin/accreditations?category=COVID%20Vaccination%202025/26",
+            "/admin/accreditations?category=COVID%20Vaccination%202025/26",
             { waitUntil: "networkidle" }
           );
 

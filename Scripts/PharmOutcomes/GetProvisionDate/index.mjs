@@ -3,7 +3,7 @@ import { runScript } from "../../common/runScript.mjs";
 import {
   login,
   securityWord,
-  loginProvider
+  loginAsProvider
 } from "../helpers.mjs";
 import fs from "node:fs";
 import path from "node:path";
@@ -22,7 +22,7 @@ export default async function run() {
         logger
       );
 
-      await loginProvider(page, "FTT82");
+      await loginAsProvider(page, "FTT82");
       const results = [];
 
       const outputFile = "ProvisionDates.csv";
@@ -39,7 +39,7 @@ export default async function run() {
       //now loop through CSV
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        await page.goto("https://outcomes4health.org/o4h/services/home");
+        await page.goto("/services/home");
         logger(`ROW ${i + 1}/${rows.length}`);
         logger(`Processing row: ${JSON.stringify(row)}`);
         const csvValue = row.cascadeid;

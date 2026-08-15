@@ -39,7 +39,7 @@ export default async function run() {
 
         try {
           // ✅ always reset state
-          await page.goto("https://outcomes4health.org/o4h/", {
+          await page.goto("/", {
             waitUntil: "networkidle"
           });
 

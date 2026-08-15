@@ -1,0 +1,13 @@
+{
+    "name": "Natural Language Processing",
+    "description": "Processes natural language requests and converts them into actionable tasks",
+    "inputs": [
+        {
+            "key": "question",
+            "label": "Question",
+            "type": "speech-to-text",
+            "required": true,
+            "placeholder": "e.g. edit provider FL93J"
+        }
+    ]
+}

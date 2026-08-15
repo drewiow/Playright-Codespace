@@ -422,6 +422,79 @@ async function loadScriptMeta(product, scriptId) {
     maybeInsertInputsStep();
 }
 
+function renderSpeechSupport(
+    inputEl,
+    buttonEl,
+    orbEl
+) {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        buttonEl.style.display = "none";
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-GB";
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+
+        orbEl.classList.add("listening");
+
+        buttonEl.classList.add("listening");
+        buttonEl.textContent =
+            "🔴 Listening...";
+    };
+
+    recognition.onresult = (event) => {
+
+        inputEl.value =
+            event.results[0][0].transcript;
+
+        inputEl.dispatchEvent(
+            new Event("input", {
+                bubbles: true
+            })
+        );
+
+        buttonEl.textContent =
+            "🧠 Understanding...";
+    };
+
+    recognition.onend = () => {
+
+        orbEl.classList.remove("listening");
+
+        buttonEl.classList.remove("listening");
+        buttonEl.textContent =
+            "✅ Request Captured";
+
+        setTimeout(() => {
+            buttonEl.textContent =
+                "🎙️ Ask PinnacleAI";
+        }, 2000);
+    };
+
+    recognition.onerror = () => {
+
+        buttonEl.classList.remove("listening");
+        buttonEl.textContent =
+            "🎙️ Ask PinnacleAI";
+    };
+
+    buttonEl.addEventListener(
+        "click",
+        () => recognition.start()
+    );
+}
+
+
+
 function renderScriptInputs(meta) {
     const container = document.getElementById("scriptInputs");
     if (!container) return;
@@ -444,6 +517,50 @@ function renderScriptInputs(meta) {
         let control;
 
         switch (input.type) {
+
+            case "speech-to-text": {
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "speech-input";
+
+                const textBox = document.createElement("input");
+                textBox.type = "text";
+                textBox.id = `input-${input.key}`;
+                textBox.name = input.key;
+                textBox.placeholder =
+                    input.placeholder || "Ask PinnacleAI...";
+
+                const controls = document.createElement("div");
+                controls.className = "speech-controls";
+
+                const orb = document.createElement("div");
+                orb.className = "ai-orb";
+                orb.id = `orb-${input.key}`;
+
+                const micButton = document.createElement("button");
+                micButton.type = "button";
+                micButton.className = "mic-btn";
+                micButton.textContent = "🎙️ Ask PinnacleAI";
+
+                controls.appendChild(orb);
+                controls.appendChild(micButton);
+
+                wrapper.appendChild(textBox);
+                wrapper.appendChild(controls);
+
+                renderSpeechSupport(
+                    textBox,
+                    micButton,
+                    orb
+                );
+
+                field.appendChild(label);
+                field.appendChild(wrapper);
+
+                container.appendChild(field);
+
+                return;
+            }
 
             case "checkbox":
 
@@ -778,6 +895,23 @@ function resolveAdvancedActions(script) {
     return ADVANCED_ACTION_SETS[setName] || ADVANCED_ACTION_SETS.default;
 }
 
+function saveColumnMappings() {
+
+    wizardData.columnMappings = {};
+
+    document
+        .querySelectorAll(
+            "#columnMappings select"
+        )
+        .forEach(select => {
+
+            wizardData.columnMappings[
+                select.dataset.key
+            ] = select.value;
+
+        });
+}
+
 function SetupAdvancedUI() {
     const inlineTextarea = document.getElementById("advancedSteps");
 
@@ -837,7 +971,7 @@ click #save
 
     const ADVANCED_PRESETS = [
         {
-            id: "update-migration", label: "Update migration table", steps: `goto https://outcomes4health.org/o4h/admin/web?migrations&new
+            id: "update-migration", label: "Update migration table", steps: `goto /admin/web?migrations&new
 wait #inODSCode
 type #inODSCode {{WITHCOV}}
 type #inPreviousODSCode {{ODSCODE}}
@@ -1186,6 +1320,7 @@ click #saveMigration`
         ]
     };
 
+
     function populateColumnMappings(rows) {
 
         console.log("populateColumnMappings called");
@@ -1322,22 +1457,7 @@ click #saveMigration`
         summary.classList.remove("hidden");
     }
 
-    function saveColumnMappings() {
 
-        wizardData.columnMappings = {};
-
-        document
-            .querySelectorAll(
-                "#columnMappings select"
-            )
-            .forEach(select => {
-
-                wizardData.columnMappings[
-                    select.dataset.key
-                ] = select.value;
-
-            });
-    }
 
     function normaliseKey(key) {
         return key.toLowerCase().replace(/[^a-z0-9]/g, "");

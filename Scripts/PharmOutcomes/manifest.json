@@ -19,18 +19,12 @@
             "advanced": false
         },
         {
-            "id": "AIRunner",
-            "title": "AI Runner",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
+            "id": "token-validation",
+            "title": "Token Validation",
+            "type": "test",
+            "description": "Validates token rendering within a provision.",
             "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Runs natural language processing to convert requests into actionable tasks",
-            "icon": "AI",
-            "animation": "pulse",
-            "advanced": false
+            "showOptionsPanel": true
         },
         {
             "id": "AddUsers",
@@ -123,48 +117,6 @@
             "advanced": false
         },
         {
-            "id": "CovidSiteCount",
-            "title": "Covid Site Count",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "Logs into every region and counts the sites accredeted to the Covid service, output to CSV",
-            "icon": "📊",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "FindAllSitesFromCSV",
-            "title": "Find Sites On All Regions (CSV)",
-            "requiresCsv": true,
-            "requiresPassword": false,
-            "showOptionsPanel": false,
-            "requiresEnvFile": false,
-            "optionalEnvFile": false,
-            "descriptionFile": "description.md",
-            "icon": "📄",
-            "description": "This will loop through a CSV of ODS Codes and find out if they have a COV site and report on what region they are on.",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "FindSitesOnAllRegions",
-            "title": "Find Sites On All Regions",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "icon": "🔍",
-            "description": "This will loop through all regions find out if they have a site and report on what region they are on.",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
             "id": "LinkAccounts",
             "title": "Link Accounts",
             "requiresCsv": true,
@@ -189,20 +141,6 @@
             "descriptionFile": "description.md",
             "icon": "🏢",
             "description": "This will take an ODS code and link it to a head office ODS code",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
-            "id": "MakeSiteDormant",
-            "title": "Make Site Dormant",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "descriptionFile": "description.md",
-            "description": "This will use an ODS code to login into the right region nd make the necessary changes to make the dormant.",
-            "icon": "💤",
             "animation": "pulse",
             "advanced": false
         },

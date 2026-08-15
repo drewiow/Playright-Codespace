@@ -51,7 +51,7 @@ export default async function run() {
 
           // ✅ go directly to adjustment page
           await page.goto(
-            "https://outcomes4health.org/o4h/claims/adjustment/?edit&id=0"
+            "/claims/adjustment/?edit&id=0"
           );
 
           // ✅ centralised advanced logic

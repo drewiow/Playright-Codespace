@@ -89,6 +89,41 @@ function requireAuthPage(req, res, next) {
     next();
 }
 
+app.post("/api/pinnacle/execute", (req, res) => {
+
+    console.log("Received plan:");
+    console.log(req.body.plan);
+
+    res.json({
+        success: true,
+        runId: "12345"
+    });
+});
+let currentContext = null;
+
+app.get("/api/pinnacle/context", (req, res) => {
+
+    res.json({
+        loaded: currentContext !== null,
+        environment: currentContext?.environment
+    });
+
+});
+
+app.post(
+    "/api/pinnacle/load-environment",
+    (req, res) => {
+
+        currentContext = {
+            id: crypto.randomUUID(),
+            environment: "Production"
+        };
+
+        res.json(currentContext);
+
+    }
+);
+
 app.get("/", requireAuthPage, (req, res) => {
     res.render("pages/index", {
         title: "Automation Runner",

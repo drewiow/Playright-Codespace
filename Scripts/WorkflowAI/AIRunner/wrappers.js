@@ -1,4 +1,4 @@
-import * as helpers from '../../pharmoutcomes/helpers.mjs';
+import * as helpers from '../../PharmOutcomes/helpers.mjs';
 import { ADVANCED_ACTION_SETS } from "../../advanced/advancedActions.js";
 import { findAdvancedAction } from "./advancedActionsLookup.js";
 import { executeAdvancedSteps } from "../../advanced/executeAdvancedSteps.mjs";

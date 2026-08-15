@@ -38,7 +38,7 @@ export default async function run() {
           continue;
         }
 
-        await page.goto("https://outcomes4health.org/o4h/admin/providers");
+        await page.goto("/admin/providers");
         await page.fill("#providerlookup", targetOdsCode);
 
         try {

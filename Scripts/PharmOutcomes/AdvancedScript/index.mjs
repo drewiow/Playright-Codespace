@@ -29,7 +29,7 @@ export default async function run() {
         try {
 
           // ✅ HARD RESET
-          await page.goto("https://outcomes4health.org/o4h/", {
+          await page.goto("/", {
             waitUntil: "networkidle"
           });
 
@@ -37,8 +37,7 @@ export default async function run() {
           const type = await openOrganisation(
             page,
             odsCode,
-            { editProvider, editViewer, editCommissioner },
-            logger
+            { editProvider, editViewer, editCommissioner }
           );
 
           // ✅ advanced feature (centralised)

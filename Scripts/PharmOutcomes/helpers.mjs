@@ -1,8 +1,10 @@
 import { authenticator } from "otplib";
-import { decryptEnv, createBrowserContext } from "../common/common.mjs";
+import { decryptEnv, createBrowserContext, normaliseKey, parseCSV } from "../common/common.mjs";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { PNG } from "pngjs";
+import pixelmatch from "pixelmatch";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,158 +13,72 @@ export async function setupContext(options = {}) {
   return await createBrowserContext(options);
 }
 
-export function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
+export function compareImages(
+  baselinePath,
+  actualPath,
+  diffPath
+) {
+  const baseline =
+    PNG.sync.read(
+      fs.readFileSync(baselinePath)
+    );
 
-  // ✅ CSV-safe split (handles quoted commas)
-  const splitLine = (line) =>
-    line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g)
-      ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
+  const actual =
+    PNG.sync.read(
+      fs.readFileSync(actualPath)
+    );
 
-  // ✅ Normalize headers
-  const rawHeaders = splitLine(lines[0]);
-  const headers = rawHeaders.map(h =>
-    h.toLowerCase().replace(/[^a-z0-9]/g, "")
+  if (
+    baseline.width !== actual.width ||
+    baseline.height !== actual.height
+  ) {
+    throw new Error(
+      "Images are different sizes"
+    );
+  }
+
+  const diff = new PNG({
+    width: baseline.width,
+    height: baseline.height
+  });
+
+  const mismatchPixels =
+    pixelmatch(
+      baseline.data,
+      actual.data,
+      diff.data,
+      baseline.width,
+      baseline.height,
+      {
+        threshold: 0.1
+      }
+    );
+
+  fs.writeFileSync(
+    diffPath,
+    PNG.sync.write(diff)
   );
 
-  return lines.slice(1).map(line => {
-    const cols = splitLine(line);
-    const row = {};
+  const totalPixels =
+    baseline.width * baseline.height;
 
-    headers.forEach((key, i) => {
-      row[key] = cols[i];
-    });
+  const mismatchPercent =
+    (
+      mismatchPixels /
+      totalPixels
+    ) * 100;
 
-    return row;
-  });
+  return {
+    mismatchPixels,
+    mismatchPercent
+  };
 }
 
-export async function login(page, username, password, odscode, log = console.log) {
+export async function login(page, username, password, logger = console.log) {
 
-
-  const odsResult = await resolveOdsContext(page, odscode);
-
-  log(`🔐 Logged into Region: ${odsResult.region}`);
-
-  await loginWithOds(page, username, password, odscode, odsResult);
-
-}
-
-export async function resolveOdsContext(page, odscode, log = console.log) {
-
-  if (!page || page.isClosed()) {
-    throw new Error("Page is not available");
-  }
-
-  await page.goto("https://outcomes4health.org/o4h/", {
+  await page.goto("/pharmoutcomes/", {
     waitUntil: "networkidle"
   });
-
-
-  if (odscode.toLowerCase() === "prim") {
-    return {
-      exists: true,
-      region: "Primary",
-      fallback: true
-    };
-  }
-
-  try {
-    await page.getByText("COVID", { exact: true }).click();
-
-    await page.fill("#o4hODSCode", odscode);
-
-    await page.click("#o4hCheckODSCode");
-
-
-    try {
-      await page.waitForSelector("#ODSResponseContainer li .responseODS", {
-        timeout: 3000
-      });
-    } catch (waitErr) {
-      log(`[ODS] ⚠️ Response list did NOT appear within timeout`);
-      throw waitErr;
-    }
-
-    const responseItems = page.locator("#ODSResponseContainer li .responseODS");
-    const count = await responseItems.count();
-
-
-    for (let i = 0; i < count; i++) {
-      const text = await responseItems.nth(i).textContent();
-
-      if (!text) {
-        continue;
-      }
-
-      const code = text.split(":")[0].trim();
-
-      if (code.toLowerCase() === odscode.toLowerCase()) {
-
-        // ✅ CLICK SELECT FIRST
-        const row = responseItems.nth(i).locator("..");
-        const selectBtn = row.locator("button.o4hODSConfirm");
-
-        await selectBtn.click();
-
-        await page.waitForSelector("#odsinstancecontainer", {
-          timeout: 5000
-        });
-
-        // ✅ NOW extract region
-        let regionName = null;
-
-        try {
-          const group = await page
-            .locator("#odsinstancecontainer .odsinstanceinfo")
-            .filter({ hasText: "Group:" })
-            .innerText();
-
-          const match = group.match(/Group:\s*(cvd[a-z])/i);
-          const groupCode = match ? match[1] : null;
-
-          const regionLetter = groupCode
-            ? groupCode.slice(-1).toUpperCase()
-            : "?";
-
-          regionName = `COVD ${regionLetter}`;
-
-        } catch (regionErr) {
-          log(`[ODS] ⚠️ Failed to extract region AFTER select: ${regionErr.message}`);
-        }
-
-        return {
-          exists: true,
-          region: regionName,
-          fallback: false
-        };
-      }
-    }
-
-
-    return {
-      exists: false,
-      region: null,
-      fallback: true
-    };
-
-  } catch (err) {
-    log(`[ODS] ❌ Lookup failed: ${err.message}`);
-    log(`[ODS] Stack: ${err.stack}`);
-
-    return {
-      exists: false,
-      region: null,
-      fallback: true,
-      error: err.message
-    };
-  }
-}
-
-export async function loginWithOds(page, username, password, odscode, odsResult, log = console.log) {
-  if (!page || page.isClosed()) {
-    throw new Error("Page is not available at login start");
-  }
 
   const secret = process.env.SECRET_KEY;
   if (!secret) {
@@ -170,36 +86,6 @@ export async function loginWithOds(page, username, password, odscode, odsResult,
   }
 
   const token = authenticator.generate(secret);
-
-  // -------------------------------
-  // ODS selection (based on lookup result)
-  // -------------------------------
-
-  if (odsResult.fallback) {
-    await page.getByText("Other", { exact: true }).click();
-  } else {
-    const responseItems = page.locator("#ODSResponseContainer li .responseODS");
-    const count = await responseItems.count();
-
-    for (let i = 0; i < count; i++) {
-      const text = await responseItems.nth(i).textContent();
-      const code = text.split(":")[0].trim();
-
-      if (code.toLowerCase() === odscode.toLowerCase()) {
-        await responseItems
-          .nth(i)
-          .locator("..")
-          .locator("button.o4hODSConfirm")
-          .click();
-        break;
-      }
-    }
-  }
-
-  // -------------------------------
-  // LOGIN
-  // -------------------------------
-
   await page.fill("#login_name", username);
   await page.fill("#login_pwd", password);
 
@@ -211,10 +97,7 @@ export async function loginWithOds(page, username, password, odscode, odsResult,
   // MFA
   await page.fill("#formCode", token);
   await page.click("#submitMFA");
-}
 
-export function normaliseKey(key) {
-  return key.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
@@ -351,7 +234,7 @@ export async function deaccredit(page, PIDService) {
   }
 }
 
-export async function openOrganisation(page, odsCode, helpers, logger) {
+export async function openOrganisation(page, odsCode, helpers, logger = console.log) {
   const type = getOrganisationType(odsCode);
 
   logger(`🏷️ Detected type: ${type}`);
@@ -377,7 +260,7 @@ export async function openOrganisation(page, odsCode, helpers, logger) {
   return type;
 }
 
-export function getOrganisationType(odsCode, logger = null) {
+export function getOrganisationType(odsCode, logger = console.log) {
   if (!odsCode) return "unknown";
 
   const code = odsCode.trim().toUpperCase();
@@ -407,14 +290,13 @@ export function getOrganisationType(odsCode, logger = null) {
   return "unknown";
 }
 
-export async function editProvider(page, odsCode, log = console.log) {
-
+export async function findProvider(page, odsCode, logger = console.log) {
   console.log("Received:", odsCode);
 
-  log(`🏥 Opening provider ${odsCode}`);
+  logger(`🏥 Opening provider ${odsCode}`);
 
   // Navigate to the Manage Providers page
-  await page.goto("https://outcomes4health.org/o4h/admin/providers");
+  await page.goto("/pharmoutcomes/admin/providers");
 
   // Search for provider
   if (odsCode.length < 4) { odsCode = odsCode.padStart(4, " ") } // pad to 4 digits if needed
@@ -435,15 +317,39 @@ export async function editProvider(page, odsCode, log = console.log) {
   } else {
     await firstResult.click();
   }
-  // Click the edit button
+
+}
+
+export async function editProvider(page, odsCode, logger = console.log) {
+
+  await findProvider(page, odsCode);
   await page.click("#editProvider");
+}
+
+export async function loginAsProvider(page, odsCode, logger = console.log) {
+
+  await findProvider(page, odsCode);
+
+  logger("🔐 Opening provider login");
+
+  const loginLink =
+    page.locator(
+      '#crossloginusers a.full-lock'
+    ).first();
+
+  await loginLink.click();
+
+  logger("🔑 Entering security code");
+
+  await securityWord(page);
+
 }
 
 export async function editViewer(page, odsCode, log = console.log) {
   log("👤 Opening viewer");
 
   // Navigate to the Manage Providers page
-  await page.goto("https://outcomes4health.org/o4h/admin/viewers");
+  await page.goto("/pharmoutcomes/admin/viewers");
 
   // Search for provider
   await page.fill("#organisationLookup", odsCode);
@@ -462,7 +368,7 @@ export async function editCommissioner(page, odsCode, log = console.log) {
   log("👤 Opening commissioner");
 
   // Navigate to the Manage Providers page
-  await page.goto("https://outcomes4health.org/o4h/admin/commissioners");
+  await page.goto("/pharmoutcomes/admin/commissioners");
 
   // Search for provider
   await page.fill("#organisationLookup", odsCode);
@@ -479,7 +385,7 @@ export async function editCommissioner(page, odsCode, log = console.log) {
 
 export async function loginCommissioner(page, odsCode) {
   // Navigate to the Manage Providers page
-  await page.goto("https://outcomes4health.org/o4h/admin/commissioners");
+  await page.goto("/pharmoutcomes/admin/commissioners");
 
   // Search for provider
   await page.fill("#organisationLookup", odsCode);
@@ -496,24 +402,6 @@ export async function loginCommissioner(page, odsCode) {
   await securityWord(page);
 }
 
-export async function loginProvider(page, odsCode) {
-  // Navigate to the Manage Providers page
-  await page.goto("https://outcomes4health.org/o4h/admin/providers");
-
-  // Search for provider
-  await page.fill("#providerlookup", odsCode);
-
-  // Wait for the autocomplete dropdown to appear
-  await page.waitForSelector("#ui-id-1", { timeout: 5000 });
-
-  // Click the first result
-  await page.locator("#ui-id-1 li").first().click();
-
-  // Click the edit button
-  await page.locator("#crossloginusers_small a.full-lock").first().click();
-
-  await securityWord(page);
-}
 export async function addCommissioner(page, commissionerID, services, log = console.log) {
   log("👤 Adding commissioner");
 

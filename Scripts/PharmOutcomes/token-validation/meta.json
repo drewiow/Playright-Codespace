@@ -1,0 +1,20 @@
+{
+    "name": "Token Validation",
+    "description": "Checks if tokens are still aligned and working correctly",
+    "inputs": [
+        {
+            "key": "OdsCode",
+            "label": "ODS Code",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. 123456"
+        },
+        {
+            "key": "ProvisionId",
+            "label": "Provision ID",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. PROV-123456"
+        }
+    ]
+}

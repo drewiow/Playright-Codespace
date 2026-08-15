@@ -1,10 +1,10 @@
 import fsp from "node:fs/promises";
 import process from "node:process";
 import { initExecution } from "./initExecution.mjs";
-import { setupContext, parseCSV } from "../pharmoutcomes/helpers.mjs";
+import { setupContext } from "../pharmoutcomes/helpers.mjs";
 import { parseAdvancedSteps, resolveCsvTokens } from "../advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "../advanced/executeAdvancedSteps.mjs";
-
+import { parseCSV } from "./common.mjs";
 export async function runScript({ logger = console.log, main }) {
 
     // logger("SCRIPT BOOT");

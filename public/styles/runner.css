@@ -760,3 +760,113 @@ input[type="date"] {
 .csvStatus {
     margin-bottom: 16px;
 }
+
+.mic-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #0078d4;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all .2s ease;
+}
+
+.mic-btn:hover {
+    background: #106ebe;
+}
+
+.mic-btn.listening {
+    background: #d13438;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(209, 52, 56, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 12px rgba(209, 52, 56, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(209, 52, 56, 0);
+    }
+}
+
+#voiceOrb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #6b5cff;
+}
+
+#voiceOrb.active {
+    animation: pulseOrb 1.2s infinite;
+}
+
+@keyframes pulseOrb {
+    50% {
+        transform: scale(1.5);
+        background: #00c3ff;
+    }
+}
+
+.speech-input {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.speech-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ai-orb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,
+            #6c63ff,
+            #00c3ff);
+}
+
+.ai-orb.listening {
+    animation: pulseOrb 1.2s infinite;
+}
+
+.mic-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #0078d4;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mic-btn.listening {
+    background: #d13438;
+}
+
+@keyframes pulseOrb {
+
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 195, 255, .6);
+    }
+
+    50% {
+        transform: scale(1.4);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 12px rgba(0, 195, 255, 0);
+    }
+}
+
+``

@@ -37,7 +37,7 @@ async function unlockNHS(logger, page, username, password) {
       logger
     );
 
-    await page.goto("https://outcomes4health.org/o4h/admin/web?nhsnetlock");
+    await page.goto("/admin/web?nhsnetlock");
 
     const submitButton = await page.$('input.submit.full-lock[name="submit"]');
 
@@ -64,7 +64,7 @@ async function unlockNHS(logger, page, username, password) {
 
   while (true) {
 
-    await page.goto("https://outcomes4health.org/o4h/admin/web?nhsnetlock");
+    await page.goto("/admin/web?nhsnetlock");
 
     const button = page.locator('input.submit.full-lock[name="submit"]');
 
@@ -129,7 +129,7 @@ async function checkClaims(logger, page, username, password) {
     logger
   );
 
-  await page.goto("https://outcomes4health.org/o4h/claims/home");
+  await page.goto("/claims/home");
 
   const latestClaims = page
     .locator('li')

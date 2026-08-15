@@ -1,0 +1,23 @@
+{
+    "id": "WorkflowAI",
+    "title": "Workflow AI",
+    "description": "Transform natural language into automation workflows.",
+    "logo": "/images/workflowai-logo.png",
+    "layout": "full",
+    "scripts": [
+        {
+            "id": "AIRunner",
+            "title": "AI Runner",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": false,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Runs natural language processing to convert requests into actionable tasks",
+            "icon": "AI",
+            "animation": "pulse",
+            "advanced": false
+        }
+    ]
+}

@@ -20,14 +20,14 @@ export default async function run() {
 
       // ✅ switch to commissioner
       await page.goto(
-        `https://outcomes4health.org/o4h/admin/loginas?id=${commissioner}`
+        `/admin/loginas?id=${commissioner}`
       );
 
       await securityWord(page);
 
       // ✅ go to accreditation page
       await page.goto(
-        `https://outcomes4health.org/o4h/admin/accreditations/?service=${service}`
+        `/admin/accreditations/?service=${service}`
       );
 
       // ✅ build lookup map from CSV (now using rows)

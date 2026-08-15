@@ -22,6 +22,33 @@ import { chromium } from "playwright";
 const ALGO = "aes-256-gcm";
 const PBKDF2_ITERATIONS = 310000;
 
+
+export function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/);
+
+    // ✅ CSV-safe split (handles quoted commas)
+    const splitLine = (line) =>
+        line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g)
+            ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
+
+    // ✅ Normalize headers
+    const rawHeaders = splitLine(lines[0]);
+    const headers = rawHeaders.map(h =>
+        h.toLowerCase().replace(/[^a-z0-9]/g, "")
+    );
+
+    return lines.slice(1).map(line => {
+        const cols = splitLine(line);
+        const row = {};
+
+        headers.forEach((key, i) => {
+            row[key] = cols[i];
+        });
+
+        return row;
+    });
+}
+
 export async function logAction(actionDesc, fn, logger) {
     const start = Date.now();
     //logger(`➡️ ${actionDesc}`);
@@ -266,6 +293,7 @@ export async function createBrowserContext(options = {}) {
     }
 
     const context = await browser.newContext({
+        baseURL: 'https://pharmoutcomes.org/pharmoutcomes/',
         recordVideo: recordVideo ? { dir: videoDir, size: { width: 1280, height: 720 } } : undefined
     });
 

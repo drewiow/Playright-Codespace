@@ -61,7 +61,7 @@ export default async function run() {
 
           // ✅ navigate
           await page.goto(
-            "https://outcomes4health.org/o4h/home/announcement?id=0",
+            "/home/announcement?id=0",
             { waitUntil: "networkidle" }
           );
 

@@ -1,6 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
-import { login, editProvider, parseCSV } from "../helpers.mjs";
-import { logAction, getMappedValue, toTitleCase, cleanEmail } from "../../common/common.mjs";
+import { login, editProvider } from "../helpers.mjs";
+import { logAction, getMappedValue, toTitleCase, cleanEmail, parseCSV } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
