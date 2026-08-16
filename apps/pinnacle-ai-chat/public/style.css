@@ -254,3 +254,45 @@ body {
     background: rgba(239, 68, 68, .15);
     color: #fca5a5;
 }
+
+.hidden {
+    display: none !important;
+}
+
+.modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+        rgba(0, 0, 0, .7);
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+}
+
+.modal-content {
+
+    width: 400px;
+
+    padding: 24px;
+
+    border-radius: 16px;
+
+    background: #111827;
+
+    color: white;
+}
+
+.modal-content input {
+
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding: 12px;
+}

@@ -7,28 +7,81 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
+async function loadEnvironment() {
+
+    const file =
+        document
+            .getElementById("env-file")
+            .files[0];
+
+    const passphrase =
+        document
+            .getElementById("env-passphrase")
+            .value;
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "envFile",
+        file
+    );
+
+    formData.append(
+        "passphrase",
+        passphrase
+    );
+
+    const res =
+        await fetch(
+            "http://localhost:3000/api/pinnacle/load-environment",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+    const result =
+        await res.json();
+
+    console.log(result);
+    document
+        .getElementById("env-modal")
+        .classList
+        .add("hidden");
+    await loadEnvironmentContext();
+}
+
 document
     .getElementById("load-env-btn")
+    .addEventListener("click", () => {
+
+        document
+            .getElementById("env-modal")
+            .classList
+            .remove("hidden");
+
+    });
+
+document
+    .getElementById("load-env-confirm")
     .addEventListener(
         "click",
         loadEnvironment
     );
 
-async function loadEnvironment() {
+document
+    .getElementById("load-env-cancel")
+    .addEventListener("click", () => {
 
-    const res = await fetch(
-        "http://localhost:3000/api/pinnacle/load-environment",
-        {
-            method: "POST"
-        }
-    );
+        console.log("Cancel clicked");
 
-    const result = await res.json();
+        document
+            .getElementById("env-modal")
+            .classList
+            .add("hidden");
 
-    console.log(result);
-
-    await loadEnvironmentContext();
-}
+    });
 
 async function loadEnvironmentContext() {
 

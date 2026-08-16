@@ -12,6 +12,8 @@ import { encryptEnv, decryptEnv } from "./scripts/common/common.mjs";
 import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
+import { login, editProvider } from "./scripts/PharmOutcomes/helpers.mjs"
+import { runScript } from "./scripts/common/runScript.mjs"
 
 // Memory session store
 const sessions = new Map();
@@ -89,16 +91,54 @@ function requireAuthPage(req, res, next) {
     next();
 }
 
-app.post("/api/pinnacle/execute", (req, res) => {
+app.post("/api/pinnacle/execute", async (req, res) => {
 
-    console.log("Received plan:");
-    console.log(req.body.plan);
+    const plan = req.body.plan;
+
+    console.log("Executing plan");
+    console.log(plan);
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    await runScript({
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username,
+            password
+        }) => {
+
+            await login(
+                page,
+                username,
+                password,
+                logger
+            );
+            const providerStep =
+                plan.find(
+                    p => p.action === "editProvider"
+                );
+            await editProvider(
+                page,
+                providerStep.odsCode,
+                logger
+
+            );
+        }
+    });
 
     res.json({
         success: true,
         runId: "12345"
     });
 });
+
 let currentContext = null;
 
 app.get("/api/pinnacle/context", (req, res) => {
@@ -112,15 +152,31 @@ app.get("/api/pinnacle/context", (req, res) => {
 
 app.post(
     "/api/pinnacle/load-environment",
+    upload.single("envFile"),
     (req, res) => {
+
+        if (!req.file) {
+            return res.status(400).json({
+                error: "No env file uploaded"
+            });
+        }
 
         currentContext = {
             id: crypto.randomUUID(),
-            environment: "Production"
+            environment: "Production",
+            envEncPath: req.file.path,
+            passphrase: req.body.passphrase
         };
 
-        res.json(currentContext);
+        console.log("✅ Environment loaded:");
+        console.log({
+            id: currentContext.id,
+            environment: currentContext.environment,
+            envEncPath: currentContext.envEncPath,
+            passphraseProvided: !!currentContext.passphrase
+        });
 
+        res.json(currentContext);
     }
 );
 

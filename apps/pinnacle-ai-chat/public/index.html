@@ -27,6 +27,32 @@
             <input id="messageInput" placeholder="Update FKN03 telephone number to 01983 565656">
             <button id="sendBtn">Analyse</button>
         </div>
+
+        <div id="env-modal" class="modal hidden">
+
+            <div class="modal-content">
+
+                <h3>Load Environment</h3>
+
+                <input type="file" id="env-file" accept=".enc">
+
+                <input type="password" id="env-passphrase" placeholder="Passphrase">
+
+                <div class="modal-buttons">
+
+                    <button id="load-env-confirm">
+                        Load
+                    </button>
+
+                    <button id="load-env-cancel">
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
     </div>
     <script type="module" src="app.js"></script>
 </body>
