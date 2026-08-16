@@ -11,9 +11,11 @@ import { EventEmitter } from "events";
 import { encryptEnv, decryptEnv } from "./scripts/common/common.mjs";
 import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
+import { executeAdvancedSteps } from "./scripts/advanced/executeAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
 import { login, editProvider } from "./scripts/PharmOutcomes/helpers.mjs"
 import { runScript } from "./scripts/common/runScript.mjs"
+import { ADVANCED_ACTION_SETS } from "./scripts/advanced/advancedActions.js";
 
 // Memory session store
 const sessions = new Map();
@@ -120,6 +122,7 @@ app.post("/api/pinnacle/execute", async (req, res) => {
                 password,
                 logger
             );
+
             const providerStep =
                 plan.find(
                     p => p.action === "editProvider"
@@ -128,8 +131,61 @@ app.post("/api/pinnacle/execute", async (req, res) => {
                 page,
                 providerStep.odsCode,
                 logger
-
             );
+
+
+            const advancedStep =
+                plan.find(
+                    p => p.advancedAction
+                );
+            const actionDefinition =
+                ADVANCED_ACTION_SETS.providerDetails
+                    .flatMap(group => group.actions)
+                    .find(
+                        a =>
+                            a.id ===
+                            advancedStep.advancedAction
+                    );
+
+            console.log(
+                "Action Definition:",
+                actionDefinition
+            );
+
+            let stepText =
+                actionDefinition.steps;
+
+            for (const [key, value] of Object.entries(
+                advancedStep.variables
+            )) {
+
+                stepText =
+                    stepText.replaceAll(
+                        `{{${key}}}`,
+                        value
+                    );
+            }
+            const steps =
+                parseAdvancedSteps(
+                    stepText
+                );
+
+            await executeAdvancedSteps({
+                steps,
+                page,
+                rowIndex: 1,
+                log: logger
+            });
+            const currentValue = await page.inputValue(
+                "#inOrgTelephone"
+            );
+
+            logger(
+                `📞 Telephone field now contains: ${currentValue}`
+            );
+
+
+            console.log(plan);
         }
     });
 
