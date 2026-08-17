@@ -52,8 +52,6 @@ export async function runScript({ logger = console.log, main }) {
 
         logger(`📦 Loaded ${rows.length} rows`);
         hasCSV = true;
-    } else {
-        logger("ℹ️ No CSV supplied — running in single-execution mode");
     }
 
     const { browser, context, page } = await setupContext(config);

@@ -131,6 +131,12 @@ export async function findUser(
 
     const tr = editLink.locator("xpath=ancestor::tr");
 
+    const rowHtml =
+      await tr.innerHTML();
+
+    const primary =
+      rowHtml.includes("PRIMARY");
+
     const userText =
       await tr.locator("td:nth-child(2)")
         .innerText();
@@ -164,20 +170,67 @@ export async function findUser(
         ?.replace(")", "")
       || "";
 
+    let score = 0;
+
+    const search = searchText.toLowerCase();
+
+    if (
+      displayName.toLowerCase() === search
+    ) {
+      score += 100;
+    }
+
+    if (
+      username.toLowerCase() === search
+    ) {
+      score += 100;
+    }
+
+    if (
+      primary
+    ) {
+      score += 200;
+    }
+
+    if (
+      disabled
+    ) {
+      score -= 1000;
+    }
+
+    if (
+      username.toLowerCase().includes(
+        "automation"
+      )
+    ) {
+      score -= 100;
+    }
+
+    if (
+      /\d+$/.test(username)
+    ) {
+      score -= 20;
+    }
+
     results.push({
       uid,
       displayName,
       username,
       disabled,
-      editUrl
+      editUrl,
+      score
     });
   }
+  results.sort(
+    (a, b) => b.score - a.score
+  );
 
   logger(
     `✅ Found ${results.length} users`
   );
 
   return results;
+
 }
 
 export async function openUser(
@@ -200,6 +253,7 @@ export async function openUser(
     `✅ User opened`
   );
 }
+
 
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
   console.log("passcode", passcode);

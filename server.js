@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "./scripts/advanced/executeAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
-import { login, editProvider } from "./scripts/PharmOutcomes/helpers.mjs"
+import { login, editProvider, findUser, findProvider, openUser } from "./scripts/PharmOutcomes/helpers.mjs"
 import { runScript } from "./scripts/common/runScript.mjs"
 import { ADVANCED_ACTION_SETS } from "./scripts/advanced/advancedActions.js";
 
@@ -93,6 +93,52 @@ function requireAuthPage(req, res, next) {
     next();
 }
 
+app.post("/api/pinnacle/find-user", async (req, res) => {
+
+    const { username } = req.body;
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    let users = [];
+
+    await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+            users =
+                await findUser(
+                    page,
+                    username,
+                    logger
+                );
+        }
+    });
+
+    res.json(
+        users.filter(
+            u => !u.disabled
+        )
+    );
+});
+
 app.post("/api/pinnacle/execute", async (req, res) => {
 
     const plan = req.body.plan;
@@ -123,84 +169,84 @@ app.post("/api/pinnacle/execute", async (req, res) => {
                 logger
             );
 
-            const providerStep =
-                plan.find(
-                    p => p.action === "editProvider"
-                );
-            await editProvider(
-                page,
-                providerStep.odsCode,
-                logger
-            );
+            const providerStep = plan.find(p => p.action === "editProvider");
+            if (providerStep) await editProvider(page, providerStep.odsCode, logger);
 
-            const findUserStep =
-                plan.find(
-                    p => p.action === "findUser"
-                );
-
+            const findUserStep = plan.find(p => p.action === "findUser");
             if (findUserStep) {
 
                 const users =
                     await findUser(
                         page,
-                        findUserStep.user,
+                        findUserStep.username,
                         logger
                     );
+
+                const activeUsers =
+                    users.filter(
+                        u => !u.disabled
+                    );
+
+                return res.json({
+                    success: true,
+                    requiresSelection: true,
+                    users: activeUsers
+                });
 
                 console.log(users);
 
             }
 
-            const advancedStep =
-                plan.find(
-                    p => p.advancedAction
+            const openUserStep = plan.find(p => p.action === "openUser");
+
+            if (openUserStep) {
+
+                await openUser(
+                    page,
+                    openUserStep.user,
+                    logger
                 );
-            const actionDefinition =
-                ADVANCED_ACTION_SETS.providerDetails
-                    .flatMap(group => group.actions)
-                    .find(
-                        a =>
-                            a.id ===
-                            advancedStep.advancedAction
-                    );
 
-            console.log(
-                "Action Definition:",
-                actionDefinition
-            );
-
-            let stepText =
-                actionDefinition.steps;
-
-            for (const [key, value] of Object.entries(
-                advancedStep.variables
-            )) {
-
-                stepText =
-                    stepText.replaceAll(
-                        `{{${key}}}`,
-                        value
-                    );
             }
-            const steps =
-                parseAdvancedSteps(
-                    stepText
-                );
 
-            await executeAdvancedSteps({
-                steps,
-                page,
-                rowIndex: 1,
-                log: logger
-            });
-            const currentValue = await page.inputValue(
-                "#inOrgTelephone"
-            );
+            const advancedStep = plan.find(p => p.advancedAction);
+            if (advancedStep) {
+                const actionDefinition =
+                    Object.values(ADVANCED_ACTION_SETS)
+                        .flatMap(set => set)
+                        .flatMap(group => group.actions)
+                        .find(
+                            a =>
+                                a.id ===
+                                advancedStep.advancedAction
+                        );
 
-            logger(
-                `📞 Telephone field now contains: ${currentValue}`
-            );
+                console.log("Action Definition:", actionDefinition);
 
+                let stepText = actionDefinition.steps;
+
+                for (const [key, value] of Object.entries(
+                    advancedStep.variables
+                )) {
+
+                    stepText =
+                        stepText.replaceAll(
+                            `{{${key}}}`,
+                            value
+                        );
+                }
+                const steps =
+                    parseAdvancedSteps(
+                        stepText
+                    );
+
+                await executeAdvancedSteps({
+                    steps,
+                    page,
+                    rowIndex: 1,
+                    log: logger
+                });
+            }
 
             console.log(plan);
         }

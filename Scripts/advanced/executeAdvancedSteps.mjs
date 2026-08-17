@@ -4,6 +4,7 @@ import { waitCommand } from "./commands/wait.mjs";
 import { pressCommand } from "./commands/press.mjs";
 import { gotoCommand } from "./commands/goto.mjs";
 import { selectCommand } from "./commands/select.mjs";
+import { checkCommand } from "./commands/check.mjs";
 
 const commandHandlers = {
     click: clickCommand,
@@ -13,6 +14,7 @@ const commandHandlers = {
     type: typeCommand,
     wait: waitCommand,
     key: pressCommand,
+    check: checkCommand
 };
 
 export async function executeAdvancedSteps({ steps, page, rowIndex, log }) {

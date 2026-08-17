@@ -116,7 +116,166 @@ wait 200`
             ]
         }
     ],
+    userDetails: [
+        {
+            group: "Security",
+            actions: [
+                {
+                    id: "reset-mfa",
+                    icon: "🔐",
+                    label: "Reset MFA",
+                    steps: `check #inResetMFASecret`,
+                    questions: [
+                        {
+                            field: "username",
+                            prompt:
+                                "What is the user's name?"
+                        }
+                    ]
+                },
+                {
+                    id: "reset-password",
+                    icon: "🔒",
+                    label: "Reset Password",
+                    steps: `check #inResetPassword`
+                },
+                {
+                    id: "reset-passcode",
+                    icon: "🔑",
+                    label: "Reset Passcode",
+                    steps: `check #inResetPasscode`
+                }
+            ]
+        }
+    ], userDetails: [
+        {
+            group: "Identity",
+            actions: [
+                {
+                    id: "update-username",
+                    icon: "👤",
+                    label: "Update Username",
+                    steps: `type #inUserName {{USERNAME}}`
+                },
+                {
+                    id: "update-fullname",
+                    icon: "📛",
+                    label: "Update Full Name",
+                    steps: `type #inKnownName {{FULL_NAME}}`
+                },
+                {
+                    id: "update-email",
+                    icon: "📧",
+                    label: "Update Email Address",
+                    steps: `type #inContactEmail {{EMAIL}}`
+                }
+            ]
+        },
 
+        {
+            group: "Contact Details",
+            actions: [
+                {
+                    id: "update-phone",
+                    icon: "📞",
+                    label: "Update Phone Number",
+                    steps: `type #inContactPhone {{PHONE}}`
+                },
+                {
+                    id: "update-mobile",
+                    icon: "📱",
+                    label: "Update Mobile Number",
+                    steps: `type #inContactMobile {{MOBILE}}`
+                },
+                {
+                    id: "update-job-title",
+                    icon: "💼",
+                    label: "Update Job Title",
+                    steps: `type #inJobTitle {{JOB_TITLE}}`
+                }
+            ]
+        },
+
+        {
+            group: "Professional",
+            actions: [
+                {
+                    id: "update-professional-body",
+                    icon: "🏥",
+                    label: "Update Professional Body",
+                    steps: `select #inGPCProfessionalBody {{PROFESSIONAL_BODY}}`
+                },
+                {
+                    id: "update-registration-number",
+                    icon: "🪪",
+                    label: "Update Registration Number",
+                    steps: `type #inGPCRegistration {{REGISTRATION_NUMBER}}`
+                }
+            ]
+        },
+
+        {
+            group: "Account",
+            actions: [
+                {
+                    id: "disable-user",
+                    icon: "⛔",
+                    label: "Disable User",
+                    steps: `
+type #inDisabled {{DISABLE_REASON}}
+click input[name="update"][value="Save"]
+`
+                },
+                {
+                    id: "enable-user",
+                    icon: "✅",
+                    label: "Enable User",
+                    steps: `
+type #inDisabled
+click input[name="update"][value="Save"]
+`
+                }
+            ]
+        },
+        {
+            group: "Administration",
+            actions: [
+                {
+                    id: "enable-cross-login",
+                    icon: "🔄",
+                    label: "Enable Cross Login",
+                    steps: `check #inCrossLogin`
+                },
+                {
+                    id: "set-password",
+                    icon: "🛡️",
+                    label: "Set Password",
+                    steps: `
+                    type #inNewPassword {{PASSWORD}}
+                    type #inRetypePassword {{PASSWORD}}`
+                },
+                {
+                    id: "set-security-word",
+                    icon: "🔐",
+                    label: "Set Security Word",
+                    steps: `type #inNewPasscode {{SECURITY_WORD}}`
+                }
+            ]
+        },
+
+        {
+            group: "Navigation",
+            actions: [
+                {
+                    id: "save-user",
+                    icon: "💾",
+                    label: "Save User",
+                    steps: `click input[name="update"][value="Save"]`
+                }
+            ]
+        }
+    ]
+    ,
     providerDetails: [
         {
             group: "Fields",
@@ -161,7 +320,19 @@ wait 200`
                     id: "change-telephone",
                     icon: "📞",
                     label: "Update Telephone",
-                    steps: `type #inOrgTelephone {{TELEPHONE}}`
+                    steps: `type #inOrgTelephone {{TELEPHONE}}`,
+                    questions: [
+                        {
+                            field: "odsCode",
+                            prompt:
+                                "Which provider?"
+                        },
+                        {
+                            field: "telephone",
+                            prompt:
+                                "What is the new telephone number?"
+                        }
+                    ]
                 },
                 {
                     id: "change-secure-email",
