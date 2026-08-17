@@ -10,18 +10,7 @@
 
 <body>
     <div class="app">
-        <div class="brand">
-            <img src="/images/assistant.png">
-        </div>
-        <div id="environment-status" class="environment-status disconnected">
-
-            🔴 No Environment Loaded
-
-        </div>
-        <button id="load-env-btn">
-            Load Environment
-        </button>
-        <p class="subtitle">Describe what you'd like done.</p>
+        <div class="brand"><img src="/images/assistant.png"></div>
         <div id="messages" class="messages"></div>
         <div class="input-row">
             <input id="messageInput" placeholder="Update FKN03 telephone number to 01983 565656">
@@ -34,7 +23,17 @@
 
                 <h3>Load Environment</h3>
 
-                <input type="file" id="env-file" accept=".enc">
+                <input type="file" id="env-file" accept=".enc" hidden>
+
+                <label for="env-file" class="file-picker">
+
+                    📁 Select Environment File
+
+                </label>
+
+                <div id="selected-file">
+                    No file selected
+                </div>
 
                 <input type="password" id="env-passphrase" placeholder="Passphrase">
 

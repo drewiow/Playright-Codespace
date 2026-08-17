@@ -72,5 +72,34 @@ export async function plan(text) {
         console.log(`Generated plan: ${JSON.stringify(plan, null, 2)}`);
     }
 
+    if (
+        text.toLowerCase().includes("mfa")
+        &&
+        text.toLowerCase().includes("reset")
+    ) {
+
+        const username =
+            text
+                .replace(/reset/i, "")
+                .replace(/mfa/i, "")
+                .replace(/need to/i, "")
+                .trim()
+                .replace(/'s$/i, "");
+
+        plan.push({
+            action: "findUser",
+            username
+        });
+
+        plan.push({
+            action: "resetMfa"
+        });
+
+        console.log(
+            `Generated plan: ${JSON.stringify(plan, null, 2)
+            }`
+        );
+    }
+
     return plan;
 }

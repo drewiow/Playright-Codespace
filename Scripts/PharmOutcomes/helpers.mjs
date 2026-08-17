@@ -100,6 +100,107 @@ export async function login(page, username, password, logger = console.log) {
 
 }
 
+export async function findUser(
+  page,
+  searchText,
+  logger = console.log
+) {
+
+  logger(`👤 Searching for user: ${searchText}`);
+
+  await page.goto("/pharmoutcomes/admin/users");
+
+  await page.fill("#inFilter", searchText);
+
+  await Promise.all([
+    page.waitForLoadState("networkidle"),
+    page.click('[name="inFilter_Submit"]')
+  ]);
+
+  const rows = page.locator(
+    'a[href*="/admin/users?edit="]'
+  );
+
+  const count = await rows.count();
+
+  const results = [];
+
+  for (let i = 0; i < count; i++) {
+
+    const editLink = rows.nth(i);
+
+    const tr = editLink.locator("xpath=ancestor::tr");
+
+    const userText =
+      await tr.locator("td:nth-child(2)")
+        .innerText();
+
+    const uid =
+      (
+        await tr.locator("td:nth-child(3)")
+          .innerText()
+      ).trim();
+
+    const editUrl =
+      await editLink.getAttribute(
+        "href"
+      );
+
+    const disabled =
+      (await tr.innerHTML())
+        .includes("<strike>");
+
+    const parts =
+      userText
+        .split("\n")
+        .map(x => x.trim());
+
+    const displayName =
+      parts[0] || "";
+
+    const username =
+      parts[1]
+        ?.replace("(", "")
+        ?.replace(")", "")
+      || "";
+
+    results.push({
+      uid,
+      displayName,
+      username,
+      disabled,
+      editUrl
+    });
+  }
+
+  logger(
+    `✅ Found ${results.length} users`
+  );
+
+  return results;
+}
+
+export async function openUser(
+  page,
+  user,
+  logger = console.log
+) {
+
+  logger(
+    `👤 Opening user ${user.displayName}`
+  );
+
+  await page.goto(user.editUrl);
+
+  await page.waitForLoadState(
+    "networkidle"
+  );
+
+  logger(
+    `✅ User opened`
+  );
+}
+
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
   console.log("passcode", passcode);
   const positionMap = {

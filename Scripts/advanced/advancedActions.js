@@ -58,7 +58,7 @@ wait 200`
                     id: "enable-manual-date",
                     label: "Enable Manual Date Entry",
                     steps: `click #inDateFully
-wait 100`
+                    wait 100`
                 },
                 {
                     id: "enter-manual-date",
@@ -121,17 +121,64 @@ wait 100`
         {
             group: "Fields",
             actions: [
-                { id: "update-orgname", label: "Update Organisation Name", steps: `type #inOrganisationName {{ORGANISATION_NAME}}` },
-                { id: "update-identifier", label: "Update Identifier", steps: `type #inOrganisationIdentifier {{ORGANISATION_IDENTIFIER}}` },
-                { id: "update-branchNumber", label: "Update Branch Number", steps: `type #inBranch {{BRANCH_NUMBER}}` },
-                { id: "update-address", label: "Update Address", steps: `type #inAddress {{ADDRESS}}` },
-                { id: "update-cdb", label: "Update CDB Number", steps: `type #inCDBNumber {{CDB_NUMBER}}` },
-                { id: "change-ods", label: "Update ODS Code", steps: `type #inNHSCode {{ODS_CODE}}` },
-                { id: "change-telephone", label: "Update Telephone", steps: `type #inOrgTelephone {{TELEPHONE}}` },
-                { id: "change-secure-email", label: "Update Secure Email", steps: `type #inSecureEmail {{SECURE_EMAIL}}` },
-                { id: "change-inAccountRef", label: "Update Account Reference", steps: `type #inAccountRef {{ACCOUNT_REF}}` },
+                {
+                    id: "update-orgname",
+                    icon: "🏢",
+                    label: "Update Organisation Name",
+                    steps: `type #inOrganisationName {{ORGANISATION_NAME}}`
+                },
+                {
+                    id: "update-identifier",
+                    icon: "🆔",
+                    label: "Update Identifier",
+                    steps: `type #inOrganisationIdentifier {{ORGANISATION_IDENTIFIER}}`
+                },
+                {
+                    id: "update-branchNumber",
+                    icon: "🌿",
+                    label: "Update Branch Number",
+                    steps: `type #inBranch {{BRANCH_NUMBER}}`
+                },
+                {
+                    id: "update-address",
+                    icon: "📍",
+                    label: "Update Address",
+                    steps: `type #inAddress {{ADDRESS}}`
+                },
+                {
+                    id: "update-cdb",
+                    icon: "🔢",
+                    label: "Update CDB Number",
+                    steps: `type #inCDBNumber {{CDB_NUMBER}}`
+                },
+                {
+                    id: "change-ods",
+                    icon: "🏷️",
+                    label: "Update ODS Code",
+                    steps: `type #inNHSCode {{ODS_CODE}}`
+                },
+                {
+                    id: "change-telephone",
+                    icon: "📞",
+                    label: "Update Telephone",
+                    steps: `type #inOrgTelephone {{TELEPHONE}}`
+                },
+                {
+                    id: "change-secure-email",
+                    icon: "📧",
+                    label: "Update Secure Email",
+                    steps: `type #inSecureEmail {{SECURE_EMAIL}}`
+                },
+                {
+                    id: "change-inAccountRef",
+                    icon: "💳",
+                    label: "Update Account Reference",
+                    steps: `type #inAccountRef {{ACCOUNT_REF}}`
+                },
+
                 {
                     id: "update-mesh",
+                    icon: "💳",
                     label: "Update Covid MESH Details",
                     steps: `click text="[+] MESH Mailbox settings"
 wait 300

@@ -133,6 +133,23 @@ app.post("/api/pinnacle/execute", async (req, res) => {
                 logger
             );
 
+            const findUserStep =
+                plan.find(
+                    p => p.action === "findUser"
+                );
+
+            if (findUserStep) {
+
+                const users =
+                    await findUser(
+                        page,
+                        findUserStep.user,
+                        logger
+                    );
+
+                console.log(users);
+
+            }
 
             const advancedStep =
                 plan.find(

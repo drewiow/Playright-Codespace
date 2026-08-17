@@ -1,6 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
-import { login, editProvider, addCommissioner, accredit, parseCSV } from "../helpers.mjs";
-import { logAction, getMappedValue, toTitleCase } from "../../common/common.mjs";
+import { login, editProvider, addCommissioner, accredit } from "../helpers.mjs";
+import { logAction, getMappedValue, toTitleCase, parseCSV } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -124,14 +124,12 @@ export default async function run() {
         try {
           await login(page, username, password, request.odsCode);
           await editProvider(page, request.odsCode);
-          await addCommissioner(page, commissionerID);
+
           if (servicesToAccredit.length > 0) {
             await accredit(page, servicesToAccredit);
           }
           else {
-            logger(
-              `⚠️ No services selected for ${request.odsCode}`
-            );
+            logger(`⚠️ No services selected for ${request.odsCode}`);
           }
           await page.click('[value="Exit"]');
 

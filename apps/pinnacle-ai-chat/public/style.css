@@ -259,6 +259,42 @@ body {
     display: none !important;
 }
 
+.connect-pill {
+
+    display: inline-flex;
+    align-items: center;
+
+    padding: 14px 22px;
+
+    border-radius: 999px;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(90deg,
+            #00b7ff,
+            #b026ff);
+
+    color: white;
+
+    font-weight: 600;
+}
+
+.environment-status {
+
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 14px 24px;
+
+    border-radius: 999px;
+
+    font-weight: 600;
+
+    font-size: 16px;
+}
+
 .modal {
 
     position: fixed;
@@ -277,22 +313,130 @@ body {
 
 .modal-content {
 
-    width: 400px;
+    width: 500px;
 
-    padding: 24px;
+    padding: 32px;
 
-    border-radius: 16px;
+    border-radius: 24px;
 
-    background: #111827;
+    background: #0c163d;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, .4);
 
     color: white;
 }
 
-.modal-content input {
+.modal-content h3 {
+
+    margin-top: 0;
+
+    margin-bottom: 24px;
+
+    font-size: 28px;
+
+    font-weight: 700;
+}
+
+.modal-content input[type="password"] {
 
     width: 100%;
 
-    margin-top: 12px;
+    padding: 16px;
 
-    padding: 12px;
+    margin-top: 16px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    background: rgba(255, 255, 255, .05);
+
+    color: white;
+
+    font-size: 16px;
+}
+
+.file-picker {
+
+    display: inline-block;
+
+    padding: 14px 20px;
+
+    border-radius: 14px;
+
+    cursor: pointer;
+
+    background:
+        linear-gradient(90deg,
+            #00b7ff,
+            #b026ff);
+
+    color: white;
+
+    font-weight: 600;
+}
+
+.modal-buttons {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    margin-top: 24px;
+}
+
+.modal-buttons button {
+
+    padding: 14px 20px;
+
+    border-radius: 14px;
+
+    border: none;
+
+    cursor: pointer;
+
+    font-weight: 600;
+}
+
+#load-env-confirm {
+
+    background:
+        linear-gradient(90deg,
+            #00b7ff,
+            #b026ff);
+
+    color: white;
+}
+
+#load-env-cancel {
+
+    background:
+        rgba(255, 255, 255, .08);
+
+    color: white;
+}
+
+.load-env-btn {
+
+    border: none;
+
+    padding: 14px 24px;
+
+    border-radius: 999px;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    color: white;
+
+    background:
+        linear-gradient(90deg,
+            #00b7ff,
+            #b026ff);
 }

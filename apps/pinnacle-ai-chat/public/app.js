@@ -1,37 +1,66 @@
 const messages = document.getElementById("messages");
 
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-document.addEventListener("DOMContentLoaded", async () => {
+        const context =
+            await loadEnvironmentContext();
 
-    await loadEnvironmentContext();
+        if (context.loaded) {
 
-});
+            add(`
+        <div class="ai-message">
+
+            ✅ Environment connected.
+
+            <br><br>
+
+            What would you like me to do today?
+
+        </div>
+        `, "ai", false);
+
+        } else {
+
+            add(`
+        <div class="ai-message">
+            👋 Welcome to PinnacleAI.
+            <br><br>
+            Before I can execute workflows, I need an environment.
+            <br><br>
+            <button
+                id="load-env-btn" class="load-env-btn">
+                Connect Environment
+            </button>
+        </div>
+    `, "ai", false);
+
+        }
+
+        document
+            .getElementById("load-env-btn")
+            .addEventListener("click", () => {
+                console.log("Opening modal");
+
+                document
+                    .getElementById("env-modal")
+                    .classList
+                    .remove("hidden");
+
+            });
+    }
+);
+
+
 
 async function loadEnvironment() {
 
-    const file =
-        document
-            .getElementById("env-file")
-            .files[0];
-
-    const passphrase =
-        document
-            .getElementById("env-passphrase")
-            .value;
-
-    const formData =
-        new FormData();
-
-    formData.append(
-        "envFile",
-        file
-    );
-
-    formData.append(
-        "passphrase",
-        passphrase
-    );
-
+    const file = document.getElementById("env-file").files[0];
+    const passphrase = document.getElementById("env-passphrase").value;
+    const formData = new FormData();
+    formData.append("envFile", file);
+    formData.append("passphrase", passphrase);
     const res =
         await fetch(
             "http://localhost:3000/api/pinnacle/load-environment",
@@ -41,27 +70,24 @@ async function loadEnvironment() {
             }
         );
 
-    const result =
-        await res.json();
+    const result = await res.json();
 
-    console.log(result);
     document
         .getElementById("env-modal")
         .classList
         .add("hidden");
+    add(`
+    <div class="ai-message">
+        ✅ Environment connected.
+        <br><br>
+        What would you like me to do today?
+    </div>
+    `, "ai", false);
+
     await loadEnvironmentContext();
 }
 
-document
-    .getElementById("load-env-btn")
-    .addEventListener("click", () => {
 
-        document
-            .getElementById("env-modal")
-            .classList
-            .remove("hidden");
-
-    });
 
 document
     .getElementById("load-env-confirm")
@@ -85,53 +111,34 @@ document
 
 async function loadEnvironmentContext() {
 
-    const res = await fetch(
-        "http://localhost:3000/api/pinnacle/context"
-    );
-
+    const res = await fetch("http://localhost:3000/api/pinnacle/context");
     const context = await res.json();
-
-    const status =
-        document.getElementById(
-            "environment-status"
-        );
-
-    if (!context.loaded) {
-
-        status.innerHTML =
-            "🔴 No Environment Loaded";
-
-        status.classList.remove(
-            "connected"
-        );
-
-        status.classList.add(
-            "disconnected"
-        );
-
-        return;
-    }
-
-    status.innerHTML =
-        `🟢 ${context.environment}`;
-
-    status.classList.remove(
-        "disconnected"
-    );
-
-    status.classList.add(
-        "connected"
-    );
+    return context;
 }
+
+document
+    .getElementById("env-file")
+    .addEventListener("change", e => {
+
+        const file =
+            e.target.files[0];
+
+        document
+            .getElementById(
+                "selected-file"
+            )
+            .innerHTML =
+            file?.name ??
+            "No file selected";
+
+    });
 
 function add(html, cls = "", wrap = true) {
 
     const d = document.createElement("div");
-
-    d.className = `msg ${cls}`;
-
+    d.className = `msg ${cls} `;
     d.innerHTML = wrap
-        ? `<div class="bubble">${html}</div>`
+        ? `<div class="bubble"> ${html}</div > `
         : html;
 
     messages.appendChild(d);
@@ -151,10 +158,6 @@ async function send() {
     const data = await res.json();
     console.log("Chat response:", data);
     window.currentPlan = data.plan;
-    console.log(
-        "Current Plan:",
-        window.currentPlan
-    );
     const workflowHtml = data.workflow
         .map(step => `
         <div class="workflow-step">
@@ -166,17 +169,17 @@ async function send() {
                 ${step.text}
             </span>
         </div>
-    `)
+        `)
         .join("");
 
     add(`
-        <div class="ai-message">${data.reply}</div>
+        <div class="ai-message"> ${data.reply}</div>
             <div class="workflow">
                 <strong>Proposed Workflow</strong>
                 <div class="workflow-list">${workflowHtml}</div>
                 <button class="execute-btn"">🚀 Execute Workflow</button>
         </div>
-`, "ai", false);
+        `, "ai", false);
 }
 document.getElementById('sendBtn').addEventListener('click', send);
 
@@ -231,20 +234,16 @@ async function executePlan(plan) {
         .querySelectorAll(".execute-btn")
         .forEach(btn => {
             btn.disabled = true;
-            btn.innerHTML = `✅ Run ${result.runId}`;
+            btn.innerHTML = `✅ Run ${result.runId} `;
         });
 
     add(`
-<div class="workflow-complete">
-
-    ✅ Workflow Submitted
-
-    <br><br>
-
-    Run ID: ${result.runId}
-
-</div>
-`, "ai", false);
+        <div class="workflow-complete">
+        ✅ Workflow Submitted
+        <br><br>
+            Run ID: ${result.runId}
+        </div>
+    `, "ai", false);
 }
 
 async function executePinnaclePlan(plan, context) {
@@ -270,36 +269,3 @@ async function executePinnaclePlan(plan, context) {
 
     }
 }
-
-async function loadContext() {
-
-    const res = await fetch(
-        "http://localhost:3000/api/pinnacle/context"
-    );
-
-    const context =
-        await res.json();
-
-    const status =
-        document.querySelector(
-            ".environment-status"
-        );
-
-    if (context.loaded) {
-
-        status.classList.remove(
-            "disconnected"
-        );
-
-        status.classList.add(
-            "connected"
-        );
-
-        status.innerHTML =
-            `🟢 ${context.environment}`;
-
-    }
-
-}
-
-loadContext();
