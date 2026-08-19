@@ -312,28 +312,82 @@ export async function addAudit(page, caseRef) {
 }
 
 export async function accredit(page, serviceIDs = []) {
-  await page.waitForSelector('a[href*="accredit="]', { timeout: 10000 });
 
   for (const serviceID of serviceIDs) {
 
-    const link = page.locator(`a[href*="accredit=${serviceID}"]`).first();
+    let handled = false;
 
-    const exists = await link.isVisible().catch(() => false);
+    for (let attempt = 1; attempt <= 5; attempt++) {
 
-    if (!exists) {
-      console.log(`⚠️ Service ${serviceID} not found (already accredited?)`);
-      continue;
+      try {
+
+        // Allow the page to settle after previous accreditation
+        await page.waitForLoadState("domcontentloaded");
+        await page.waitForTimeout(2000);
+
+        const row = page.locator(
+          `tr:has(td:first-child:text-is("${serviceID}"))`
+        );
+
+        await row.waitFor({
+          state: "visible",
+          timeout: 10000
+        });
+
+        const actionLink = row.locator("a").filter({
+          hasText: /accredit|remove/i
+        });
+
+        const actionText = (
+          await actionLink.first().textContent()
+        )
+          ?.trim()
+          .toLowerCase();
+
+        if (actionText === "remove") {
+          console.log(
+            `ℹ️ Service ${serviceID} already accredited`
+          );
+          handled = true;
+          break;
+        }
+
+        if (actionText !== "accredit") {
+          console.log(
+            `⚠️ Service ${serviceID} has unexpected action: ${actionText}`
+          );
+          handled = true;
+          break;
+        }
+
+        console.log(`✅ Accrediting service ${serviceID}`);
+
+        await Promise.all([
+          page.waitForLoadState("networkidle"),
+          actionLink.first().click()
+        ]);
+
+        // Give the server time to rebuild the table
+        await page.waitForTimeout(3000);
+
+        handled = true;
+        break;
+
+      } catch (err) {
+
+        console.log(
+          `🔄 Retry ${attempt}/5 for ${serviceID}: ${err.message}`
+        );
+
+        await page.waitForTimeout(3000);
+      }
     }
 
-    console.log(`✅ Accrediting service ${serviceID}`);
-
-    await Promise.all([
-      page.waitForLoadState("networkidle"),
-      link.click()
-    ]);
-
-    // ✅ wait for list to refresh (important)
-    await page.waitForSelector('a[href*="accredit="]', { timeout: 10000 });
+    if (!handled) {
+      console.log(
+        `❌ Service ${serviceID} could not be processed after 5 attempts`
+      );
+    }
   }
 }
 

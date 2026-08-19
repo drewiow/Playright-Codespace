@@ -1,8 +1,8 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import { plan } from "../../scripts/WorkflowAI/AIRunner/planner.js";
-import { ADVANCED_ACTION_SETS } from "../../scripts/advanced/advancedActions.js";
+import { intent } from "../../scripts/WorkflowAI/AIRunner/intent.js";
+import { ADVANCED_ACTION_SETS, findAction } from "../../scripts/advanced/advancedActions.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -19,13 +19,40 @@ app.listen(4000, () => {
 app.post("/api/chat", async (req, res) => {
     const { message } = req.body;
     const generatedPlan =
-        await plan(message);
+        await intent(message);
 
-    if (generatedPlan?.type === "collect-info") {
+    if (
+        generatedPlan?.type ===
+        "collect-info"
+    ) {
 
         return res.json(
             generatedPlan
         );
+
+    }
+
+    if (
+        generatedPlan?.type ===
+        "unknown-intent"
+    ) {
+
+        return res.json(
+            generatedPlan
+        );
+
+    }
+
+    if (
+        !Array.isArray(
+            generatedPlan
+        )
+    ) {
+
+        return res.json({
+            type: "unknown-intent",
+            message
+        });
 
     }
 
@@ -65,6 +92,93 @@ app.post("/api/workflow", (req, res) => {
 
 });
 
+app.post("/api/conversation", (req, res) => {
+
+    const conversation = req.body;
+
+
+    console.log(
+        "Conversation:",
+        JSON.stringify(
+            conversation,
+            null,
+        )
+    );
+
+    const nextQuestion = nextConversationQuestion(conversation);
+    if (nextQuestion) {
+        console.log(
+            "nextQuestion:",
+            JSON.stringify(
+                nextQuestion,
+                null,
+            )
+        );
+
+        return res.json({
+            complete: false,
+            field:
+                nextQuestion.field,
+            question:
+                nextQuestion.prompt
+        });
+
+    }
+
+    const plan = buildConversationPlan(conversation);
+
+    console.log(
+        "plan:",
+        JSON.stringify(
+            plan,
+            null,
+        )
+    );
+
+    const findUserStep =
+        plan.find(
+            p => p.action === "findUser"
+        );
+
+    if (findUserStep) {
+
+        console.log(
+            "Conversation Result:",
+            JSON.stringify(
+                {
+                    complete: true,
+                    plan
+                },
+                null,
+                2
+            )
+        );
+        return res.json({
+            complete: true,
+            type: "userLookupRequired",
+            username: findUserStep.username,
+            plan
+        });
+
+    }
+
+    console.log(
+        "Conversation Result:",
+        JSON.stringify(
+            {
+                complete: true,
+                plan
+            },
+            null,
+            2
+        )
+    );
+    return res.json({
+        complete: true,
+        plan
+    });
+}
+);
 
 
 function findAdvancedAction(id) {
@@ -83,10 +197,14 @@ function convertToWorkflow(plan) {
 
         if (step.action === "openUser") {
 
+            const name =
+                step.user.displayName
+                    ? `${step.user.displayName} (${step.user.username})`
+                    : step.user.username;
+
             return {
                 icon: "👤",
-                text:
-                    `Open User ${step.user.displayName}`
+                text: `Open User ${name}`
             };
 
         }
@@ -160,4 +278,59 @@ function convertToWorkflow(plan) {
         };
 
     });
+}
+
+function nextConversationQuestion(conversation) {
+
+    const action = findAction(conversation.action);
+
+    if (!action) {
+        console.error(
+            "Action not found:",
+            conversation.action
+        );
+        return null;
+    }
+
+    console.log(
+        "Action Found:",
+        action.id
+    );
+
+    const nextQuestion =
+        action.questions.find(
+            q => !conversation.collected[q.field]
+        );
+
+    return nextQuestion;
+
+}
+
+function addConversationMetadata(action) {
+
+}
+
+function buildConversationPlan(conversation) {
+
+    const action = findAction(conversation.action);
+    const plan = action.buildPlan(conversation.collected);
+
+    return plan;
+}
+
+function conversationComplete(conversation) {
+
+    switch (conversation.action) {
+
+        case "reset-mfa":
+            return Boolean(conversation.collected.username);
+
+        case "change-telephone":
+            return Boolean(conversation.collected.odsCode && conversation.collected.telephone);
+
+        case "change secure-email":
+            return Boolean(conversation.collected.odsCode && conversation.collected.email);
+        default:
+            return false;
+    }
 }

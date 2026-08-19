@@ -1,10 +1,6 @@
 const messages = document.getElementById("messages");
 
-window.conversation = {
-    action: null,
-    collected: {},
-    currentQuestion: 0
-};
+resetConversation();
 
 document.addEventListener(
     "DOMContentLoaded",
@@ -213,26 +209,72 @@ function renderUserResults(users) {
 }
 async function processResponse(data) {
 
-    if (
-        data.type ===
-        "userLookupRequired"
-    ) {
+    console.log("data.type : ", data.type);
 
-        window.pendingPlan = data.plan;
+    if (data.type === "unknown-intent") {
 
         add(`
-            <div class="ai-message">
-                Sure, I can help with that.
-                <br><br>
+        <div class="ai-message">
+            🤔 Sorry, I don't know how to process:
+            <br><br>
+            <strong>"${data.message}"</strong>
+            <br><br>
+            You could try one of these:
+            <br><br>
+
+            ${data.suggestions.map(action => `
+                <div class="workflow-step">
+                    <span>
+                        ${action.icon ?? "⚙️"}
+                        ${action.label}
+                    </span>
+                </div>
+            `).join("")}
+
+            <br>
+            Or ask:
+            <br><br>
+            <strong>What can you do?</strong>
+        </div>
+    `, "ai", false);
+
+        return;
+    }
+
+    if (data.type === "userLookupRequired") {
+
+        const thinkingId =
+            addThinking();
+
+        await new Promise(
+            resolve => setTimeout(
+                resolve,
+                500
+            )
+        );
+
+        removeThinking(
+            thinkingId
+        );
+
+        window.pendingPlan =
+            result.plan;
+
+        add(`
+        <div class="ai-message" >
+            Sure, I can help with that.
+            <br> <br>
                 I'll need to find the user first.
                 <br><br>
-                <button
-                    class="find-user-btn"
-                    data-username="${data.username}">
-                    🔍 Find User
-                </button>
-            </div>
-        `, "ai", false);
+                    <button
+                        class="find-user-btn"
+                        data-username="${result.username}">
+                        🔍 Find User
+                    </button>
+                </div>
+                    `, "ai", false);
+
+        resetConversation();
 
         return;
     }
@@ -254,48 +296,49 @@ async function processResponse(data) {
 
         window.conversation = {
             action: data.action,
+            field: null,
             collected: {},
             currentQuestion: 0
         };
 
+        const result =
+            await callApi(
+                "/api/conversation",
+                window.conversation
+            );
+
+        window.conversation.field =
+            result.field;
+
         add(`
-        <div class="ai-message">
-            ${data.question}
-        </div>
-    `, "ai", false);
+                    <div class="ai-message">
+                        ${result.question}
+                    </div>
+                    `, "ai", false);
 
         return;
     }
-
-    window.currentPlan = data.plan;
-
-    add(
-        renderWorkflow(
-            data.workflow
-        ),
-        "ai",
-        false
-    );
 }
+
+
+function resetConversation() {
+
+    window.conversation = {
+        action: null,
+        collected: {},
+        field: null,
+        currentQuestion: 0
+    };
+
+}
+
 async function send() {
 
     const start = Date.now();
-    const thinkingId = addThinking();
-
-    const input =
-        document.getElementById(
-            "messageInput"
-        );
-
-    const text =
-        input.value.trim();
+    const input = document.getElementById("messageInput");
+    const text = input.value.trim();
 
     if (!text) {
-
-        removeThinking(
-            thinkingId
-        );
-
         return;
     }
 
@@ -304,37 +347,110 @@ async function send() {
     input.value = "";
 
     let message = text;
+    console.log(
+        "Conversation Active:",
+        window.conversation
+    );
 
     if (window.conversation?.action) {
 
-        const username = text;
+        window.conversation.collected[window.conversation.field] = text;
 
-        message =
-            `reset ${username} mfa`;
+        const response =
+            await fetch(
+                "/api/conversation",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify(
+                        window.conversation
+                    )
+                }
+            );
 
-        window.conversation = {
-            action: null,
-            collected: {},
-            currentQuestion: 0
-        };
+        const result = await response.json();
+
+        if (!result.complete) {
+
+            window.conversation.field = result.field;
+
+            add(`
+                    <div class="ai-message">
+                        ${result.question}
+                    </div>
+                    `, "ai", false);
+            return;
+        }
+
+        if (
+            result.type ===
+            "userLookupRequired"
+        ) {
+
+            window.pendingPlan =
+                result.plan;
+
+            add(`
+                    <div class="ai-message">
+                        Sure, I can help with that.
+                        <br><br>
+                            I'll need to find the user first.
+                            <br><br>
+                                <button
+                                    class="find-user-btn"
+                                    data-username="${result.username}">
+                                    🔍 Find User
+                                </button>
+                            </div>
+                                `, "ai", false);
+
+            resetConversation();
+            return;
+        }
+
+        const plan = result.plan;
+        window.currentPlan = plan;
+
+        resetConversation();
+
+        const workflowResponse =
+            await fetch(
+                "/api/workflow",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        plan
+                    })
+                }
+            );
+
+        const workflow = await workflowResponse.json();
+
+        add(
+            renderWorkflow(workflow),
+            "ai",
+            false
+        );
+
+        return;
+
     }
 
-    const res = await fetch(
-        "/api/chat",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-            body: JSON.stringify({
-                message
-            })
-        }
-    );
+    resetConversation();
 
     const data =
-        await res.json();
+        await callApi(
+            "/api/chat",
+            { message }
+        );
+
 
     const elapsed =
         Date.now() - start;
@@ -349,42 +465,98 @@ async function send() {
         );
 
     }
-
-    removeThinking(
-        thinkingId
-    );
-
+    removeThinking();
     await processResponse(
         data
     );
 }
 
+document
+    .getElementById("messageInput")
+    .addEventListener(
+        "keydown",
+        e => {
+
+            if (
+                e.key === "Enter"
+                &&
+                !e.shiftKey
+            ) {
+
+                e.preventDefault();
+
+                send();
+
+            }
+
+        }
+    );
+
 function addThinking() {
 
-    const id =
-        crypto.randomUUID();
-
-    const d =
-        document.createElement("div");
+    const id = crypto.randomUUID();
+    const d = document.createElement("div");
 
     d.id = id;
 
-    d.className =
-        "msg ai";
+    d.className = "msg ai";
 
     d.innerHTML = `
-        <div class="bubble thinking">
-
-            <span></span>
-            <span></span>
-            <span></span>
-
-        </div>
-    `;
+                                <div class="bubble thinking">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                `;
 
     messages.appendChild(d);
 
     return id;
+}
+
+async function callApi(url, body) {
+
+    const thinkingId = addThinking();
+    const start = Date.now();
+
+    try {
+
+        const response =
+            await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+
+        const data =
+            await response.json();
+
+        const elapsed =
+            Date.now() - start;
+
+        if (elapsed < 500) {
+
+            await new Promise(
+                resolve => setTimeout(
+                    resolve,
+                    500 - elapsed
+                )
+            );
+
+        }
+
+        return data;
+
+    } finally {
+
+        removeThinking(
+            thinkingId
+        );
+
+    }
 }
 
 function removeThinking(id) {
@@ -401,18 +573,18 @@ function renderWorkflowSteps(
 
     return workflow
         .map(step => `
-            <div class="workflow-step">
+                                <div class="workflow-step">
 
-                <span class="workflow-icon">
-                    ${step.icon}
-                </span>
+                                    <span class="workflow-icon">
+                                        ${step.icon}
+                                    </span>
 
-                <span class="workflow-text">
-                    ${step.text}
-                </span>
+                                    <span class="workflow-text">
+                                        ${step.text}
+                                    </span>
 
-            </div>
-        `)
+                                </div>
+                                `)
         .join("");
 }
 
@@ -439,18 +611,18 @@ async function findUsers(username) {
 function renderUserSearchResults(users) {
 
     return `
-        <div class="ai-message">
+                                <div class="ai-message">
 
-            I found
-            ${users.length}
-            matching users.
+                                    I found
+                                    ${users.length}
+                                    matching users.
 
-            <br><br>
+                                    <br><br>
 
-            ${renderUserResults(users)}
+                                        ${renderUserResults(users)}
 
-        </div>
-    `;
+                                    </div>
+                                        `;
 }
 
 document.getElementById('sendBtn').addEventListener('click', send);
@@ -517,6 +689,20 @@ document.addEventListener("click", async (e) => {
             )
         ];
 
+        console.log(
+            "Selected User:",
+            selectedUser
+        );
+
+        console.log(
+            "New Plan:",
+            JSON.stringify(
+                window.currentPlan,
+                null,
+                2
+            )
+        );
+
         const workflowResponse =
             await fetch(
                 "/api/workflow",
@@ -564,22 +750,22 @@ function renderWorkflow(
 ) {
 
     return `
-        <div class="workflow">
+                                        <div class="workflow">
 
-            <strong>
-                Proposed Workflow
-            </strong>
+                                            <strong>
+                                                Proposed Workflow
+                                            </strong>
 
-            <div class="workflow-list">
-                ${renderWorkflowSteps(workflow)}
-            </div>
+                                            <div class="workflow-list">
+                                                ${renderWorkflowSteps(workflow)}
+                                            </div>
 
-            <button class="execute-btn">
-                🚀 Execute Workflow
-            </button>
+                                            <button class="execute-btn">
+                                                🚀 Execute Workflow
+                                            </button>
 
-        </div>
-    `;
+                                        </div>
+                                        `;
 }
 
 async function executePlan(plan) {
@@ -611,34 +797,11 @@ async function executePlan(plan) {
         });
 
     add(`
-        <div class="workflow-complete">
-        ✅ Workflow Submitted
-        <br><br>
-            Run ID: ${result.runId}
-        </div>
-    `, "ai", false);
+                                        <div class="workflow-complete">
+                                            ✅ Workflow Submitted
+                                            <br><br>
+                                                Run ID: ${result.runId}
+                                            </div>
+                                                `, "ai", false);
 }
 
-async function executePinnaclePlan(plan, context) {
-
-    for (const step of plan) {
-
-        switch (step.action) {
-
-            case "editProvider":
-                await EditProvider(
-                    context.page,
-                    step.odsCode
-                );
-                break;
-
-            case "changeTelephone":
-                await ChangeTelephone(
-                    context.page,
-                    step.variables.TELEPHONE
-                );
-                break;
-        }
-
-    }
-}
