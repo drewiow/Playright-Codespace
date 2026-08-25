@@ -233,27 +233,306 @@ export async function findUser(
 
 }
 
-export async function openUser(
-  page,
-  user,
-  logger = console.log
-) {
+export async function openService(page, service, logger = console.log) {
 
-  logger(
-    `👤 Opening user ${user.displayName}`
-  );
+  await loginCommissioner(page, service.commissionerName, logger);
 
-  await page.goto(user.editUrl);
+  await page.goto(service.editServiceLink);
 
   await page.waitForLoadState(
     "networkidle"
   );
 
-  logger(
-    `✅ User opened`
+  const questionHeaders = await page.$$eval(
+    "#inAuditOne option",
+    options =>
+      options
+        .map(o => o.textContent?.trim())
+        .filter(t => t?.startsWith("Q"))
+
   );
+
+
+  console.log(questionHeaders);
+
+  return { questionHeaders };
 }
 
+export async function openFundingService(
+  page,
+  service,
+  logger = console.log
+) {
+
+  await loginCommissioner(
+    page,
+    service.commissionerName,
+    logger
+  );
+
+  await page.goto(
+    "/pharmoutcomes/claims/home/?describe"
+  );
+
+  await page.waitForLoadState(
+    "networkidle"
+  );
+
+  const fundingServices = await page.$$eval(
+    "h4.fundingservice",
+    services =>
+      services.map(service => {
+
+        const link =
+          service.querySelector("a");
+
+        const fullServiceName =
+          link?.textContent?.trim() ?? "";
+
+        const baseServiceName =
+          fullServiceName.replace(
+            /\s*\[\d{4}-\d{2}-\d{2}\s*->\s*[\d-]+\]\s*$/,
+            ""
+          );
+
+        const detail =
+          service.nextElementSibling;
+
+        const editServiceLink =
+          [...detail.querySelectorAll("a")]
+            .find(a =>
+              a.textContent?.includes(
+                "Go to Service Edit"
+              )
+            );
+
+        const editFundingLink =
+          [...detail.querySelectorAll("a")]
+            .find(a =>
+              a.textContent?.includes(
+                "Edit Funding Detail"
+              )
+            );
+
+        return {
+          fundingId:
+            link.id.replace("sfid", ""),
+          serviceName:
+            fullServiceName,
+          baseServiceName,
+          editServiceLink: editServiceLink?.getAttribute("href"),
+          editFundingLink: editFundingLink?.getAttribute("href")
+        };
+      })
+  );
+
+  console.log("SERVICE : ", service);
+  const groupedServices = Object.values(
+    fundingServices.reduce(
+      (acc, config) => {
+
+        if (!acc[config.baseServiceName]) {
+          acc[config.baseServiceName] = {
+            serviceName:
+              config.baseServiceName,
+            fundingDefinitions: []
+          };
+        }
+
+        acc[
+          config.baseServiceName
+        ].fundingDefinitions.push(
+          config
+        );
+
+        return acc;
+
+      },
+      {}
+    )
+  );
+
+  const selectedService =
+    groupedServices.find(
+      s =>
+        service.serviceName.startsWith(
+          s.serviceName
+        )
+    );
+
+
+
+  return selectedService;
+}
+
+export async function findService(page, logger = console.log) {
+
+  await page.goto("/pharmoutcomes/services/home");
+
+  await page.waitForLoadState(
+    "networkidle"
+  );
+
+  console.log(await page.locator("body").innerText());
+
+  const services = await page.$$eval(
+    "tr",
+    rows =>
+      rows.map(row => ({
+        text: row.textContent?.replace(/\s+/g, " ").trim(),
+        links: [...row.querySelectorAll("a")].map(a => ({
+          text: a.textContent?.trim(),
+          href: a.href,
+          id: a.id
+        }))
+      }))
+  );
+
+  console.log(JSON.stringify(services, null, 2));
+
+  return services;
+}
+
+export async function findFundingService(page, serviceName, logger = console.log) {
+
+
+  await page.goto("/pharmoutcomes/claims/home/?describe");
+
+  await page.waitForLoadState(
+    "networkidle"
+  );
+
+  const serviceHeaders =
+    await page.locator(
+      "h4.fundingservice"
+    ).all();
+
+  const fundingServices = await page.$$eval(
+    "h4.fundingservice",
+    services =>
+      services.map(service => {
+
+        const link = service.querySelector("a");
+
+        const fullServiceName = link.textContent.trim();
+
+        const baseServiceName =
+          fullServiceName.replace(
+            /\s*\[\d{4}-\d{2}-\d{2}\s*->\s*[\d-]+\]\s*$/,
+            ""
+          );
+
+        const detail = service.nextElementSibling;
+
+        const detailText = detail?.innerText ?? "";
+
+        const paymentRules = detail
+          ? [...detail.querySelectorAll("ul li")]
+            .filter(li =>
+              li.textContent?.includes("[Edit]")
+            )
+            .map(li => {
+
+              const editPaymentRuleLink =
+                li.querySelector(
+                  "a.orange.full-lock"
+                )?.getAttribute("href");
+
+              const question =
+                li.querySelector(
+                  "a.info.no-lock i"
+                )?.textContent?.trim();
+
+              const amountMatch =
+                li.textContent.match(
+                  /£[\d,.]+/
+                );
+
+              return {
+                question,
+                amount: amountMatch?.[0],
+                editPaymentRuleLink
+              };
+            })
+          : [];
+
+        const editServiceLink =
+          [...detail.querySelectorAll("a")]
+            .find(a =>
+              a.textContent?.includes(
+                "Go to Service Edit"
+              )
+            );
+
+        return {
+          fundingId: link.id.replace("sfid", ""),
+          serviceName: link.textContent.trim(),
+          baseServiceName,
+          editServiceLink: editServiceLink?.getAttribute("href"),
+          serviceId: editServiceLink?.href
+            ?.match(/id=(\d+)/)?.[1],
+          paymentRules
+
+        };
+      })
+
+  );
+
+  const groupedServices = Object.values(
+    fundingServices.reduce((acc, service) => {
+
+      if (!acc[service.baseServiceName]) {
+        acc[service.baseServiceName] = {
+          ...service,
+          serviceName: service.baseServiceName,
+          fundingDefinitions: []
+        };
+      }
+
+      acc[service.baseServiceName]
+        .fundingDefinitions
+        .push(service);
+
+      return acc;
+
+    }, {})
+  );
+  return groupedServices;
+}
+
+export async function removeCommissioner(page, commissionerId, logger = console.log) {
+
+  const link = page.locator(
+    `a[href*="minister=remove"][href*="commissioner=${commissionerId}"]`
+  );
+
+  try {
+    await link.first().waitFor({
+      state: "visible",
+      timeout: 5000
+    });
+  } catch {
+    logger(
+      `ℹ️ Commissioner ${commissionerId} not assigned (or already removed)`
+    );
+    return false;
+  }
+
+  await link.first().click();
+
+  logger(
+    `✅ Removed commissioner ${commissionerId}`
+  );
+
+  return true;
+}
+
+export async function openUser(page, user, logger = console.log) {
+
+  logger(`👤 Opening user ${user.displayName}`);
+  await page.goto(user.editUrl);
+
+}
 
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
   console.log("passcode", passcode);
@@ -321,54 +600,86 @@ export async function accredit(page, serviceIDs = []) {
 
       try {
 
-        // Allow the page to settle after previous accreditation
-        await page.waitForLoadState("domcontentloaded");
-        await page.waitForTimeout(2000);
+        await page.waitForLoadState("networkidle");
+
+        await page
+          .locator("legend")
+          .filter({
+            hasText: "Service Accreditations"
+          })
+          .waitFor({
+            timeout: 10000
+          });
 
         const row = page.locator(
           `tr:has(td:first-child:text-is("${serviceID}"))`
         );
 
-        await row.waitFor({
-          state: "visible",
-          timeout: 10000
-        });
+        const rowCount = await row.count();
+
+        if (rowCount === 0) {
+
+          console.log(
+            `ℹ️ Service ${serviceID} not available for this provider`
+          );
+
+          handled = true;
+          break;
+        }
 
         const actionLink = row.locator("a").filter({
           hasText: /accredit|remove/i
         });
 
+        const actionCount =
+          await actionLink.count();
+
+        if (actionCount === 0) {
+
+          console.log(
+            `⚠️ Service ${serviceID} found but no accreditation action exists`
+          );
+
+          handled = true;
+          break;
+        }
+
         const actionText = (
           await actionLink.first().textContent()
         )
           ?.trim()
-          .toLowerCase();
+          ?.toLowerCase();
 
         if (actionText === "remove") {
+
           console.log(
             `ℹ️ Service ${serviceID} already accredited`
           );
+
           handled = true;
           break;
         }
 
-        if (actionText !== "accredit") {
+        if (actionText === "accredit") {
+
           console.log(
-            `⚠️ Service ${serviceID} has unexpected action: ${actionText}`
+            `✅ Accrediting service ${serviceID}`
           );
+
+          await Promise.all([
+            page.waitForLoadState("networkidle"),
+            actionLink.first().click()
+          ]);
+
+          await page.waitForTimeout(3000);
+
           handled = true;
           break;
         }
 
-        console.log(`✅ Accrediting service ${serviceID}`);
-
-        await Promise.all([
-          page.waitForLoadState("networkidle"),
-          actionLink.first().click()
-        ]);
-
-        // Give the server time to rebuild the table
-        await page.waitForTimeout(3000);
+        console.log(
+          `⚠️ Service ${serviceID} has unexpected action: ${actionText}`
+        );
 
         handled = true;
         break;
@@ -384,13 +695,13 @@ export async function accredit(page, serviceIDs = []) {
     }
 
     if (!handled) {
+
       console.log(
         `❌ Service ${serviceID} could not be processed after 5 attempts`
       );
     }
   }
 }
-
 export async function deaccredit(page, PIDService) {
   await page.waitForSelector('a[href*="deaccredit="]', { timeout: 10000 });
 
@@ -500,8 +811,6 @@ export function getOrganisationType(odsCode, logger = console.log) {
 }
 
 export async function findProvider(page, odsCode, logger = console.log) {
-  console.log("Received:", odsCode);
-
   logger(`🏥 Opening provider ${odsCode}`);
 
   // Navigate to the Manage Providers page
@@ -592,12 +901,36 @@ export async function editCommissioner(page, odsCode, log = console.log) {
   await page.click("#organisationEdit");
 }
 
-export async function loginCommissioner(page, odsCode) {
-  // Navigate to the Manage Providers page
+export async function loginCommissioner(
+  page,
+  commissionerName,
+  logger = console.log
+) {
+
+  const loggedInAs =
+    await page.locator(
+      "form[action='/pharmoutcomes/system/logout']"
+    ).textContent();
+
+  if (
+    loggedInAs
+      ?.toLowerCase()
+      .includes(
+        commissionerName.toLowerCase()
+      )
+  ) {
+
+    logger(
+      `Already logged into ${commissionerName}`
+    );
+
+    return;
+  }
+
   await page.goto("/pharmoutcomes/admin/commissioners");
 
   // Search for provider
-  await page.fill("#organisationLookup", odsCode);
+  await page.fill("#organisationLookup", commissionerName);
 
   // Wait for the autocomplete dropdown to appear
   await page.waitForSelector("#ui-id-1", { timeout: 5000 });

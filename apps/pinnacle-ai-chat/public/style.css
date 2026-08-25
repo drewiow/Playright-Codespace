@@ -422,43 +422,35 @@ body {
 }
 
 .find-user-btn,
-.load-env-btn {
+.load-env-btn,
+.select-funding-service-btn,
+.find-funding-service-btn,
+.select-funding-service-edit-btn {
 
     border: none;
-
     padding: 14px 24px;
-
     border-radius: 999px;
-
     cursor: pointer;
-
     font-weight: 600;
-
     color: white;
-
     background:
         linear-gradient(90deg,
             #00b7ff,
             #b026ff);
+    margin-right: 5px;
 }
 
 .select-user-btn {
-
     border: none;
-
     border-radius: 12px;
-
     padding: 8px 16px;
-
     cursor: pointer;
-
     background:
         linear-gradient(90deg,
             #00b7ff,
             #b026ff);
 
     color: white;
-
     font-weight: 600;
 }
 
@@ -513,4 +505,27 @@ body {
     background: #4caf50;
     color: white;
     font-size: 12px;
+}
+
+.service-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.service-header {
+    flex: 1;
+}
+
+.funding-config-panel {
+    margin-left: 30px;
+    margin-top: 10px;
+}
+
+.funding-definition {
+    padding: 10px;
+    margin: 8px 0;
+    border-left: 3px solid #4da3ff;
+    background: rgba(255, 255, 255, 0.05);
 }

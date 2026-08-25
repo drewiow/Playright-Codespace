@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "./scripts/advanced/executeAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
-import { login, editProvider, findUser, findProvider, openUser } from "./scripts/PharmOutcomes/helpers.mjs"
+import { login, editProvider, findUser, findProvider, openUser, loginCommissioner, findFundingService, findService, openFundingService, openService } from "./scripts/PharmOutcomes/helpers.mjs"
 import { runScript } from "./scripts/common/runScript.mjs"
 import { ADVANCED_ACTION_SETS } from "./scripts/advanced/advancedActions.js";
 
@@ -35,7 +35,6 @@ const port = 3000;
 app.set("view engine", "ejs");
 app.set("views", path.join(process.cwd(), "views"));
 app.set("layout", "layouts/main");
-console.log("CURRENT LAYOUT:", app.get("layout"));
 
 // 2. Layouts MUST be loaded after view engine
 app.use(expressLayouts);
@@ -63,11 +62,6 @@ const uploadMemory = multerMemory({
 function requireAuthAPI(req, res, next) {
     const sessionId = req.cookies?.session;
     const session = sessions.get(sessionId);
-
-    console.log(req.cookies);
-    console.log(session);
-    console.log(sessionId);
-
 
     if (!sessionId) {
         return res.status(401).json({ error: "No session cookie" });
@@ -139,12 +133,9 @@ app.post("/api/pinnacle/find-user", async (req, res) => {
     );
 });
 
-app.post("/api/pinnacle/execute", async (req, res) => {
+app.post("/api/pinnacle/find-funding-service", async (req, res) => {
 
-    const plan = req.body.plan;
-
-    console.log("Executing plan");
-    console.log(plan);
+    const { commissionerName } = req.body;
 
     process.env.ENV_ENC_PATH =
         currentContext.envEncPath;
@@ -152,7 +143,92 @@ app.post("/api/pinnacle/execute", async (req, res) => {
     process.env.ENV_PASSPHRASE =
         currentContext.passphrase;
 
+    let services = [];
+
     await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+            await loginCommissioner(page, commissionerName);
+
+            services =
+                await findFundingService(
+                    page,
+                    logger
+                );
+        }
+    });
+
+    res.json(services);
+});
+
+app.post("/api/pinnacle/find-service", async (req, res) => {
+
+
+    const { serviceName } = req.body;
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    let services = [];
+
+    await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+            await loginCommissioner(page, serviceName);
+
+            services =
+                await findService(
+                    page,
+                    logger
+                );
+        }
+    });
+
+    res.json(services);
+});
+
+app.post("/api/pinnacle/execute", async (req, res) => {
+
+    const plan = req.body.plan;
+
+    let serviceResult = null;
+    let fundingServiceResult = null;
+
+    await runScript({
+
         logger: console.log,
 
         main: async ({
@@ -169,95 +245,46 @@ app.post("/api/pinnacle/execute", async (req, res) => {
                 logger
             );
 
-            const providerStep = plan.find(p => p.action === "editProvider");
-            if (providerStep) await editProvider(page, providerStep.odsCode, logger);
-
-            const findUserStep = plan.find(p => p.action === "findUser");
-            if (findUserStep) {
-
-                const users =
-                    await findUser(
-                        page,
-                        findUserStep.username,
-                        logger
-                    );
-
-                const activeUsers =
-                    users.filter(
-                        u => !u.disabled
-                    );
-
-                return res.json({
-                    success: true,
-                    requiresSelection: true,
-                    users: activeUsers
-                });
-
-                console.log(users);
-
-            }
-
-            const openUserStep = plan.find(p => p.action === "openUser");
-
-            if (openUserStep) {
-
-                await openUser(
-                    page,
-                    openUserStep.user,
-                    logger
+            const openServiceStep =
+                plan.find(
+                    p => p.action === "openService"
                 );
 
-            }
+            if (openServiceStep) {
 
-            const advancedStep = plan.find(p => p.advancedAction);
-            if (advancedStep) {
-                const actionDefinition =
-                    Object.values(ADVANCED_ACTION_SETS)
-                        .flatMap(set => set)
-                        .flatMap(group => group.actions)
-                        .find(
-                            a =>
-                                a.id ===
-                                advancedStep.advancedAction
-                        );
-
-                console.log("Action Definition:", actionDefinition);
-
-                let stepText = actionDefinition.steps;
-
-                for (const [key, value] of Object.entries(
-                    advancedStep.variables
-                )) {
-
-                    stepText =
-                        stepText.replaceAll(
-                            `{{${key}}}`,
-                            value
-                        );
-                }
-                const steps =
-                    parseAdvancedSteps(
-                        stepText
+                serviceResult =
+                    await openService(
+                        page,
+                        openServiceStep.service,
+                        logger
                     );
-
-                await executeAdvancedSteps({
-                    steps,
-                    page,
-                    rowIndex: 1,
-                    log: logger
-                });
             }
 
-            console.log(plan);
+            const openFundingServiceStep =
+                plan.find(
+                    p => p.action === "openFundingService"
+                );
+
+            if (openFundingServiceStep) {
+
+                fundingServiceResult =
+                    await openFundingService(
+                        page,
+                        openFundingServiceStep.service,
+                        logger
+                    );
+            }
+
         }
     });
 
     res.json({
         success: true,
+        service: serviceResult,
+        fundingService: fundingServiceResult,
         runId: "12345"
     });
 });
-
 let currentContext = null;
 
 app.get("/api/pinnacle/context", (req, res) => {
@@ -287,7 +314,6 @@ app.post(
             passphrase: req.body.passphrase
         };
 
-        console.log("✅ Environment loaded:");
         console.log({
             id: currentContext.id,
             environment: currentContext.environment,
@@ -347,9 +373,6 @@ app.get("/run/:product/:scriptId", requireAuthPage, async (req, res) => {
 
 app.get("/api/session/me", requireAuthAPI, (req, res) => {
 
-    console.log("Cookies received:", req.cookies);
-    console.log("User session:", req.user);
-
     res.json({
         user: req.user,
         role: req.user.role,
@@ -359,7 +382,7 @@ app.get("/api/session/me", requireAuthAPI, (req, res) => {
 
 app.post("/api/login", upload.single("envFile"), async (req, res) => {
     try {
-        console.log("Logging in");
+
         const file = req.file;
         const passphrase = req.body.passphrase;
 
@@ -404,7 +427,6 @@ app.post("/api/login", upload.single("envFile"), async (req, res) => {
 
         // 4. Store session in memory
         sessions.set(sessionId, session);
-        console.log("Stored session:", sessionId, sessions.has(sessionId));
 
         // 5. Set session cookie
         res.cookie("session", sessionId, {
@@ -449,9 +471,6 @@ app.post("/api/env/create", async (req, res) => {
         if (!MASTER_PASSWORD) {
             return res.status(400).json({ error: "Missing master password" });
         }
-
-        console.log("REQ BODY:", req.body);
-
 
         const envText = Object.entries(envVars)
             .map(([k, v]) => `${k}=${v}`)
@@ -525,14 +544,10 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
 
             const passphrase = req.body.passphrase || "";
             const options = req.body.options ? JSON.parse(req.body.options) : {};
-            console.log("BACKEND OPTIONS:", options);
-
-
 
             // 1. Create run directory FIRST
             const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
             const runDir = path.join(runsDir, runId);
-            console.log("Run directory:", runDir);
             fs.mkdirSync(runDir, { recursive: true, mode: 0o700 });
             options.runDir = runDir;
             const manifestPath = path.join(__dirname, "scripts", product, "Manifest.json");
@@ -543,7 +558,6 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
 
             const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
             const scriptMeta = manifest.scripts.find(s => s.id === scriptId);
-            console.log("Script metadata:", scriptMeta);
 
             // Resolve scriptPath (supports .mjs, .js, or index files)
             let scriptPathBase = path.join(__dirname, "scripts", product, scriptId);
@@ -608,7 +622,6 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
             childEnv.RUN_DIR = runDir;
             childEnv.REGION = req.body.region;   // REQUIRED
 
-            console.log("Column Mappings:", req.body.columnMappings);
             const columnMappings = req.body.columnMappings || "{}";
             childEnv.COLUMN_MAPPINGS = columnMappings;
 
@@ -617,8 +630,6 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
                 if (key === "region" || key === "passphrase" || key === "options") continue;
                 childEnv[key.toUpperCase()] = value;
             }
-
-            console.log("OPTIONS RECEIVED:", options);
 
             if (options.humanMode !== undefined)
                 childEnv.CONFIG_HUMAN = options.humanMode ? "true" : "false";
@@ -686,7 +697,6 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
                 JSON.stringify(metadata, null, 2)
             );
 
-            console.log("Spawning Child");
 
             // Spawn child
             const startTime = Date.now();
@@ -895,7 +905,7 @@ app.get("/api/run/:runId/artifacts", requireAuthAPI, (req, res) => {
                 files.push(rel);
             }
         });
-        console.log("ARTIFACT FILES:", files);
+
     }
 
     walk(runDir);
@@ -979,7 +989,7 @@ app.get("/api/products", requireAuthAPI, async (req, res) => {
 
 app.get("/api/products/:id/manifest", requireAuthAPI, async (req, res) => {
     const manifestPath = path.join(__dirname, "scripts", req.params.id, "manifest.json");
-    console.log("Looking for manifest at:", manifestPath);
+
     if (!fs.existsSync(manifestPath)) return res.status(404).json({ error: "Not found" });
     const manifest = JSON.parse(await fs.promises.readFile(manifestPath, "utf8"));
     res.json(manifest);
@@ -990,9 +1000,9 @@ app.get("/api/products/:product/scripts/:script/description", requireAuthAPI, as
     const dir = path.join(__dirname, "scripts", req.params.product, req.params.script);
 
     const files = fs.readdirSync(dir);
-    console.log("Description files found:", files);
+
     const match = files.find(f => f.toLowerCase() === "description.md");
-    console.log("Matched description file:", match);
+
     if (!match) return res.status(404).send("Description not found");
 
     const filePath = path.join(dir, match);

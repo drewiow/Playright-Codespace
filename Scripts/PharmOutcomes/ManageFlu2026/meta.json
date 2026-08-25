@@ -1,0 +1,57 @@
+{
+    "name": "Flu 2026",
+    "description": "This is to manage the different Flu Areas, to either add or remove them",
+    "requiredColumns": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "required": true
+        },
+        {
+            "key": "addOrRemove",
+            "label": "Add or Remove?",
+            "required": true
+        },
+        {
+            "key": "sysId",
+            "label": "Sys ID",
+            "required": false
+        },
+        {
+            "key": "name",
+            "label": "Name",
+            "required": false
+        },
+        {
+            "key": "identifier",
+            "label": "Identifier",
+            "required": false
+        },
+        {
+            "key": "branch",
+            "label": "Branch",
+            "required": false
+        },
+        {
+            "key": "address",
+            "label": "Address",
+            "required": false
+        }
+    ],
+    "inputs": [
+        {
+            "key": "serviceId",
+            "label": "Flu Service ID",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. 167618"
+        },
+        {
+            "key": "commissionerId",
+            "label": "Commissioner ID",
+            "type": "text",
+            "required": true,
+            "placeholder": "e.g. 4471336"
+        }
+    ]
+}

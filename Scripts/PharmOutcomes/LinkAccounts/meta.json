@@ -1,3 +1,25 @@
 {
-    "inputs": []
+    "inputs": [],
+    "requiredColumns": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "required": true
+        },
+        {
+            "key": "userName",
+            "label": "User Name",
+            "required": true
+        },
+        {
+            "key": "fullName",
+            "label": "Full Name",
+            "required": true
+        },
+        {
+            "key": "email",
+            "label": "Email",
+            "required": true
+        }
+    ]
 }

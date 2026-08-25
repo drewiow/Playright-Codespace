@@ -39,6 +39,11 @@
             "required": false
         },
         {
+            "key": "shinglesVaccination",
+            "label": "Shingles Vaccination",
+            "required": false
+        },
+        {
             "key": "periodDelay",
             "label": "Period Delay",
             "required": false

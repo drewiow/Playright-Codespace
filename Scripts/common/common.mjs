@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "path";
 import crypto from "crypto";
 import { chromium } from "playwright";
+import Papa from "papaparse";
 
 // -----------------------------
 // 1. Decrypt environment file
@@ -22,32 +23,36 @@ import { chromium } from "playwright";
 const ALGO = "aes-256-gcm";
 const PBKDF2_ITERATIONS = 310000;
 
-
 export function parseCSV(text) {
-    const lines = text.trim().split(/\r?\n/);
 
-    // ✅ CSV-safe split (handles quoted commas)
-    const splitLine = (line) =>
-        line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g)
-            ?.map(v => v.replace(/^"|"$/g, "").trim()) || [];
+    const result = Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true
+    });
 
-    // ✅ Normalize headers
-    const rawHeaders = splitLine(lines[0]);
-    const headers = rawHeaders.map(h =>
-        h.toLowerCase().replace(/[^a-z0-9]/g, "")
-    );
+    return result.data.map(rawRow => {
 
-    return lines.slice(1).map(line => {
-        const cols = splitLine(line);
         const row = {};
 
-        headers.forEach((key, i) => {
-            row[key] = cols[i];
+        Object.entries(rawRow).forEach(([key, value]) => {
+
+            const normalisedKey =
+                key
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "");
+
+            row[normalisedKey] =
+                typeof value === "string"
+                    ? value.trim()
+                    : value;
+
         });
 
         return row;
     });
 }
+
+
 
 export async function logAction(actionDesc, fn, logger) {
     const start = Date.now();
@@ -70,7 +75,6 @@ export function getMappedValue(row, mappings, field, logger = console.log) {
         );
 
     if (!actualField) {
-        logger(`⚠️ No column mapping for field "${field}"`);
         return "";
     }
 
@@ -260,9 +264,6 @@ export async function createBrowserContext(options = {}) {
         ? options.headless
         : (process.env.CONFIG_HEADLESS === "true" ? true : false);
 
-    // Default to visible for local development unless explicitly set true
-    const effectiveHeadless = headless === true ? true : false;
-
     const devtools = typeof options.devtools === "boolean"
         ? options.devtools
         : process.env.CONFIG_DEVTOOLS === "true" || false;
@@ -279,8 +280,10 @@ export async function createBrowserContext(options = {}) {
     const videoDir = `${runDir}/videos`;
     if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
+    console.log("Headless = ", headless)
+
     const browser = await chromium.launch({
-        headless: effectiveHeadless,
+        headless: headless,
         slowMo: human ? intensity * 100 : 0,
         devtools: devtools,
         executablePath: "C:\\Users\\Drew.Clarke\\AppData\\Local\\ms-playwright\\chromium_1150\\chrome-win\\chrome.exe"
@@ -321,7 +324,7 @@ export async function createBrowserContext(options = {}) {
 
     };
 
-    return { browser, context, page, effectiveHeadless, recordTrace };
+    return { browser, context, page, headless, recordTrace };
 }
 
 export function normaliseKey(key) {

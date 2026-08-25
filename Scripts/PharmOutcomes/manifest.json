@@ -27,6 +27,20 @@
             "showOptionsPanel": true
         },
         {
+            "id": "manageFlu2026",
+            "title": "Manage Flu 2026",
+            "requiresCsv": true,
+            "requiresPassword": true,
+            "showOptionsPanel": true,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Will add or remove the provider to the area supplied",
+            "icon": "👤",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
             "id": "AddUsers",
             "title": "Add Users",
             "requiresCsv": true,

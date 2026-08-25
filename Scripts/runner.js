@@ -293,7 +293,7 @@ function areInputsValid() {
     }
 
     wizardData.inputs = values;
-    saveColumnMappings();
+    //saveColumnMappings();
 
     console.log(values);
 
@@ -910,6 +910,11 @@ function saveColumnMappings() {
             ] = select.value;
 
         });
+
+    console.log(
+        "Mappings before submit:",
+        wizardData.columnMappings
+    );
 }
 
 function SetupAdvancedUI() {
@@ -1455,6 +1460,15 @@ click #saveMigration`
                 : `⚠ ${missingRequired} required fields need attention`;
 
         summary.classList.remove("hidden");
+
+        console.log(
+            "Mappings after auto-map:",
+            JSON.stringify(
+                wizardData.columnMappings,
+                null,
+                2
+            )
+        );
     }
 
 
@@ -1759,8 +1773,10 @@ function handleSidebarUpdates(line) {
         return;
     }
 
-    // Detect PROGRESS
-    const progressMatch = line.match(/ROW\s+(\d+)\/(\d+)/i);
+    const progressMatch = line.match(
+        /🏥\s+(\d+)\/(\d+)/
+    );
+
     if (progressMatch) {
         updateProgress(
             Number(progressMatch[1]),
@@ -1984,70 +2000,6 @@ function enterExecutionMode() {
     }
 }
 
-function populateColumnMappings(rows) {
-
-    const container =
-        document.getElementById("columnMappingsContainer");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const requiredColumns =
-        window.currentScriptMeta?.requiredColumns;
-
-    if (!requiredColumns?.length) {
-        return;
-    }
-
-    const headers = Object.keys(rows[0] || {});
-
-    requiredColumns.forEach(column => {
-
-        const field =
-            document.createElement("div");
-
-        field.className = "field";
-
-        const label =
-            document.createElement("label");
-
-        label.textContent = column.label;
-
-        const select = document.createElement("select");
-
-        select.dataset.key = field.key;
-
-        const blankOption = document.createElement("option");
-
-        blankOption.value = "";
-        blankOption.textContent =
-            field.required
-                ? "-- Select Column --"
-                : "-- Not Mapped --";
-
-        select.appendChild(blankOption);
-
-        headers.forEach(header => {
-
-            const option =
-                document.createElement("option");
-
-            option.value = header;
-            option.textContent = header;
-
-            select.appendChild(option);
-
-        });
-
-        field.appendChild(label);
-        field.appendChild(select);
-
-        container.appendChild(field);
-
-    });
-}
-
 function setupRunForm(product, script) {
 
     const form = document.getElementById("run-form");
@@ -2090,9 +2042,19 @@ function setupRunForm(product, script) {
         enterExecutionMode();
 
         const dryRunCheckbox = document.getElementById("dryRunCheckbox");
+        const missingMappings =
+            (script.requiredColumns || [])
+                .filter(
+                    column =>
+                        !wizardData.columnMappings?.[column]
+                );
 
-        if (script.requiresCsv && !wizardData.columnMappings.odsCode) {
-            alert("Please select the ODS Code column");
+        if (missingMappings.length > 0) {
+
+            alert(
+                `Please map: ${missingMappings.join(", ")}`
+            );
+
             return;
         }
 
@@ -2111,6 +2073,15 @@ function setupRunForm(product, script) {
         };
 
         const formData = new FormData();
+
+        console.log(
+            "Submitting mappings:",
+            JSON.stringify(
+                wizardData.columnMappings,
+                null,
+                2
+            )
+        );
 
         formData.append("columnMappings", JSON.stringify(wizardData.columnMappings));
         console.log("FormData columnMappings:", wizardData.columnMappings);

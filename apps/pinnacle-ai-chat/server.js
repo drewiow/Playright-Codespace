@@ -21,33 +21,20 @@ app.post("/api/chat", async (req, res) => {
     const generatedPlan =
         await intent(message);
 
-    if (
-        generatedPlan?.type ===
-        "collect-info"
-    ) {
-
-        return res.json(
-            generatedPlan
-        );
-
+    if (generatedPlan?.type === "collect-info") {
+        return res.json(generatedPlan);
     }
 
-    if (
-        generatedPlan?.type ===
-        "unknown-intent"
-    ) {
-
-        return res.json(
-            generatedPlan
-        );
-
+    if (generatedPlan?.type === "unknown-intent") {
+        return res.json(generatedPlan);
     }
 
-    if (
-        !Array.isArray(
-            generatedPlan
-        )
-    ) {
+
+    if (generatedPlan?.type === "capabilities") {
+        return res.json(generatedPlan);
+    }
+
+    if (!Array.isArray(generatedPlan)) {
 
         return res.json({
             type: "unknown-intent",
@@ -55,6 +42,7 @@ app.post("/api/chat", async (req, res) => {
         });
 
     }
+
 
     const findUserStep =
         generatedPlan.find(
@@ -67,7 +55,19 @@ app.post("/api/chat", async (req, res) => {
             username: findUserStep.username,
             plan: generatedPlan
         });
+    }
 
+    const findFundingServiceStep =
+        generatedPlan.find(
+            p => p.action === "findFundingService"
+        );
+    if (findFundingServiceStep) {
+
+        return res.json({
+            type: "fundingServiceLookupRequired",
+            serviceName: findFundingServiceStep.serviceName,
+            plan: generatedPlan
+        });
     }
 
     res.json({
@@ -117,13 +117,42 @@ app.post("/api/conversation", (req, res) => {
 
         return res.json({
             complete: false,
-            field:
-                nextQuestion.field,
-            question:
-                nextQuestion.prompt
+            field: nextQuestion.field,
+            type: "question",
+            question: nextQuestion.prompt
         });
 
     }
+
+    const lookup = nextConversationLookup(conversation);
+
+    console.log(
+        "Lookup:",
+        JSON.stringify(lookup, null, 2)
+    );
+
+    if (lookup) {
+
+        const response = {
+            complete: false,
+            type: "lookupRequired",
+            lookupType: lookup.type,
+            search:
+                conversation.collected[
+                lookup.sourceField
+                ],
+            collected: conversation.collected,
+        };
+
+        console.log(
+            "Lookup Response:",
+            JSON.stringify(response, null, 2)
+        );
+
+
+        return res.json(response);
+    }
+
 
     const plan = buildConversationPlan(conversation);
 
@@ -173,6 +202,9 @@ app.post("/api/conversation", (req, res) => {
             2
         )
     );
+
+
+
     return res.json({
         complete: true,
         plan
@@ -194,6 +226,20 @@ function findAdvancedAction(id) {
 function convertToWorkflow(plan) {
 
     return plan.map(step => {
+
+        if (step.action === "openFundingService") {
+            return {
+                icon: "💷",
+                text: "Gathering existing funding rules"
+            };
+        }
+
+        if (step.action === "openService") {
+            return {
+                icon: "📋",
+                text: "Gathering service questions"
+            };
+        }
 
         if (step.action === "openUser") {
 
@@ -278,6 +324,22 @@ function convertToWorkflow(plan) {
         };
 
     });
+}
+function nextConversationLookup(conversation) {
+
+    const action =
+        findAction(conversation.action);
+
+    if (!action?.lookups) {
+        return null;
+    }
+
+    const lookup =
+        action.lookups.find(
+            l => !conversation.collected[l.resultField]
+        );
+
+    return lookup ?? null;
 }
 
 function nextConversationQuestion(conversation) {

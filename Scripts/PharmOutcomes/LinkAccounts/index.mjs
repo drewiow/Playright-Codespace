@@ -1,6 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
-import { login, editProvider, parseCSV } from "../helpers.mjs";
-import { logAction, getMappedValue } from "../../common/common.mjs";
+import { login, editProvider, editViewer } from "../helpers.mjs";
+import { logAction, getMappedValue, parseCSV } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -67,8 +67,8 @@ export default async function run() {
         let row = accounts[i];
         const user = {
           odsCode: getMappedValue(row, mappings, "odsCode"),
-          userName: getMappedValue(row, mappings, "firstname"),
-          fullName: getMappedValue(row, mappings, "lastname"),
+          userName: getMappedValue(row, mappings, "username"),
+          fullName: getMappedValue(row, mappings, "fullname"),
           email: getMappedValue(row, mappings, "email"),
 
         };
@@ -77,11 +77,6 @@ export default async function run() {
           ? user.userName
           : `${user.userName}.${user.odsCode}`;
 
-        logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
-        logger(`   Provider ODS: ${user.odsCode}`);
-        logger(`   Full name: ${user.fullName}`);
-        logger(`   Email: ${user.email}`);
-        logger(`   Username: ${computedUsername}`);
 
         await logAction(`Edit provider ${user.odsCode}`, () =>
           editProvider(page, user.odsCode),
@@ -93,8 +88,15 @@ export default async function run() {
           logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
         } else {
 
+          logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
+          logger(`   Provider ODS: ${user.odsCode}`);
+          logger(`   Full name: ${user.fullName}`);
+          logger(`   Email: ${user.email}`);
+          logger(`   Username: ${computedUsername}`);
+
+
           await logAction("Click New User", () =>
-            page.locator('a.full-lock[href^="/o4h/admin/users?new"]').click(),
+            page.locator('a.full-lock[href^="/pharmoutcomes/admin/users?new"]').click(),
             logger
           );
 

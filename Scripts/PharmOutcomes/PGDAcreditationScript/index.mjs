@@ -71,8 +71,6 @@ export default async function run() {
       for (let i = 0; i < customers.length; i++) {
 
         const row = customers[i];
-        logger(`ROW ${i + 1}/${customers.length}`);
-
 
         const request = {
           sysId: getMappedValue(row, mappings, "sysId"),
@@ -84,6 +82,7 @@ export default async function run() {
           meningitisBVaccination: getMappedValue(row, mappings, "meningitisBVaccination"),
           periodDelay: getMappedValue(row, mappings, "periodDelay"),
           pneumococcalVaccination: getMappedValue(row, mappings, "pneumococcalVaccination"),
+          shinglesVaccination: getMappedValue(row, mappings, "shinglesVaccination"),
           otherService: getMappedValue(row, mappings, "otherService"),
           pharmacistName: toTitleCase(getMappedValue(row, mappings, "pharmacistName")),
           telephoneNumber: getMappedValue(row, mappings, "telephoneNumber").replace(/[^\d+]/g, "").trim(),
@@ -91,7 +90,7 @@ export default async function run() {
           recordStatus: getMappedValue(row, mappings, "recordStatus")
         };
 
-        logger(`Request : ${JSON.stringify(request)}`);
+        logger(`ROW ${i + 1}/${customers.length} : ${request.odsCode}`);
 
         const servicesToAccredit = [];
 
@@ -113,13 +112,6 @@ export default async function run() {
             servicesToAccredit.push(serviceId);
           }
         });
-        logger(`🔄 Processing ${request.odsCode}`);
-        logger(
-          `Services to accredit for ${request.odsCode}: ${servicesToAccredit.length
-            ? servicesToAccredit.join(", ")
-            : "None"
-          }`
-        );
 
         try {
           await login(page, username, password, request.odsCode);
@@ -132,8 +124,6 @@ export default async function run() {
             logger(`⚠️ No services selected for ${request.odsCode}`);
           }
           await page.click('[value="Exit"]');
-
-          logger(`✅ Completed: ${request.odsCode}`);
           successCount++;
           const CsvLine = `"${request.odsCode}",${request.provisionDate},${Date.now()}\n`;
           fs.appendFileSync(
@@ -156,8 +146,6 @@ export default async function run() {
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
       logger(`⏱️ Script completed in ${duration} seconds`);
-      logger("🎉 Finished processing all customers");
-      logger("📊 Summary");
       logger(`✅ Created: ${successCount}`);
       logger(`❌ Failed: ${failedCount}`);
 

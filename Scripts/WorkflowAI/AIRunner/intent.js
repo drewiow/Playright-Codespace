@@ -6,6 +6,29 @@ export async function intent(text) {
 
     console.log("Input:", text);
 
+    const HELP_KEYWORDS = [
+        "what can you do",
+        "help",
+        "capabilities",
+        "available actions",
+        "what actions",
+        "show actions",
+        "what can i do",
+        "what can you help with"
+    ];
+
+    const isHelpRequest = HELP_KEYWORDS.some(
+        keyword => text.toLowerCase().includes(keyword)
+    );
+
+    if (isHelpRequest) {
+        return {
+            type: "capabilities",
+            capabilities: getCapabilities()
+        };
+    }
+
+
     const odsCode =
         text.match(/[A-Z]{3,5}\d{2,3}/i)?.[0];
 
@@ -19,6 +42,22 @@ export async function intent(text) {
     if (text.toLowerCase().includes('accredit')) {
         plan.push({ action: 'accredit', serviceID: text.split(' ').pop() });
         plan.push({ advancedAction: "save-provider" });
+    }
+
+    if (text.toLowerCase().includes("service funding")) {
+
+        return {
+            type: "collect-info",
+            action: "add-service-funding"
+        };
+    }
+
+    if (text.toLowerCase().includes("service")) {
+
+        return {
+            type: "collect-info",
+            action: "find-services"
+        };
     }
 
     if (text.toLowerCase().includes("cdb")) {
@@ -102,6 +141,31 @@ export async function intent(text) {
 
     }
     return plan;
+}
+
+export function getCapabilities() {
+    const capabilities = [];
+
+    for (const page of Object.values(ADVANCED_ACTION_SETS)) {
+        for (const group of page) {
+            for (const action of group.actions) {
+
+                if (!action.description) {
+                    continue;
+                }
+
+                capabilities.push({
+                    id: action.id,
+                    label: action.label,
+                    description: action.description,
+                    category: action.category || group.group,
+                    icon: action.icon
+                });
+            }
+        }
+    }
+
+    return capabilities;
 }
 
 function getSuggestedActions(text) {

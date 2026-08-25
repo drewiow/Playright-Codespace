@@ -209,7 +209,62 @@ function renderUserResults(users) {
 }
 async function processResponse(data) {
 
-    console.log("data.type : ", data.type);
+    console.log("LOOOKUP TYPE : ", data.lookupType);
+
+    if (data.type === "capabilities") {
+
+        const grouped = {};
+
+        for (const action of data.capabilities) {
+
+            if (!grouped[action.category]) {
+                grouped[action.category] = [];
+            }
+
+            grouped[action.category].push(action);
+        }
+
+        add(`
+        <div class="ai-message">
+            🤖 I can help with the following tasks:
+            <br><br>
+
+            ${Object.entries(grouped).map(([category, actions]) => `
+                <strong>${category}</strong>
+                <br><br>
+
+                ${actions.map(action => `
+                    <div class="workflow-step">
+                        <span>
+                            ${action.icon ?? "⚙️"}
+                            ${action.label}
+                        </span>
+                        <br>
+                        <small>${action.description}</small>
+                    </div>
+                `).join("")}
+
+                <br>
+            `).join("")}
+        </div>
+    `, "ai", false);
+
+        return;
+    }
+
+    if (data.type === "question") {
+
+        window.conversation.field =
+            data.field;
+
+        add(`
+        <div class="ai-message">
+            ${data.question}
+        </div>
+    `, "ai", false);
+
+        return;
+    }
 
     if (data.type === "unknown-intent") {
 
@@ -241,6 +296,83 @@ async function processResponse(data) {
         return;
     }
 
+    if (data.type === "lookupRequired" && data.lookupType === "user") {
+
+        console.log("USER LOOKUP HANDLER HIT");
+
+        const thinkingId =
+            addThinking();
+
+        await new Promise(
+            resolve => setTimeout(
+                resolve,
+                500
+            )
+        );
+
+        removeThinking(
+            thinkingId
+        );
+
+        add(`
+        <div class="ai-message">
+            Sure, I can help with that.
+            <br><br>
+            I'll need to find the user first.
+            <br><br>
+            <button
+                class="find-user-btn"
+                data-username="${data.search}">
+                🔍 Find User
+            </button>
+        </div>
+    `, "ai", false);
+
+        return;
+    }
+
+    if (data.type === "lookupRequired" && data.lookupType === "fundingService") {
+
+        window.pendingPlan = data.plan;
+        console.log(data);
+
+
+        add(`
+
+        <div class="ai-message">
+            I need to find the services, this might take a minute.
+            <br><br>
+            <button
+                class="find-funding-service-btn"
+                data-search="${data.search}">
+                🔍 Find Services
+            </button>
+        </div>
+    `, "ai", false);
+
+        return;
+    }
+
+    if (data.type === "lookupRequired" && data.lookupType === "service") {
+
+        window.pendingPlan = data.plan;
+
+        add(`
+
+        <div class="ai-message">
+            I need to find the service.
+            <br><br>
+            <button
+                class="find-service-btn"
+                data-search="${data.search}">
+                🔍 Find Services
+            </button>
+        </div>
+    `, "ai", false);
+
+        return;
+    }
+
     if (data.type === "userLookupRequired") {
 
         const thinkingId =
@@ -257,8 +389,7 @@ async function processResponse(data) {
             thinkingId
         );
 
-        window.pendingPlan =
-            result.plan;
+        window.pendingPlan = data.plan;
 
         add(`
         <div class="ai-message" >
@@ -268,7 +399,7 @@ async function processResponse(data) {
                 <br><br>
                     <button
                         class="find-user-btn"
-                        data-username="${result.username}">
+                        data-username="${data.username}">
                         🔍 Find User
                     </button>
                 </div>
@@ -280,6 +411,12 @@ async function processResponse(data) {
     }
 
     if (data.type === "userSearch") {
+
+        console.log(
+            "Rendering lookup:",
+            data.search
+        );
+
 
         add(
             renderUserSearchResults(
@@ -307,16 +444,26 @@ async function processResponse(data) {
                 window.conversation
             );
 
+        if (result.type === "lookupRequired") {
+
+            await processResponse(result);
+            return;
+        }
+
         window.conversation.field =
             result.field;
 
-        add(`
-                    <div class="ai-message">
-                        ${result.question}
-                    </div>
-                    `, "ai", false);
+        console.log(
+            "Rendering question:",
+            result.question
+        );
 
-        return;
+        add(`
+    <div class="ai-message">
+        ${result.question}
+    </div>
+`, "ai", false);
+
     }
 }
 
@@ -375,15 +522,16 @@ async function send() {
 
         if (!result.complete) {
 
-            window.conversation.field = result.field;
+            await processResponse(result);
 
-            add(`
-                    <div class="ai-message">
-                        ${result.question}
-                    </div>
-                    `, "ai", false);
+            if (result.field) {
+                window.conversation.field =
+                    result.field;
+            }
+
             return;
         }
+
 
         if (
             result.type ===
@@ -486,6 +634,23 @@ document
                 e.preventDefault();
 
                 send();
+
+            }
+
+        }
+    );
+
+document
+    .getElementById("env-passphrase")
+    .addEventListener(
+        "keydown",
+        e => {
+
+            if (e.key === "Enter") {
+
+                e.preventDefault();
+
+                loadEnvironment();
 
             }
 
@@ -608,6 +773,52 @@ async function findUsers(username) {
     return await res.json();
 }
 
+async function findFundingServices(commissionerName) {
+
+    const res =
+        await fetch(
+            "http://localhost:3000/api/pinnacle/find-funding-service",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body: JSON.stringify({
+                    commissionerName
+                })
+            }
+        );
+
+
+    const text = await res.text();
+
+    return JSON.parse(text);
+}
+
+async function findServices(serviceName) {
+
+    const res =
+        await fetch(
+            "http://localhost:3000/api/pinnacle/find-service",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body: JSON.stringify({
+                    serviceName
+                })
+            }
+        );
+
+
+    const text = await res.text();
+
+    return JSON.parse(text);
+}
+
 function renderUserSearchResults(users) {
 
     return `
@@ -646,13 +857,7 @@ async function executeWorkflow() {
 
 document.addEventListener("click", async (e) => {
 
-    if (
-        e.target.classList.contains(
-            "find-user-btn"
-        )
-    ) {
-
-        console.log("Finding user");
+    if (e.target.classList.contains("find-user-btn")) {
 
         const username = e.target.dataset.username;
         const users = await findUsers(username);
@@ -666,11 +871,109 @@ document.addEventListener("click", async (e) => {
         return;
     }
 
-    if (
-        e.target.classList.contains(
-            "select-user-btn"
-        )
-    ) {
+    if (e.target.classList.contains("find-funding-service-btn")) {
+
+        const search = e.target.dataset.search;
+
+        const services = await findFundingServices(search);
+
+        add(
+            renderServiceResults(
+                services
+            ),
+            "ai",
+            false
+        );
+
+        return;
+    }
+
+    if (e.target.classList.contains("find-service-btn")) {
+
+        const search = e.target.dataset.search;
+
+        const services = await findServices(search);
+
+        console.log(
+            "Services returned:",
+            services
+        );
+
+        add(
+            renderServiceResults(
+                services
+            ),
+            "ai",
+            false
+        );
+
+        return;
+    }
+
+    if (e.target.classList.contains("select-funding-service-btn")) {
+
+
+        const selectedService = {
+            fundingId: e.target.dataset.fundingid,
+            serviceId: e.target.dataset.serviceid,
+            serviceName: e.target.dataset.servicename,
+            editServiceLink: e.target.dataset.editservicelink,
+            commissionerName: window.conversation.collected.commissionerName,
+            baseServiceName: e.target.dataset.baseservicename
+        };
+
+        window.currentPlan = [
+            {
+                action: "openFundingService",
+                service: selectedService
+            },
+            {
+                action: "openService",
+                service: selectedService
+            }
+        ];
+
+
+        console.log(
+            JSON.stringify(
+                window.currentPlan,
+                null,
+                2
+            )
+        );
+
+        const workflowResponse =
+            await fetch(
+                "/api/workflow",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        plan: window.currentPlan
+                    })
+                }
+            );
+
+        const workflow =
+            await workflowResponse.json();
+
+        console.log(
+            "Current Plan:",
+            window.currentPlan
+        );
+
+        add(
+            renderWorkflow(workflow),
+            "ai",
+            false
+        );
+    }
+
+
+    if (e.target.classList.contains("select-user-btn")) {
 
         const selectedUser = {
             uid: e.target.dataset.uid,
@@ -733,6 +1036,7 @@ document.addEventListener("click", async (e) => {
         );
     }
 
+
     if (
         !e.target.classList.contains(
             "execute-btn"
@@ -744,6 +1048,116 @@ document.addEventListener("click", async (e) => {
     await executeWorkflow();
 
 });
+
+window.toggleFundingConfig = function (index) {
+
+    const panel =
+        document.getElementById(
+            `funding-config-${index}`
+        );
+
+    if (!panel) return;
+
+    panel.style.display =
+        panel.style.display === "none"
+            ? "block"
+            : "none";
+};
+
+window.togglePaymentRules = function (fundingId) {
+
+    const panel = document.getElementById(
+        `payment-rules-${fundingId}`
+    );
+
+    if (!panel) return;
+
+    panel.style.display =
+        panel.style.display === "none"
+            ? "block"
+            : "none";
+};
+
+
+function renderFundingServiceResult(service) {
+
+    return `
+        <div class="ai-message">
+
+            <h3>💷 ${service.serviceName}</h3>
+
+            ${service.fundingDefinitions.map(definition => `
+
+                <div class="service-row">
+
+                    <div class="service-header">
+                        ${definition.serviceName}
+                    </div>
+
+                    <small>
+                        Funding ID:
+                        ${definition.fundingId}
+                    </small>
+
+                    <br><br>
+
+                    ${definition.paymentRules?.map(rule => `
+
+                        <div class="workflow-step">
+
+                            💰 ${rule.question}
+
+                            <br>
+
+                            ${rule.amount}
+
+                        </div>
+
+                    `).join("") ?? ""}
+
+                </div>
+
+            `).join("")}
+
+        </div>
+    `;
+}
+
+function renderServiceResults(services) {
+
+    console.log("Rendering services", services);
+
+    console.log("FIRST SERVICE", services[0]);
+
+    return `
+        <div class="ai-message">
+
+            I found ${services.length} matching Services.
+
+            <br><br>
+
+            ${services.map((service, index) => `
+                
+                <div class="service-row">
+                    <div
+                        class="service-header">
+                        💷 ${service.baseServiceName}
+                    </div>
+
+                    <button
+                        class="select-funding-service-btn"
+                        data-fundingid="${service.fundingId}"
+                        data-servicename="${service.serviceName}"
+                        data-editservicelink="${service.editServiceLink}"
+                        data-serviceid="${service.serviceId}">
+                        Select
+                    </button>
+
+                </div>
+            `).join("")}
+        </div>
+        `;
+}
 
 function renderWorkflow(
     workflow
@@ -787,7 +1201,7 @@ async function executePlan(plan) {
 
     console.log("Response object:", res);
 
-    await res.json();
+    const result = await res.json();
 
     document
         .querySelectorAll(".execute-btn")
@@ -796,12 +1210,52 @@ async function executePlan(plan) {
             btn.innerHTML = `✅ Run ${result.runId} `;
         });
 
-    add(`
-                                        <div class="workflow-complete">
-                                            ✅ Workflow Submitted
-                                            <br><br>
-                                                Run ID: ${result.runId}
-                                            </div>
-                                                `, "ai", false);
+    console.log("Execute Result", result);
+
+    if (result.fundingService) {
+
+        add(
+            renderFundingServiceResult(
+                result.fundingService
+            ),
+            "ai",
+            false
+        );
+    }
+
+    if (result.service) {
+
+        add(
+            renderServiceQuestions(
+                result.service
+            ),
+            "ai",
+            false
+        );
+    }
+
+
+}
+
+function renderServiceQuestions(service) {
+
+    const questions =
+        service.questionHeaders.flat();
+
+    return `
+        <div class="ai-message">
+
+            <h3>
+                📋 Service Questions
+            </h3>
+
+            ${questions.map(question => `
+                <div class="workflow-step">
+                    ${question}
+                </div>
+            `).join("")}
+
+        </div>
+    `;
 }
 
