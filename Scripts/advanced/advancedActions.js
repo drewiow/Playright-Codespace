@@ -32,32 +32,7 @@ export const ADVANCED_ACTION_SETS = {
                         "new phone",
                         "lost phone"
                     ],
-                    steps: `check #inResetMFASecret`,
-                    questions: [
-                        {
-                            field: "username",
-                            prompt:
-                                "What is the user's name?"
-                        }
-                    ],
-                    lookups: [
-                        {
-                            type: "user",
-                            sourceField: "username",
-                            resultField: "user"
-                        }
-                    ],
-                    buildPlan(collected) {
-
-                        return [
-                            {
-                                advancedAction: "reset-mfa"
-                            },
-                            {
-                                advancedAction: "save-user"
-                            }
-                        ];
-                    }
+                    steps: `check #inResetMFASecret`
                 },
                 {
                     id: "reset-password",
@@ -75,29 +50,7 @@ export const ADVANCED_ACTION_SETS = {
                         "can't login",
                         "unable to login",
                         "credential reset"
-                    ],
-                    questions: [
-                        {
-                            field: "username",
-                            prompt:
-                                "What is the user's name?"
-                        }
-                    ],
-                    buildPlan(collected) {
-
-                        return [
-                            {
-                                action: "findUser",
-                                username: collected.username
-                            },
-                            {
-                                advancedAction: "reset-password"
-                            },
-                            {
-                                advancedAction: "save-user"
-                            }
-                        ];
-                    }
+                    ]
                 },
                 {
                     id: "reset-passcode",
@@ -114,29 +67,7 @@ export const ADVANCED_ACTION_SETS = {
                         "reset security code",
                         "authentication code"
                     ],
-                    steps: `check #inResetPasscode`,
-                    questions: [
-                        {
-                            field: "username",
-                            prompt:
-                                "What is the user's name?"
-                        }
-                    ],
-                    buildPlan(collected) {
-
-                        return [
-                            {
-                                action: "findUser",
-                                username: collected.username
-                            },
-                            {
-                                advancedAction: "reset-passcode"
-                            },
-                            {
-                                advancedAction: "save-user"
-                            }
-                        ];
-                    }
+                    steps: `check #inResetPasscode`
                 }
             ],
         }, {

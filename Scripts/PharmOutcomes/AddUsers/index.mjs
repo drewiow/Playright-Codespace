@@ -23,24 +23,23 @@ export default async function run() {
         throw new Error("No CSV path provided (INPUT_CSV_PATH or CSV_PATH)");
       }
 
-      // ✅ Load CSV
-      let accounts;
+      let rows;
       try {
         const raw = fs.readFileSync(inputCsvPath, "utf-8");
-        accounts = parseCSV(raw);
-        logger(`✅ Loaded ${accounts.length} accounts from CSV`);
+        rows = parseCSV(raw);
+        logger(`✅ Loaded ${rows.length} rows from CSV`);
       } catch (err) {
         logger("❌ Error reading CSV:", err.message);
         throw err;
       }
 
-      const resultsCsvPath = path.join(runDir, "UserAccounts.csv");
-      const failedCsvPath = path.join(runDir, "FailedAccounts.csv");
+      const resultsCsvPath = path.join(runDir, "Users.csv");
+      const failedCsvPath = path.join(runDir, "FailedUsers.csv");
 
       if (!fs.existsSync(resultsCsvPath)) {
         fs.writeFileSync(
           resultsCsvPath,
-          "username,odsCode,fullname,email,professionalBody, registrationNumber, telephone,createdAt\n",
+          "username,odsCode,fullname,email,professionalBody,registrationNumber,telephone,createdAt\n",
           "utf-8"
         );
       }
@@ -48,7 +47,7 @@ export default async function run() {
       if (!fs.existsSync(failedCsvPath)) {
         fs.writeFileSync(
           failedCsvPath,
-          "username,odsCode,fullname,email,professionalBody, registrationNumber, telephone,failedAt,reason\n",
+          "username,odsCode,fullname,email,professionalBody,registrationNumber,telephone,failedAt,reason\n",
           "utf-8"
         );
       }
@@ -66,10 +65,9 @@ export default async function run() {
 
       logger("🔧 BEGIN ACCOUNT CREATION LOOP");
 
+      for (let i = 0; i < rows.length; i++) {
 
-      for (let i = 0; i < accounts.length; i++) {
-
-        const row = accounts[i];
+        const row = rows[i];
         const user = {
           odsCode: getMappedValue(row, mappings, "odsCode"),
           firstName: toTitleCase(getMappedValue(row, mappings, "firstname")),
@@ -214,8 +212,7 @@ export default async function run() {
       }
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
       logger(`⏱️ Script completed in ${duration} seconds`);
-
-      logger("🎉 Finished creating all accounts");
+      logger("🎉 Finished creating all rows");
       logger("📊 Summary");
       logger(`✅ Created: ${successCount}`);
       logger(`❌ Failed: ${failedCount}`);
@@ -232,7 +229,6 @@ export default async function run() {
   });
 }
 
-// ✅ required for your runner
 run().catch(err => {
   console.error("Script failed:", err?.stack || err);
   process.exit(1);

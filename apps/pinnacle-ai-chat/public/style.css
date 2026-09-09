@@ -529,3 +529,28 @@ body {
     border-left: 3px solid #4da3ff;
     background: rgba(255, 255, 255, 0.05);
 }
+
+.log-entry {
+    padding: 4px 8px;
+    border-left: 4px solid transparent;
+}
+
+.log-success {
+    border-left-color: #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.log-error {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.log-job {
+    border-left-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.log-action {
+    border-left-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.08);
+}

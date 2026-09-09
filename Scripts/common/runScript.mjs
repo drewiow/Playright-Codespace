@@ -5,9 +5,54 @@ import { setupContext } from "../pharmoutcomes/helpers.mjs";
 import { parseAdvancedSteps, resolveCsvTokens } from "../advanced/parseAdvancedSteps.mjs";
 import { executeAdvancedSteps } from "../advanced/executeAdvancedSteps.mjs";
 import { parseCSV } from "./common.mjs";
-export async function runScript({ logger = console.log, main }) {
+import { LoggerEvent } from "./loggerEvents.js";
 
-    // logger("SCRIPT BOOT");
+function createLogger(log) {
+    return Object.assign(
+        (message) => log(message),
+        {
+            event(event, data = {}) {
+                log(JSON.stringify({
+                    type: "event",
+                    event,
+                    ...data
+                }));
+            },
+
+            rowStart(current, total, odsCode) {
+                this.event(LoggerEvent.ROW_START, {
+                    current,
+                    total,
+                    odsCode
+                });
+            },
+
+            rowComplete() {
+                this.event(LoggerEvent.ROW_COMPLETE);
+            },
+
+            login() {
+                this.event(LoggerEvent.LOGIN);
+            },
+
+            openProvider() {
+                this.event(LoggerEvent.OPEN_PROVIDER);
+            },
+
+            accredit() {
+                this.event(LoggerEvent.ACCREDIT);
+            },
+
+            runComplete() {
+                this.event(LoggerEvent.RUN_COMPLETE);
+            }
+        }
+    );
+}
+
+export async function runScript({ logger: baseLogger = console.log, main }) {
+
+    const logger = createLogger(baseLogger)
 
     // ✅ prevent duplicate handlers
     if (!process.__handlersAttached) {
@@ -31,7 +76,6 @@ export async function runScript({ logger = console.log, main }) {
     if (!password) throw new Error("Missing PASSWORD");
 
     const config = {
-        human: process.env.CONFIG_HUMAN === "true" || process.env.HUMAN === "true",
         headless: process.env.CONFIG_HEADLESS === "true" || process.env.HEADLESS === "true",
         recordVideo: process.env.CONFIG_RECORD_VIDEO === "true",
         recordTrace: process.env.CONFIG_RECORD_TRACE === "true",
@@ -68,7 +112,7 @@ export async function runScript({ logger = console.log, main }) {
         await main({
             page,
             rows,
-            hasCSV, // ✅ NEW
+            hasCSV,
             logger,
             username,
             password,
@@ -98,7 +142,7 @@ export async function runScript({ logger = console.log, main }) {
         });
 
     } finally {
-        logger("__RUN_COMPLETE__");
+        logger.runComplete();
 
         await page?.close().catch(() => { });
         await context?.close().catch(() => { });

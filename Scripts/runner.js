@@ -1263,6 +1263,15 @@ click #saveMigration`
             "telnum"
         ],
 
+        addorremove: [
+            "add/remove",
+            "action"
+        ],
+
+        allergicRhinitisAzelastine: ["Azelastine"],
+        allergicRhinitisDymista: ["Dymista"],
+        allergicRhinitisFexofenadine: ["Fexofenadine"],
+
         notificationstatus: [
             "notificationstatus",
             "privatpgdrequestnotificationstatus"
@@ -1732,14 +1741,6 @@ function renderReview() {
 
         const content = [];
 
-        const humanModeEl = document.getElementById("humanMode");
-        if (humanModeEl?.checked) content.push("Human-like mode enabled");
-        if (humanModeEl?.checked) {
-            const humanIntensityEl = document.getElementById("humanIntensity");
-            if (humanIntensityEl && humanIntensityEl.value) {
-                content.push(`Human-like interactions: ${humanIntensityEl.value || "default"}`);
-            }
-        }
         const dryRunEl = document.getElementById("dryRunCheckbox");
         if (dryRunEl?.checked) content.push("Dry run enabled");
 
@@ -1761,63 +1762,6 @@ function renderReview() {
 
 }
 
-// ---- SIDEBAR STATE SYNC ----
-
-function handleSidebarUpdates(line) {
-
-    // Detect NEW ROW
-    const rowMatch = line.match(/Processing ODS:\s*(\S+)/i);
-    if (rowMatch) {
-        updateCurrentOds(rowMatch[1]);
-        updateCurrentStep("Starting...");
-        return;
-    }
-
-    const progressMatch = line.match(
-        /🏥\s+(\d+)\/(\d+)/
-    );
-
-    if (progressMatch) {
-        updateProgress(
-            Number(progressMatch[1]),
-            Number(progressMatch[2])
-        );
-    }
-
-    // Detect STEPS
-    if (line.includes("Logging in")) {
-        updateCurrentStep("🔐 Logging in...");
-    }
-    else if (line.includes("Opening provider")) {
-        updateCurrentStep("👤 Opening provider...");
-    }
-    else if (line.includes("Deaccrediting")) {
-        updateCurrentStep("🔧 Deaccrediting...");
-    }
-    else if (line.includes("Audit")) {
-        updateCurrentStep("📝 Adding audit...");
-    }
-    else if (line.includes("Saving")) {
-        updateCurrentStep("💾 Saving...");
-    }
-    else if (line.includes("Row completed")) {
-        updateCurrentStep("✅ Completed");
-    }
-    else if (line.includes("__RUN_COMPLETE__")) {
-        updateStatus("Completed ✅");
-
-        if (runTimer) {
-            clearInterval(runTimer);
-            runTimer = null;
-        }
-
-    }
-    else if (line.includes("❌")) {
-        updateStatus("Completed with errors");
-    }
-
-}
-
 async function populateDescription(product, script) {
     const descEl = document.getElementById("descriptionContent");
 
@@ -1835,15 +1779,54 @@ async function populateDescription(product, script) {
     }
 }
 
+function handleEvent(event) {
+    switch (event.event) {
+
+        case LoggerEvent.ROW_START:
+            updateProgress(event.current, event.total);
+            updateCurrentOds(event.odsCode);
+            updateCurrentStep("Starting...");
+            break;
+
+        case LoggerEvent.LOGIN:
+            updateCurrentStep("🔐 Logging in...");
+            break;
+
+        case LoggerEvent.OPEN_PROVIDER:
+            updateCurrentStep("🏥 Opening provider...");
+            break;
+
+        case LoggerEvent.ACCREDIT:
+            updateCurrentStep("✅ Accrediting...");
+            break;
+
+        case LoggerEvent.ROW_COMPLETE:
+            updateCurrentStep("✅ Complete");
+            break;
+
+        case LoggerEvent.RUN_COMPLETE:
+            updateStatus("Completed ✅");
+
+            if (runTimer) {
+                clearInterval(runTimer);
+                runTimer = null;
+            }
+
+            break;
+    }
+}
+
 function appendLogEntry(entry) {
+    if (entry.type === "event") {
+        handleEvent(entry);
+        return;
+    }
+
     const div = document.createElement("div");
     div.classList.add("log-entry");
 
     const time = new Date(entry.time).toLocaleTimeString();
     const line = entry.line;
-
-    handleSidebarUpdates(line);
-
     let levelClass = "log-info";
 
     if (line.includes("✅")) levelClass = "log-success";
@@ -2065,8 +2048,6 @@ function setupRunForm(product, script) {
             dryRun: document.getElementById("dryRunCheckbox")?.checked ?? false,
 
             // Optional UI features
-            humanMode: document.getElementById("humanMode")?.checked ?? false,
-            humanIntensity: document.getElementById("humanIntensity")?.value,
             showBrowser: document.getElementById("showBrowser")?.checked ?? false,
             recordVideo: document.getElementById("recordVideo")?.checked ?? false,
             recordTrace: document.getElementById("recordTrace")?.checked ?? false,
@@ -2116,43 +2097,6 @@ function setupRunForm(product, script) {
 
         await startRun(product, script, formData);
     });
-}
-
-function updateLogs(jobData) {
-    const log = jobData.log || [];
-    if (log.length === lastLogLength) return;
-
-    for (let i = lastLogLength; i < log.length; i++) {
-        const entry = log[i];
-        const div = document.createElement("div");
-        div.classList.add("log-entry");
-
-        const time = new Date(entry.time);
-        const timeStr = time.toLocaleTimeString();
-
-        const line = entry.line;
-
-        let levelClass = "log-info";
-
-        if (line.includes("✅")) levelClass = "log-success";
-        else if (line.includes("❌")) levelClass = "log-error";
-        else if (line.includes("➡️")) levelClass = "log-action";
-        else if (line.includes("👤")) levelClass = "log-user";
-        else if (line.includes("🛠")) levelClass = "log-job";
-
-        if (line.includes("__RUN_COMPLETE__")) {
-            clearInterval(timer);
-        }
-        div.classList.add(levelClass);
-        div.innerHTML = `<span class="log-time">${timeStr}</span><span class="log-text">${escapeHtml(
-            line
-        )}</span>`;
-
-        logContainer.appendChild(div);
-    }
-
-    lastLogLength = log.length;
-    logContainer.scrollTop = logContainer.scrollHeight;
 }
 
 function updateStatusAndArtifacts(jobData) {

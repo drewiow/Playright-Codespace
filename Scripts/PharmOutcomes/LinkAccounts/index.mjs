@@ -88,7 +88,7 @@ export default async function run() {
           logger(`⭐ Base user set: ${JSON.stringify(baseUser)}`);
         } else {
 
-          logger(`\n🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
+          logger(`  🧑‍💻 Creating user ${i + 1}/${accounts.length}`);
           logger(`   Provider ODS: ${user.odsCode}`);
           logger(`   Full name: ${user.fullName}`);
           logger(`   Email: ${user.email}`);
@@ -171,8 +171,8 @@ export default async function run() {
         throw new Error("baseUser was never set!");
       }
 
-      await logAction(`Return to base provider ${baseUser.odscode}`, () =>
-        editProvider(page, baseUser.odscode),
+      await logAction(`Return to base provider ${baseUser.odsCode}`, () =>
+        editProvider(page, baseUser.odsCode),
         logger
       );
 
@@ -215,7 +215,7 @@ export default async function run() {
         );
 
         const csvRow =
-          `"${entry.username}","${entry.odscode}","${entry.fullname}","${entry.email}","${new Date().toISOString()}"\n`;
+          `"${entry.username}","${entry.odsCode}","${entry.fullName}","${entry.email}","${new Date().toISOString()}"\n`;
 
         fs.appendFileSync(resultsCsvPath, csvRow);
       }

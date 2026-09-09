@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import { PNG } from "pngjs";
 import pixelmatch from "pixelmatch";
+import { LoggerEvent } from "../common/loggerEvents.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,7 +75,8 @@ export function compareImages(
   };
 }
 
-export async function login(page, username, password, logger = console.log) {
+export async function login(page, username, password, logger) {
+
 
   await page.goto("/pharmoutcomes/", {
     waitUntil: "networkidle"
@@ -233,7 +235,7 @@ export async function findUser(
 
 }
 
-export async function openService(page, service, logger = console.log) {
+export async function openService(page, service, logger) {
 
   await loginCommissioner(page, service.commissionerName, logger);
 
@@ -258,45 +260,21 @@ export async function openService(page, service, logger = console.log) {
   return { questionHeaders };
 }
 
-export async function openFundingService(
-  page,
-  service,
-  logger = console.log
-) {
+export async function openFundingService(page, service, logger) {
 
-  await loginCommissioner(
-    page,
-    service.commissionerName,
-    logger
-  );
-
-  await page.goto(
-    "/pharmoutcomes/claims/home/?describe"
-  );
-
-  await page.waitForLoadState(
-    "networkidle"
-  );
+  await loginCommissioner(page, service.commissionerName, logger);
+  await page.goto("/pharmoutcomes/claims/home/?describe");
+  await page.waitForLoadState("networkidle");
 
   const fundingServices = await page.$$eval(
     "h4.fundingservice",
     services =>
       services.map(service => {
 
-        const link =
-          service.querySelector("a");
-
-        const fullServiceName =
-          link?.textContent?.trim() ?? "";
-
-        const baseServiceName =
-          fullServiceName.replace(
-            /\s*\[\d{4}-\d{2}-\d{2}\s*->\s*[\d-]+\]\s*$/,
-            ""
-          );
-
-        const detail =
-          service.nextElementSibling;
+        const link = service.querySelector("a");
+        const fullServiceName = link?.textContent?.trim() ?? "";
+        const baseServiceName = fullServiceName.replace(/\s*\[\d{4}-\d{2}-\d{2}\s*->\s*[\d-]+\]\s*$/, "");
+        const detail = service.nextElementSibling;
 
         const editServiceLink =
           [...detail.querySelectorAll("a")]
@@ -365,7 +343,7 @@ export async function openFundingService(
   return selectedService;
 }
 
-export async function findService(page, logger = console.log) {
+export async function findService(page, logger) {
 
   await page.goto("/pharmoutcomes/services/home");
 
@@ -393,7 +371,7 @@ export async function findService(page, logger = console.log) {
   return services;
 }
 
-export async function findFundingService(page, serviceName, logger = console.log) {
+export async function findFundingService(page, serviceName, logger) {
 
 
   await page.goto("/pharmoutcomes/claims/home/?describe");
@@ -500,7 +478,7 @@ export async function findFundingService(page, serviceName, logger = console.log
   return groupedServices;
 }
 
-export async function removeCommissioner(page, commissionerId, logger = console.log) {
+export async function removeCommissioner(page, commissionerId, logger) {
 
   const link = page.locator(
     `a[href*="minister=remove"][href*="commissioner=${commissionerId}"]`
@@ -527,11 +505,115 @@ export async function removeCommissioner(page, commissionerId, logger = console.
   return true;
 }
 
-export async function openUser(page, user, logger = console.log) {
+export async function getUserDetails(page) {
 
-  logger(`👤 Opening user ${user.displayName}`);
-  await page.goto(user.editUrl);
+  const exists = async (selector) =>
+    (await page.locator(selector).count()) > 0;
 
+  const value = async (selector) => {
+
+    if (!await exists(selector)) {
+      return "";
+    }
+
+    return await page.locator(selector).inputValue();
+  };
+
+  let organisation = null;
+
+  if (await exists('input[name="inOrganisationID"]')) {
+
+    organisation = {
+      id: await value('input[name="inOrganisationID"]'),
+      name: null
+    };
+
+  } else if (await exists('#inOrganisationID')) {
+
+    organisation = {
+      id: await page.locator('#inOrganisationID').inputValue(),
+      name: (
+        await page
+          .locator('#inOrganisationID option:checked')
+          .textContent()
+      )?.trim() ?? ""
+    };
+  }
+
+  const userType =
+    await exists('#inUserType')
+      ? await page.locator('#inUserType').inputValue()
+      : "";
+
+  const mfaText = await page
+    .locator('body')
+    .textContent();
+
+  const hasMfa =
+    mfaText.includes("MFA Secret is set");
+
+  const hasPasscode =
+    mfaText.includes("Valid security word in use");
+
+  let roles = [];
+
+  if (await exists('#inUPRoles\\[\\]')) {
+
+    roles = await page.locator(
+      '#inUPRoles\\[\\] option'
+    ).evaluateAll(
+      options =>
+        options
+          .filter(o => o.selected)
+          .map(o => o.textContent.trim())
+    );
+  }
+
+  const permissions = await page.locator(
+    '#fieldsetpermissions input[type="checkbox"]:checked'
+  ).evaluateAll(
+    checkboxes => {
+
+      return checkboxes
+        .map(cb => {
+
+          const label =
+            cb.parentElement.querySelector(
+              "label"
+            );
+
+          return label
+            ? label.textContent.trim()
+            : null;
+
+        })
+        .filter(Boolean);
+
+    }
+  );
+
+  return {
+    uid: await value('input[name="id"]'),
+    username: await value('#inUserName'),
+    fullName: await value('#inKnownName'),
+    email: await value('#inContactEmail'),
+    telephone: await value('#inContactPhone'),
+    mobile: await value('#inContactMobile'),
+    jobTitle: await value('#inJobTitle'),
+    userType,
+    organisation,
+    hasMfa,
+    hasPasscode,
+    roles,
+    permissions
+
+  };
+}
+
+export async function openUser(page, uid, logger) {
+  logger(`👤 Opening user ${uid}`);
+  await page.goto(`/pharmoutcomes/admin/users?edit=${uid}`);
+  return getUserDetails(page);
 }
 
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
@@ -590,7 +672,33 @@ export async function addAudit(page, caseRef) {
   console.log("✅ Journal entry submitted");
 }
 
-export async function accredit(page, serviceIDs = []) {
+export async function accreditBySysId(page, sysId, serviceIDs = [], posToken, logger) {
+
+  for (const serviceID of serviceIDs) {
+    const accreditServiceLink = `/pharmoutcomes/admin/providers?id=${sysId}&accredit=${serviceID}&POSesTok=${posToken}`;
+    logger?.event(LoggerEvent.ACCREDIT, { sysId, service: serviceID, accreditServiceLink });
+
+    const createdAt = new Date().toISOString();
+
+    logger(`➕ Accrediting Service ${serviceID}`);
+    const actionStart = Date.now();
+    await page.goto(accreditServiceLink);
+    logger(`✅ Completed (${Date.now() - actionStart}ms)`);
+  }
+}
+
+export async function removeCommissionerBySysId(page, sysId, commissionerId, posToken, logger) {
+
+  const removeCommissionerLink = `/pharmoutcomes/admin/commissioners?provider=${sysId}&minister=remove&commissioner=${commissionerId}&POSesTok=${posToken}`;
+  const createdAt = new Date().toISOString();
+  logger(`➕ Removing Commissioner ${commissionerId}`);
+  const actionStart = Date.now();
+  await page.goto(removeCommissionerLink);
+  logger(`✅ Completed (${Date.now() - actionStart}ms)`);
+
+}
+
+export async function accredit(page, serviceIDs = [], logger) {
 
   for (const serviceID of serviceIDs) {
 
@@ -702,7 +810,8 @@ export async function accredit(page, serviceIDs = []) {
     }
   }
 }
-export async function deaccredit(page, PIDService) {
+
+export async function deaccredit(page, PIDService, logger) {
   await page.waitForSelector('a[href*="deaccredit="]', { timeout: 10000 });
 
   while (true) {
@@ -754,7 +863,7 @@ export async function deaccredit(page, PIDService) {
   }
 }
 
-export async function openOrganisation(page, odsCode, helpers, logger = console.log) {
+export async function openOrganisation(page, odsCode, helpers, logger) {
   const type = getOrganisationType(odsCode);
 
   logger(`🏷️ Detected type: ${type}`);
@@ -780,7 +889,7 @@ export async function openOrganisation(page, odsCode, helpers, logger = console.
   return type;
 }
 
-export function getOrganisationType(odsCode, logger = console.log) {
+export function getOrganisationType(odsCode, logger) {
   if (!odsCode) return "unknown";
 
   const code = odsCode.trim().toUpperCase();
@@ -810,8 +919,7 @@ export function getOrganisationType(odsCode, logger = console.log) {
   return "unknown";
 }
 
-export async function findProvider(page, odsCode, logger = console.log) {
-  logger(`🏥 Opening provider ${odsCode}`);
+export async function findProvider(page, odsCode, logger) {
 
   // Navigate to the Manage Providers page
   await page.goto("/pharmoutcomes/admin/providers");
@@ -838,13 +946,13 @@ export async function findProvider(page, odsCode, logger = console.log) {
 
 }
 
-export async function editProvider(page, odsCode, logger = console.log) {
-
-  await findProvider(page, odsCode);
+export async function editProvider(page, odsCode, logger) {
+  logger?.event(LoggerEvent.OPEN_PROVIDER, { odsCode });
+  await findProvider(page, odsCode, logger);
   await page.click("#editProvider");
 }
 
-export async function loginAsProvider(page, odsCode, logger = console.log) {
+export async function loginAsProvider(page, odsCode, logger) {
 
   await findProvider(page, odsCode);
 
@@ -863,7 +971,7 @@ export async function loginAsProvider(page, odsCode, logger = console.log) {
 
 }
 
-export async function editViewer(page, odsCode, log = console.log) {
+export async function editViewer(page, odsCode, log) {
   log("👤 Opening viewer");
 
   // Navigate to the Manage Providers page
@@ -882,7 +990,7 @@ export async function editViewer(page, odsCode, log = console.log) {
   await page.click("#organisationEdit");
 }
 
-export async function editCommissioner(page, odsCode, log = console.log) {
+export async function editCommissioner(page, odsCode, log) {
   log("👤 Opening commissioner");
 
   // Navigate to the Manage Providers page

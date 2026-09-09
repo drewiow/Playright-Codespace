@@ -5,20 +5,6 @@
     "logo": "/images/pharmoutcomes-logo.jpg",
     "scripts": [
         {
-            "id": "DailyChecks",
-            "title": "Daily Checks",
-            "requiresCsv": false,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Runs the daily checks",
-            "icon": "✅",
-            "animation": "pulse",
-            "advanced": false
-        },
-        {
             "id": "token-validation",
             "title": "Token Validation",
             "type": "test",
@@ -36,7 +22,7 @@
             "requiresEnvFile": true,
             "optionalEnvFile": true,
             "description": "Will add or remove the provider to the area supplied",
-            "icon": "👤",
+            "icon": "💉",
             "animation": "pulse",
             "advanced": false
         },
@@ -67,23 +53,6 @@
             "icon": "📅",
             "animation": "pulse",
             "advanced": false
-        },
-        {
-            "id": "ClaimAdjustments",
-            "title": "Manual Claim Adjustment",
-            "requiresCsv": true,
-            "requiresPassword": true,
-            "showOptionsPanel": true,
-            "descriptionFile": "description.md",
-            "requiresEnvFile": true,
-            "optionalEnvFile": true,
-            "description": "Loops through a list of ODS Codes and then navigates to the claim edit screen to then perform manual scripting to perform actions",
-            "icon": "🛠️",
-            "animation": "pulse",
-            "advanced": true,
-            "advancedOptions": {
-                "actionSet": "adjustmentDetails"
-            }
         },
         {
             "id": "AdvancedScript",

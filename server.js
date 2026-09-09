@@ -3,7 +3,6 @@ import multer from "multer";
 import cors from "cors";
 import fs from "node:fs";
 import crypto from "crypto";
-import fsp from "node:fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { spawn } from "child_process";
@@ -11,11 +10,10 @@ import { EventEmitter } from "events";
 import { encryptEnv, decryptEnv } from "./scripts/common/common.mjs";
 import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
-import { executeAdvancedSteps } from "./scripts/advanced/executeAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
-import { login, editProvider, findUser, findProvider, openUser, loginCommissioner, findFundingService, findService, openFundingService, openService } from "./scripts/PharmOutcomes/helpers.mjs"
+import * as helpers from "./scripts/pharmoutcomes/helpers.mjs"
 import { runScript } from "./scripts/common/runScript.mjs"
-import { ADVANCED_ACTION_SETS } from "./scripts/advanced/advancedActions.js";
+import { executePlan } from "./scripts/common/executePlan.mjs"
 
 // Memory session store
 const sessions = new Map();
@@ -110,7 +108,7 @@ app.post("/api/pinnacle/find-user", async (req, res) => {
             password
         }) => {
 
-            await login(
+            await helpers.login(
                 page,
                 loginUsername,
                 password,
@@ -118,7 +116,7 @@ app.post("/api/pinnacle/find-user", async (req, res) => {
             );
 
             users =
-                await findUser(
+                await helpers.findUser(
                     page,
                     username,
                     logger
@@ -133,158 +131,7 @@ app.post("/api/pinnacle/find-user", async (req, res) => {
     );
 });
 
-app.post("/api/pinnacle/find-funding-service", async (req, res) => {
 
-    const { commissionerName } = req.body;
-
-    process.env.ENV_ENC_PATH =
-        currentContext.envEncPath;
-
-    process.env.ENV_PASSPHRASE =
-        currentContext.passphrase;
-
-    let services = [];
-
-    await runScript({
-
-        logger: console.log,
-
-        main: async ({
-            page,
-            logger,
-            username: loginUsername,
-            password
-        }) => {
-
-            await login(
-                page,
-                loginUsername,
-                password,
-                logger
-            );
-
-            await loginCommissioner(page, commissionerName);
-
-            services =
-                await findFundingService(
-                    page,
-                    logger
-                );
-        }
-    });
-
-    res.json(services);
-});
-
-app.post("/api/pinnacle/find-service", async (req, res) => {
-
-
-    const { serviceName } = req.body;
-
-    process.env.ENV_ENC_PATH =
-        currentContext.envEncPath;
-
-    process.env.ENV_PASSPHRASE =
-        currentContext.passphrase;
-
-    let services = [];
-
-    await runScript({
-
-        logger: console.log,
-
-        main: async ({
-            page,
-            logger,
-            username: loginUsername,
-            password
-        }) => {
-
-            await login(
-                page,
-                loginUsername,
-                password,
-                logger
-            );
-
-            await loginCommissioner(page, serviceName);
-
-            services =
-                await findService(
-                    page,
-                    logger
-                );
-        }
-    });
-
-    res.json(services);
-});
-
-app.post("/api/pinnacle/execute", async (req, res) => {
-
-    const plan = req.body.plan;
-
-    let serviceResult = null;
-    let fundingServiceResult = null;
-
-    await runScript({
-
-        logger: console.log,
-
-        main: async ({
-            page,
-            logger,
-            username,
-            password
-        }) => {
-
-            await login(
-                page,
-                username,
-                password,
-                logger
-            );
-
-            const openServiceStep =
-                plan.find(
-                    p => p.action === "openService"
-                );
-
-            if (openServiceStep) {
-
-                serviceResult =
-                    await openService(
-                        page,
-                        openServiceStep.service,
-                        logger
-                    );
-            }
-
-            const openFundingServiceStep =
-                plan.find(
-                    p => p.action === "openFundingService"
-                );
-
-            if (openFundingServiceStep) {
-
-                fundingServiceResult =
-                    await openFundingService(
-                        page,
-                        openFundingServiceStep.service,
-                        logger
-                    );
-            }
-
-        }
-    });
-
-    res.json({
-        success: true,
-        service: serviceResult,
-        fundingService: fundingServiceResult,
-        runId: "12345"
-    });
-});
 let currentContext = null;
 
 app.get("/api/pinnacle/context", (req, res) => {
@@ -296,8 +143,159 @@ app.get("/api/pinnacle/context", (req, res) => {
 
 });
 
-app.post(
-    "/api/pinnacle/load-environment",
+app.post("/api/pinnacle/load-default-environment",
+    (req, res) => {
+
+        currentContext = {
+            environment: "Production",
+            envEncPath: "C:\\Users\\Drew.Clarke\\Downloads\\drew.clarke.enc",
+            passphrase: "D0ntkn0w1979?!"
+        };
+
+        res.json({
+            loaded: true
+        });
+
+    }
+);
+
+app.get("/api/pinnacle/users/:uid", async (req, res) => {
+
+    const uid = req.params.uid;
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    let user = [];
+
+    await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await helpers.login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+            user =
+                await helpers.openUser(
+                    page,
+                    uid,
+                    logger
+                );
+        }
+    });
+
+    res.json({
+        success: true,
+        user
+    });
+});
+
+app.get("/api/pinnacle/providers/:odsCode", async (req, res) => {
+
+    const odsCode = req.params.odsCode;
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    let provider = [];
+
+    await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await helpers.login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+
+            await helpers.editProvider(
+                page,
+                odsCode,
+                logger
+            );
+
+            //scrape the screen
+        }
+    });
+
+    res.json({
+        success: true,
+        provider
+    });
+});
+
+app.post("/api/pinnacle/plan",
+    async (req, res) => {
+
+        const { plan } = req.body;
+
+        process.env.ENV_ENC_PATH =
+            currentContext.envEncPath;
+
+        process.env.ENV_PASSPHRASE =
+            currentContext.passphrase;
+
+        await runScript({
+
+            logger: console.log,
+
+            main: async ({
+                page,
+                logger,
+                username,
+                password
+            }) => {
+
+                await helpers.login(
+                    page,
+                    username,
+                    password,
+                    logger
+                );
+
+                await executePlan(
+                    page,
+                    plan,
+                    logger
+                );
+            }
+        });
+
+        res.json({
+            success: true
+        });
+
+    }
+);
+
+app.post("/api/pinnacle/load-environment",
     upload.single("envFile"),
     (req, res) => {
 
@@ -322,6 +320,49 @@ app.post(
         });
 
         res.json(currentContext);
+    }
+);
+
+app.post("/api/pinnacle/execute-plan",
+    async (req, res) => {
+
+        const { plan } = req.body;
+
+        process.env.ENV_ENC_PATH =
+            currentContext.envEncPath;
+
+        process.env.ENV_PASSPHRASE =
+            currentContext.passphrase;
+
+        await runScript({
+
+            logger: console.log,
+
+            main: async ({
+                page,
+                logger,
+                username,
+                password
+            }) => {
+
+                await helpers.login(
+                    page,
+                    username,
+                    password,
+                    logger
+                );
+
+                await executePlan(
+                    page,
+                    plan,
+                    logger
+                );
+            }
+        });
+
+        res.json({
+            success: true
+        });
     }
 );
 
@@ -631,8 +672,6 @@ app.post("/api/run/:product/:scriptId", requireAuthAPI,
                 childEnv[key.toUpperCase()] = value;
             }
 
-            if (options.humanMode !== undefined)
-                childEnv.CONFIG_HUMAN = options.humanMode ? "true" : "false";
             if (options.showBrowser !== undefined)
                 childEnv.CONFIG_HEADLESS = options.showBrowser ? "false" : "true";
             if (options.recordVideo !== undefined)

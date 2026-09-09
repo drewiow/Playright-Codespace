@@ -3,6 +3,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { intent } from "../../scripts/WorkflowAI/AIRunner/intent.js";
 import { ADVANCED_ACTION_SETS, findAction } from "../../scripts/advanced/advancedActions.js";
+import * as userService from "./services/userService.mjs";
+
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +16,45 @@ app.use(express.static(path.join(__dirname, "public")));
 app.listen(4000, () => {
     console.log("PinnacleAI Assistant listening on http://localhost:4000");
 });
+
+
+app.post(
+    "/api/users/search",
+    async (req, res) => {
+
+        const users =
+            await userService.findUser(
+                req.body.search
+            );
+
+        res.json(users);
+
+    }
+);
+
+app.get(
+    "/api/users/:uid",
+    async (req, res) => {
+
+        const user =
+            await userService.getUser(
+                req.params.uid
+            );
+
+        res.json(user);
+
+    }
+);
+
+
+
+
+
+
+
+
+
+
 
 
 app.post("/api/chat", async (req, res) => {
@@ -133,6 +174,11 @@ app.post("/api/conversation", (req, res) => {
 
     if (lookup) {
 
+        const plan =
+            buildConversationPlan(
+                conversation
+            );
+
         const response = {
             complete: false,
             type: "lookupRequired",
@@ -142,6 +188,7 @@ app.post("/api/conversation", (req, res) => {
                 lookup.sourceField
                 ],
             collected: conversation.collected,
+            plan
         };
 
         console.log(
@@ -226,6 +273,27 @@ function findAdvancedAction(id) {
 function convertToWorkflow(plan) {
 
     return plan.map(step => {
+
+        if (step.action === "createCase") {
+            return {
+                icon: "🎫",
+                text: "Create Incident Record"
+            };
+        }
+
+        if (step.action === "addCaseNotes") {
+            return {
+                icon: "📝",
+                text: "Update Resolution Notes"
+            };
+        }
+
+        if (step.action === "closeCase") {
+            return {
+                icon: "✅",
+                text: "Resolve Incident"
+            };
+        }
 
         if (step.action === "openFundingService") {
             return {

@@ -198,51 +198,6 @@ export function decryptEnv(data, password) {
     ]).toString("utf8");
 }
 
-// -----------------------------
-// 2. Human mode overrides
-// -----------------------------
-export function enableHumanMode(page, enabled, intensity = 1) {
-    if (!enabled) return;
-
-    const baseTypeDelay = 40;
-    const baseClickDelay = 80;
-    const baseScrollDelay = 120;
-
-    const scale = Math.max(1, Math.min(intensity, 5));
-
-    const typeDelay = baseTypeDelay * scale;
-    const clickDelay = baseClickDelay * scale;
-    const scrollDelay = baseScrollDelay * scale;
-
-    try {
-        const originalType = page.type.bind(page);
-        page.type = async (selector, text, options = {}) => {
-            const delay = options?.delay ?? typeDelay;
-            return originalType(selector, text, { ...options, delay });
-        };
-
-        const originalClick = page.click.bind(page);
-        page.click = async (selector, options = {}) => {
-            await page.waitForTimeout(clickDelay);
-            return originalClick(selector, options);
-        };
-
-        const originalPress = page.keyboard.press.bind(page.keyboard);
-        page.keyboard.press = async (key, options = {}) => {
-            await page.waitForTimeout(typeDelay);
-            return originalPress(key, options);
-        };
-
-        page.humanScroll = async (amount = 400) => {
-            await page.mouse.wheel(0, amount);
-            await page.waitForTimeout(scrollDelay);
-        };
-
-        console.log(`👤 Human Mode enabled (intensity ${intensity})`);
-    } catch (err) {
-        console.error("❌ Human mode error:", err);
-    }
-}
 
 // -----------------------------
 // 3. Browser context factory
@@ -252,13 +207,6 @@ export async function createBrowserContext(options = {}) {
     // 1. options passed programmatically
     // 2. environment variables
     // 3. sensible local default (visible browser)
-    const human = typeof options.human === "boolean"
-        ? options.human
-        : process.env.CONFIG_HUMAN === "true";
-
-    const intensity = typeof options.intensity === "number"
-        ? options.intensity
-        : Number(process.env.CONFIG_INTENSITY || 1);
 
     const headless = typeof options.headless === "boolean"
         ? options.headless
@@ -280,11 +228,8 @@ export async function createBrowserContext(options = {}) {
     const videoDir = `${runDir}/videos`;
     if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
-    console.log("Headless = ", headless)
-
     const browser = await chromium.launch({
         headless: headless,
-        slowMo: human ? intensity * 100 : 0,
         devtools: devtools,
         executablePath: "C:\\Users\\Drew.Clarke\\AppData\\Local\\ms-playwright\\chromium_1150\\chrome-win\\chrome.exe"
     });
@@ -311,8 +256,6 @@ export async function createBrowserContext(options = {}) {
         await page.type(selector, value);
     };
 
-    enableHumanMode(page, human, intensity);
-
     if (recordTrace) await context.tracing.start({ screenshots: true, snapshots: true });
 
     page.saveVideo = async (name = "run") => {
@@ -326,6 +269,7 @@ export async function createBrowserContext(options = {}) {
 
     return { browser, context, page, headless, recordTrace };
 }
+
 
 export function normaliseKey(key) {
     return key.toLowerCase().replace(/[^a-z0-9]/g, "");

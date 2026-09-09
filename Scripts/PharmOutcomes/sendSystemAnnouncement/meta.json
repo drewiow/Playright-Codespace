@@ -1,6 +1,6 @@
 {
     "name": "Send a system announcement",
-    "description": "Creates a system announcement, and if selected applies to all regions",
+    "description": "Creates a system announcement",
     "inputs": [
         {
             "key": "from",
@@ -36,13 +36,6 @@
             "type": "textarea",
             "required": true,
             "placeholder": "e.g. This is my announcement"
-        },
-        {
-            "key": "primary",
-            "label": "Just Primary?",
-            "type": "checkbox",
-            "required": false,
-            "placeholder": ""
         }
     ]
 }

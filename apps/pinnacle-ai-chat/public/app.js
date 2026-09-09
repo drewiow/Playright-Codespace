@@ -300,6 +300,17 @@ async function processResponse(data) {
 
         console.log("USER LOOKUP HANDLER HIT");
 
+        window.pendingPlan = data.plan;
+
+        console.log(
+            "Pending Plan Set:",
+            JSON.stringify(
+                window.pendingPlan,
+                null,
+                2
+            )
+        );
+
         const thinkingId =
             addThinking();
 
@@ -310,9 +321,7 @@ async function processResponse(data) {
             )
         );
 
-        removeThinking(
-            thinkingId
-        );
+
 
         add(`
         <div class="ai-message">
@@ -385,9 +394,6 @@ async function processResponse(data) {
             )
         );
 
-        removeThinking(
-            thinkingId
-        );
 
         window.pendingPlan = data.plan;
 
@@ -564,31 +570,6 @@ async function send() {
 
         resetConversation();
 
-        const workflowResponse =
-            await fetch(
-                "/api/workflow",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-                    body: JSON.stringify({
-                        plan
-                    })
-                }
-            );
-
-        const workflow = await workflowResponse.json();
-
-        add(
-            renderWorkflow(workflow),
-            "ai",
-            false
-        );
-
-        return;
-
     }
 
     resetConversation();
@@ -613,7 +594,7 @@ async function send() {
         );
 
     }
-    removeThinking();
+
     await processResponse(
         data
     );
@@ -717,19 +698,9 @@ async function callApi(url, body) {
 
     } finally {
 
-        removeThinking(
-            thinkingId
-        );
+
 
     }
-}
-
-function removeThinking(id) {
-
-    document
-        .getElementById(id)
-        ?.remove();
-
 }
 
 function renderWorkflowSteps(
@@ -753,11 +724,11 @@ function renderWorkflowSteps(
         .join("");
 }
 
-async function findUsers(username) {
+async function findUsers(search) {
 
     const res =
         await fetch(
-            "http://localhost:3000/api/pinnacle/find-user",
+            "http://localhost:4000/api/users/search",
             {
                 method: "POST",
                 headers: {
@@ -765,9 +736,19 @@ async function findUsers(username) {
                         "application/json"
                 },
                 body: JSON.stringify({
-                    username
+                    search
                 })
             }
+        );
+
+    return await res.json();
+}
+
+async function getUser(uid) {
+
+    const res =
+        await fetch(
+            `/api/users/${uid}`
         );
 
     return await res.json();
@@ -822,28 +803,24 @@ async function findServices(serviceName) {
 function renderUserSearchResults(users) {
 
     return `
-                                <div class="ai-message">
+        <div class="ai-message">
 
-                                    I found
-                                    ${users.length}
-                                    matching users.
+            I found
+            ${users.length}
+            matching users.
 
-                                    <br><br>
+            <br><br>
 
-                                        ${renderUserResults(users)}
+                ${renderUserResults(users)}
 
-                                    </div>
-                                        `;
+            </div>
+                `;
 }
 
 document.getElementById('sendBtn').addEventListener('click', send);
 
 async function executeWorkflow() {
 
-    console.log(
-        "Executing:",
-        window.currentPlan
-    );
     document
         .querySelectorAll(".execute-btn")
         .forEach(btn => {
@@ -851,11 +828,106 @@ async function executeWorkflow() {
             btn.innerHTML = "✅ Submitted";
         });
 
-    executePlan(window.currentPlan);
+    //executePlan(window.currentPlan);
+    playExecutionDemo();
+
     window.executeWorkflow = executeWorkflow;
 }
 
+function playExecutionDemo() {
+
+    add(`
+        <div class="ai-message">
+            ⚙️ Executing Workflow...
+        </div>
+    `, "ai", false);
+
+    setTimeout(() => {
+        add(`
+            <div class="ai-message">
+                ✅ I have opened user - <br>
+                👤 Drew Clarke
+            </div>
+        `, "ai", false);
+    }, 1000);
+
+    setTimeout(() => {
+        add(`
+            <div class="ai-message">
+                🔐 Their MFA has been reset.
+            </div>
+        `, "ai", false);
+    }, 2000);
+
+    setTimeout(() => {
+        add(`
+            <div class="ai-message">
+                💾 Their user details have been saved
+            </div>
+        `, "ai", false);
+    }, 3000);
+
+    setTimeout(() => {
+        add(`
+            <div class="ai-message">
+                📝 Resolution Note "User MFA successfully reset" Added to CS1234567
+            </div>
+        `, "ai", false);
+    }, 4000);
+
+    setTimeout(() => {
+        add(`
+            <div class="ai-message">
+                ✅ Incident Closed
+                <br><br>
+                🎫 CS1234567
+            </div>
+        `, "ai", false);
+    }, 5000);
+
+    setTimeout(() => {
+        add(`
+            <div class="ai-message">
+                🎉 Request Completed Successfully
+            </div>
+        `, "ai", false);
+    }, 6000);
+}
+
 document.addEventListener("click", async (e) => {
+
+    if (
+        e.target.classList.contains(
+            "verify-user-btn"
+        )
+    ) {
+
+        const workflowResponse =
+            await fetch(
+                "/api/workflow",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        plan: window.currentPlan
+                    })
+                }
+            );
+
+        const workflow =
+            await workflowResponse.json();
+
+        add(
+            renderWorkflow(workflow),
+            "ai",
+            false
+        );
+
+        return;
+    }
 
     if (e.target.classList.contains("find-user-btn")) {
 
@@ -982,15 +1054,55 @@ document.addEventListener("click", async (e) => {
             editUrl: e.target.dataset.editurl
         };
 
+        console.log(
+            "pendingPlan:",
+            window.pendingPlan
+        );
+
         window.currentPlan = [
             {
                 action: "openUser",
                 user: selectedUser
             },
-            ...window.pendingPlan.filter(
-                step => step.action !== "findUser"
+            ...(window.pendingPlan || []).filter(
+                step => step && step.action !== "findUser"
             )
         ];
+
+        window.selectedUser = selectedUser;
+
+        add(
+            renderIncidentCreated(),
+            "ai",
+            false
+        );
+
+        setTimeout(() => {
+
+            add(
+                renderGatheringUserDetails(),
+                "ai",
+                false
+            );
+
+        }, 1000);
+
+        const user =
+            await getUser(
+                selectedUser.uid
+            );
+
+        setTimeout(() => {
+
+            add(
+                renderUserVerification(user),
+                "ai",
+                false
+            );
+
+        }, 2500);
+
+        return;
 
         console.log(
             "Selected User:",
@@ -1159,27 +1271,98 @@ function renderServiceResults(services) {
         `;
 }
 
+function renderIncidentCreated() {
+
+    return `
+        <div class="ai-message">
+
+            ✅ Case Created
+
+            <br><br>
+
+            🎫 CS1234567
+
+        </div>
+    `;
+}
+
+function renderGatheringUserDetails() {
+
+    return `
+        <div class="ai-message">
+            📋 Gathering user details...
+        </div>
+    `;
+}
+
+function renderUserVerification(user) {
+
+    return `
+        <div class="workflow verification-card">
+
+            <h3>⚠️ Verification Required</h3>
+
+            <p>
+                For security reasons, please verify the user's identity before I continue.
+            </p>
+
+            <div class="workflow-step">
+                👤 ${user.displayName}
+            </div>
+
+             <div class="workflow-step">
+                📧 ${user.email}
+            </div>
+
+            <div class="workflow-step">
+                📞 ${user.telephone}
+            </div>
+
+            <div class="workflow-step">
+                🆔 ${user.username}
+            </div>
+
+            <div class="workflow-step">
+                🔑 ${user.uid}
+            </div>
+
+            <br>
+
+            <button
+                class="verify-user-btn">
+                ✅ Continue
+            </button>
+
+            <button
+                class="cancel-user-btn">
+                🔍 Select Different User
+            </button>
+
+        </div>
+    `;
+}
+
 function renderWorkflow(
     workflow
 ) {
 
     return `
-                                        <div class="workflow">
+        <div class="workflow">
 
-                                            <strong>
-                                                Proposed Workflow
-                                            </strong>
+            <strong>
+                Proposed Workflow
+            </strong>
 
-                                            <div class="workflow-list">
-                                                ${renderWorkflowSteps(workflow)}
-                                            </div>
+            <div class="workflow-list">
+                ${renderWorkflowSteps(workflow)}
+            </div>
 
-                                            <button class="execute-btn">
-                                                🚀 Execute Workflow
-                                            </button>
+            <button class="execute-btn">
+                🚀 Execute Workflow
+            </button>
 
-                                        </div>
-                                        `;
+        </div>
+        `;
 }
 
 async function executePlan(plan) {
@@ -1198,6 +1381,7 @@ async function executePlan(plan) {
             })
         }
     );
+
 
     console.log("Response object:", res);
 

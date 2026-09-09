@@ -26,22 +26,22 @@
         {
             "key": "covidVaccination",
             "label": "Covid Vaccination (Private)",
-            "required": false
+            "required": true
         },
         {
             "key": "seasonalFluVaccination",
             "label": "Seasonal Flu Vaccination (Private)",
-            "required": false
+            "required": true
         },
         {
             "key": "meningitisBVaccination",
             "label": "Meningitis B Vaccination (Private)",
-            "required": false
+            "required": true
         },
         {
             "key": "shinglesVaccination",
             "label": "Shingles Vaccination",
-            "required": false
+            "required": true
         },
         {
             "key": "periodDelay",
@@ -51,6 +51,31 @@
         {
             "key": "pneumococcalVaccination",
             "label": "Pneumococcal Vaccination PCV",
+            "required": false
+        },
+        {
+            "key": "AllergicRhinitis(Hayfever)-Azelastine",
+            "label": "Allergic Rhinitis (Hayfever) - Azelastine",
+            "required": false
+        },
+        {
+            "key": "AllergicRhinitis(Hayfever)-Dymista",
+            "label": "Allergic Rhinitis (Hayfever) - Dymista",
+            "required": false
+        },
+        {
+            "key": "AllergicRhinitis(Hayfever)-Fexofenadine",
+            "label": "Allergic Rhinitis (Hayfever) - Fexofenadine",
+            "required": false
+        },
+        {
+            "key": "antimalariasMefloquine",
+            "label": "Antimalarias Mefloquine",
+            "required": false
+        },
+        {
+            "key": "chickenpoxVaccination",
+            "label": "Chickenpox Vaccination",
             "required": false
         },
         {

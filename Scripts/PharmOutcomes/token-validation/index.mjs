@@ -1,8 +1,7 @@
 import { runScript } from "../../common/runScript.mjs";
-import { login, editProvider, loginAsProvider, compareImages } from "../helpers.mjs";
-import { logAction, getMappedValue, toTitleCase, cleanEmail } from "../../common/common.mjs";
+import { login, loginAsProvider, compareImages } from "../../pharmoutcomes/helpers.mjs";
+import { logAction } from "../../common/common.mjs";
 import fs from "node:fs";
-import path from "node:path";
 import { createTestLogger } from "../../common/testLogger.mjs";
 
 export default async function run() {
@@ -21,13 +20,13 @@ export default async function run() {
 
       test.step("Loggin into PharmOutcomes");
       await logAction("Login", () =>
-        login(page, username, password, "PRIM"),
+        helpers.login(page, username, password, "PRIM"),
         logger
       );
 
       test.step("Opening Pharmacy First provision");
       await logAction("Login as provider", () =>
-        loginAsProvider(page, process.env.ODSCODE),
+        helpers.loginAsProvider(page, process.env.ODSCODE),
         logger
       );
 
@@ -91,7 +90,6 @@ export default async function run() {
   });
 }
 
-// ✅ required for your runner
 run().catch(err => {
   console.error("Script failed:", err?.stack || err);
   process.exit(1);

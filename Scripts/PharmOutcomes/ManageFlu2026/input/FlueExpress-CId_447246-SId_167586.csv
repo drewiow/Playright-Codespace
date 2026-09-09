@@ -1,0 +1,268 @@
+SysID,Name,NHSCode,Add/Remove,Identifier,Branch,Address,NHSCode
+43079,Well,FX747,Add,Handforth - Wilmslow Road HC,224538,"Handforth Health Centre, Wilmslow Road, Handforth SK9 3HL",FX747
+43103,Well,FX898,Add,Carlisle - Denton Street,222568,"139 Denton Street, Carlisle CA2 5HB",FX898
+43171,Well,FXE35,Add,Wollaton - Harrow Road,200444,"12 Harrow Road, Wollaton Park, Nottingham NG8 1FG",FXE35
+43180,Well,FXF01,Add,Enfield - 417 Hertford Road,200609,"417 Hertford Road, Enfield EN3 5PT",FXF01
+43214,Well,FXG89,Add,Heathfield - Hucknall Road,220517,"Off Kibworth Close, Hucknall Road, Nottingham NG5 1NA",FXG89
+43245,Well,FXJ57,Add,Meir - Uttoxeter Road,223046,"792 Uttoxeter Road, Meir, Stoke-On-Trent ST3 7AE",FXJ57
+43288,Well,FXM29,Add,Fishponds - Lodge Causeway,200461,"306 Lodge Causeway, Fishponds, Bristol BS16 3RD",FXM29
+43315,Well,FXN58,Add,Ravenfield - Hollings Lane - Bestway,223061,"6 Hollings Lane, Ravenfield, Rotherham S65 4PU",FXN58
+43316,Well,FXN63,Add,"Morley - South Queen Street, 5757",220509,"South Queen Street, Morley, Leeds LS27 9EW",FXN63
+43410,Well,FXV25,Add,Goldenhill - Ann Street,228535,"Anne Street, Goldenhill, Stoke-On-Trent ST6 5QJ",FXV25
+43421,Well,FXV63,Add,Saffron Walden - Hill Street,200559,"3 The Arches, Hill Street, Saffron Walden CB10 1ED",FXV63
+43425,Well,FXV77,Add,Marple Bridge - Town Street,224437,"19 Town Street, Marple Bridge, Stockport SK6 5AH",FXV77
+43436,Well,FXW67,Add,Downend - Badminton Road,200455,"7 Badminton Road, Downend, Bristol BS16 6BB",FXW67
+43448,Well,FXX64,Add,Bentley - High Street,200423,"71 High Street, Bentley, Doncaster DN5 0AP",FXX64
+43513,Well,FY463,Add,Northwich - Witton Street,228547,"Well, Unit 1, Cock o'Witton, Witton Street, Northwich, Cheshire., CW9 5QY",FY463
+43529,Well,FY647,Add,"Horsforth - Town Street, 5760",200216,"74 Town Street, Horsforth, Leeds LS18 4AP",FY647
+43532,Well,FY671,Add,Shaw - High Street,224057,"4 High Street, Shaw, Oldham OL2 8RQ",FY671
+43603,Well,FYE63,Add,Dukinfield - King Street,224264,"104-106 King Street, Dukinfield, Cheshire, SK16 4JZ",FYE63
+43607,Well,FYE94,Add,Peacehaven - Anchor Health Centre,200580,"Co-Operative Superstore, Meridian Centre, Peacehaven, BN10 8NF",FYE94
+43646,Well,FYL11,Add,"Leeds - Swinnow Road, 5761",200218,"190 Swinnow Road, Leeds LS28 9AR",FYL11
+43690,Well,FYQ20,Add,Davenham - Church Street,228530,"1 Church Street, Davenham, Northwich CW9 8NE",FYQ20
+43714,Well,FYR78,Add,Blackpool - Highfield Road,220467,"53 Highfield Road, Blackpool FY4 2JE",FYR78
+99801,Well,FCX14,Add,Bentham - Main Street,224073,"Stafford House, Main Street, Bentham, LA2 7HL",FCX14
+128351,Well,FWC24,Add,Keele - Keele University,223063,"Unit 4, Students Union Bld, Keele University, Keele, ST5 5BG",FWC24
+131281,Well,WE000,Add,Test Pharmacy,0,"13 Springwell Road, Wells-on-Sea, Placewell WL23 1XX",WE000
+300311,Well,1647,Add,Glasgow - Nitshill Road,200163,"403 Nitshill Road, Glasgow, Scotland, G537BN",1647
+300321,Well,1648,Add,Well Glasgow - Eaglesham Road,200166,"7 Eaglesham Road, Clarkston, Glasgow, G767BU",1648
+300331,Well,1621,Add,Well Glasgow - Croftfoot Road,200167,"9 Croftfoot Road, Glasgow, Scotland, G445JR",1621
+300361,Well,1363,Add,Well Glasgow - Shettleston Road,200164,"1158 Shettleston Road, Glasgow, Scotland, G327PQ",1363
+300371,Well,2226,Add,Brymbo - Ael-Y-Bryn,228515,"1 Ael-Y-Bryn, Brymbo, Wrexham, LL115DA",2226
+300381,Well,4777,Add,Well Paisley - Broomlands Street,200171,"11 Broomlands Street, Paisley, Scotland, PA12LS",4777
+300391,Well,2211,Add,Shotton - Shotton Lane,224416,"32 Shotton Lane, Shotton, Deeside, CH51QW",2211
+300401,Well,4779,Add,Well Johnstone - Quarry Street,200172,"18 Quarry Street, Johnstone, Scotland, PA58DZ",4779
+300411,Well,2131,Add,Rhos - 57 Market Street,224165,"57 Market Street, Rhos, Wrexham, LL14 2LA",2131
+300421,Well,2130,Add,Rhos - 85 Market Street,224163,"85 Market Street, Rhos, Wrexham, LL14 2LB",2130
+300431,Well,4775,Add,Well Paisley - Glasgow Road,200173,"24 Glasgow Road, Paisley, Scotland, PA13QH",4775
+300441,Well,857K,Add,Aberystwyth - Terrace Road,200425,"Church Surgery, Portland Street, Aberystwyth. SY232DX",857K
+300451,Well,857J,Add,Llanybydder - Market Square,200421,"Market Square, Llanybydder, Carmarthenshire, SA409UE",857J
+300461,Well,4778,Add,Well Renfrew - High Street,200174,"4 High Street, Renfrew, Scotland, PA48QR",4778
+300471,Well,857I,Add,Llanelli - Station Road,200391,"150-152 Station Road, Llanelli, Carmarthenshire, SA151YU",857I
+300481,Well,4776,Add,Well Erskine - Mains Drive,200175,"4a Mains Drive, Erskine, Scotland, PA87JQ",4776
+300491,Well,4780,Add,Well Paisley - Neilston Road,200176,"61 Neilston Road, Paisley, Scotland, PA26LZ",4780
+300501,Well,857N,Add,Gorseinon - 2 Alexandra Road,200389,"2 Alexandra Road, Gorseinon, Swansea, SA44NW",857N
+300511,Well,4677,Add,Well Balloch - Dalvait Road,200187,"11 Dalvait Road, Balloch, Dunbartonshire, G838LA",4677
+300521,Well,857O,Add,Gowerton - Mill Street,200387,"Mill Street, Gowerton, Swansea, SA43ED",857O
+300531,Well,854E,Add,West Cross - Alderwood Road,200358,"8 Alderwood Road, West Cross, Swansea, SA35JD",854E
+300541,Well,1361,Add,Well Kirkintilloch - Cowgate,200188,"101 Cowgate, Kirkintilloch, Glasgow, G661JD",1361
+300551,Well,854I,Add,West Cross - West Cross Lane,200354,"82 West Cross Lane, West Cross, Swansea, SA35NG",854I
+300561,Well,854L,Add,Murton - Manselfield Road,200351,"Manselfield Road, Murton Swansea, SA3 3AR",854L
+300571,Well,4597,Add,Well Greenock -Roxburgh Street,200189,"34 Roxburgh Street, Greenock, Renfrewshire, PA154NR",4597
+300581,Well,850A,Add,Llandeilo - Rhosmaen Street,200314,"52 Rhosmaen Street, Llandeilo, Carmarthenshire, SA196HA",850A
+300591,Well,850B,Add,Pontyberem - The Square,200308,"The Square, Pontyberem, Llanelli, SA15 5EA",850B
+300601,Well,1358,Add,Well Glasgow - Baillieston Road,200190,"171-177 Baillieston Road, Glasgow, Scotland, G320TN",1358
+300611,Well,2067,Add,Well Ormiston - Ormiston Medical Centre,200138,"Ormiston Medical Centre Tynemount Road Ormiston, East Lothian EH355AB",2067
+300621,Well,2069,Add,Well Port Seton - Links Road,200139,"42 Links Road Port Seton Edinburgh, Lothian EH320EA",2069
+300631,Well,6628,Add,Well Tillicoultry - High Street,200142,"91 High Street, Tillicoultry, Scotland, FK136AB",6628
+300641,Well,853P,Add,Cardigan - Pendr,200302,"59 Pendr Cardigan, Dyfed SA431JR",853P
+300651,Well,6627,Add,Well Alloa - High Street,200143,"60 High Street, Alloa, Scotland, FK101JD",6627
+300671,Well,2070,Add,Well Tranent - High Street,200158,"115 High Street, Tranent, Lothian, EH33 1LW",2070
+300681,Well,853A,Add,St Davids - Cross Square,200300,"13-14 Cross Square St Davids Haverfordwest, Pembrokeshire SA626SE",853A
+300691,Well,856E,Add,Gorseinon - 63 Alexandra Road,200276,"63 Alexandra Road, Gorseinon, Swansea, SA44NN",856E
+300701,Well,2170,Add,Well Musselburgh - North High Street,200178,"123 North High Street, Musselburgh, Scotland, EH216JE",2170
+300711,Well,2491,Add,Well Fauldhouse - Lanrigg Road,200179,"The Fauldhouse Partnership Centre Lanrigg Road, Fauldhouse, EH479JD",2491
+300721,Well,6639,Add,Well Falkirk - Ronades Road,200180,"Unit B, New Carron Village, 1 Ronades Road, Falkirk., FK2 7TA",6639
+300731,Well,2169,Add,Well Fauldhouse - Main Street,200181,"2a Main Street, Fauldhouse, Bathgate, EH479JA",2169
+300741,Well,2456,Add,Well Kirkliston - Main Street,200182,"36-38 Main Street, Kirkliston, EH299AA",2456
+300751,Well,6669,Add,Well Haggs - Kilsyth Road,200183,"120 Kilsyth Road, Haggs, Bonnybridge, FK41HP",6669
+300761,Well,855L,Add,Trimsaran - Heol Llanelli,200257,"1 Heol Llanelli Trimsaran Kidwelly, Carmarthenshire SA174AA",855L
+300771,Well,2409,Add,Well Prestonpans - High Street,200185,"176 High Street, Prestonpans, Lothian, EH329AZ",2409
+300781,Well,2471,Add,Well Edinburgh - Craigentinny Road,200192,"100 Craigentinny Road, Edinburgh, Lothian, EH76RN",2471
+300811,Well,2473,Add,Well Edinburgh - Lochend Road South,200193,"12a Lochend Road, South Edinburgh, Lothian, EH76BP",2473
+300821,Well,2472,Add,Well Edinburgh - Granton Road,200194,"114-116 Granton Road, Edinburgh, Lothian, EH53RE",2472
+300831,Well,2475,Add,Well Edinburgh - Stenhouse Cross,200196,"4 Stenhouse Cross, Edinburgh, Lothian, EH113JY",2475
+300871,Well,2470,Add,Well Edinburgh - Restalrig Road,200198,"1 Restalrig Road, Edinburgh, Lothian, EH68BB",2470
+300881,Well,7615,Add,Well Moffat - High Street,220538,"High Street, Moffat, Dumfriesshire, DG109DL",7615
+300901,Well,7617,Add,Well Lochmaben - High Street,220539,"39-41 High Street, Lochmaben, Lockerbie, DG111NG",7617
+300911,Well,7618,Add,Well Lockerbie - High Street,220540,"21-23 High Street, Lockerbie, Dumfriesshire, DG112JL",7618
+300921,Well,7616,Add,Well Gretna - Annan Road,220541,"50 Annan Road, Gretna, Dumfriesshire, DG16 5DG",7616
+300941,Well,7635,Add,Well Dalbeattie - High Street,222572,"22 High Street, Dalbeattie, Dumfriesshire, DG54AA",7635
+300951,Well,6086,Add,Well Kelty - Main Street,200130,"39 Main Street, Kelty, Scotland, KY40AA",6086
+300991,Well,5662,Add,Well Perth - Rannoch Road,200134,"191 Rannoch Road, Letham, Perth, PH12DP",5662
+301001,Well,6130,Add,Well Crossgates - Main Street,200135,"92 Main Street, Crossgates, Fife, KY48DF",6130
+301011,Well,5587,Add,Well Arbroath - High Street,200136,"112 High Street, Arbroath, Dundee, DD11 1HN",5587
+301031,Well,5584,Add,Well Arbroath - Fisheracre,200137,"9 Fisheracre, Arbroath, Dundee, DD11 1LE",5584
+301051,Well,6137,Add,Well Methil - Wellesley Road,200140,"303 Wellesley Road, Methil, Fife, KY8 3BS",6137
+301061,Well,6135,Add,Well Kincardine - High Street,200144,"31 High Street, Kincardine, Scotland, FK104RJ",6135
+301071,Well,6138,Add,Well Rosyth - Castlandhill Road,200146,"2 Crossroads Place, Rosyth, Dunfermline., KY11 2LS",6138
+301081,Well,855B,Add,Pennard - Pennard HC,200251,"Pennard HC, Pennard Road, Pennard, SA32AD",855B
+301091,Well,6131,Add,Well Dunfermline - Abbeyview,200147,"3 Abbeyview, Dunfermline, Fife, KY114HA",6131
+301101,Well,6228,Add,Well Dunfermline - Douglas Street,200148,"7 Douglas Street, Dunfermline, Fife, KY127EB",6228
+301111,Well,855C,Add,Scurlage - Monksland Road,200250,"Monksland Road, Scurlage, Swansea, SA31AY",855C
+301121,Well,855K,Add,Llanelli - Llwynhendy Road HC,200249,"Adfer Medical Group, Llwynhendy HC Llwynhendy Road Llanelli, Carmarthenshire SA149BN",855K
+301131,Well,855J,Add,Llanelli - Park Crescent,200248,"1 Park Crescent, Llanelli, Carmarthenshire, SA153AE",855J
+301141,Well,855I,Add,Llanelli - Vauxhall,200247,"Llanelli 5 Vauxhall Llanelli, Carmarthenshire SA153BD",855I
+301151,Well,603855H,Add,Burry Port - Methygfa Tywyn bach MC,200246,"Meddygfa Tywyn Bach MC, Parc Y Minos Street, Burry Port, SA160BN",603855H
+301161,Well,857L,Add,Pontardawe - Herbert Street,200388,"59 Herbert Street, Pontardawe, Swansea, SA84ED",857L
+301171,Well,855G,Add,Port Talbot - Station Road,200365,"127 Station Road, Port Talbot, SA131NR",855G
+301181,Well,855F,Add,Neath - London Road,200364,"130 London Road, Neath SA111HF",855F
+301191,Well,6229,Add,Dunfermline - Elliot Street,200149,"Elliot Street, Dunfermline, Fife, KY114TF",6229
+301201,Well,6230,Add,Lochgelly - Bank Street,200150,"66 Bank Street, Lochgelly, Fife, KY59QN",6230
+301211,Well,6133,Add,Dunfermline - St Andrews Street,200151,"St. Andrews Street, Dunfermline, Fife, KY114QG",6133
+301221,Well,5669,Add,Montrose - Murray Street,200153,"73-75 Murray Street, Montrose, Angus, DD108JZ",5669
+301231,Well,7071,Add,Alness - High Street,200155,"96-98 High Street, Alness, Highland, IV170SG",7071
+301241,Well,7073,Add,Tain - 23-25 High Street,200156,"23-25 High Street, Tain, Rosshire, IV191AE",7073
+301251,Well,7131,Add,Tain - 5-9 High Street,200157,"5-9 High Street, Tain, Rosshire, IV191AB",7131
+301261,Well,3155,Add,Larkhall - Union Street,200160,"102 Union Street, Larkhall, Scotland, ML91EF",3155
+301271,Well,5082,Add,Beith - Main Street,200161,"18-20 Main Street, Beith, Scotland, KA152AD",5082
+301281,Well,5253,Add,Ayr - Sandgate,200162,"10-12, Sandgate, Ayr, Scotland, KA71BH",5253
+301291,Well,5273,Add,Mauchline - Loudoun Street,200165,"1-5 Loudoun Street, Mauchline, Scotland, KA55BA",5273
+301311,Well,5767,Add,Dundee - Hilltown,200169,"236 Hilltown, Dundee, Tayside, DD37AU",5767
+301321,Well,5766,Add,Dundee - Albert Street,200170,"111-113 Albert Street, Dundee, Tayside, DD46PJ",5766
+301331,Well,4527,Add,Dunoon - Argyll Street,200177,"178-180 Argyll Street, Dunoon, Argyll, PA237HA",4527
+301341,Well,3180,Add,Kilsyth - Main Street,200186,"70 Main Street, Kilsyth, Stirlingshire, G650AL",3180
+301351,Well,3151,Add,Castlereagh - Ballygowan Road,200102,"2 Ballygowan Road Castlereagh Belfast, County Antrim BT57LL",3151
+301361,Well,299,Add,Belfast - Woodvale Road,200104,"58-60 Woodvale Road, Belfast, County Antrim, BT133BT",299
+301371,Well,6295,Add,Newtonabbey - Abbotts Cross,200105,"11-12 Abbotts Cross, Doagh Road, Newtonabbey, BT379QU",6295
+301381,Well,378,Add,Belfast - Donegall Road,200106,"332 Donegall Road, Belfast, County Antrim, BT126FX",378
+301391,Well,361,Add,Belfast - Ballygomartin Road,200107,"70 Ballygomartin Road, Belfast, BT13 3NE",361
+301401,Well,6343,Add,Rathcoole - The Diamond,200108,"26 The Diamond, Rathcoole, Newtownabbey, BT379BJ",6343
+301411,Well,282,Add,Belfast - Newtownards Road,200109,"125 Newtownards Road, Belfast, BT41AB",282
+301421,Well,3144,Add,Ballynahinch - Main Street,200118,"39 Main Street, Ballynahinch, BT248DN",3144
+301431,Well,354,Add,Belfast - Crumlin Road,200119,"155 Crumlin Road, Belfast, County Antrim, BT147AA",354
+301441,Well,853D,Add,Llanbradach - High Street,200258,"36 High Street, Llanbradach, Caerphilly, CF833LQ",853D
+301451,Well,853O,Add,Blaenavon - Broad Street,200259,"14 Broad Street, Blaenavon, Newport, NP49ND",853O
+301461,Well,853K,Add,Newport - Chepstow Road,200260,"262 Chepstow Road, Newport, Gwent, NP198NL",853K
+301471,Well,853I,Add,Caerleon - High Street,200262,"Wednesday House, High Street Caerleon Newport NP181AZ",853I
+301481,Well,853L,Add,Newport - Kelvedon Street,200263,"7-9 Kelvedon Street, Newport, Gwent, NP190DW",853L
+301491,Well,853J,Add,Newport - Clytha Park Road,200266,"4 Clytha Park Road, Newport, Gwent, NP204NZ",853J
+301501,Well,853M,Add,Monmouth - Monnow Street,200269,"Well Pharmacy, 108 Monnow Street, Monmouth, NP253EQ",853M
+301511,Well,850F,Add,Garndiffaith - Stanley Road,200271,"Stanley Road Garndiffaith Pontypool, Newport NP47LH",850F
+301521,Well,850E,Add,Ebbw Vale - James Street,200272,"The Surgery James Street Ebbw Vale, Newport NP236JG",850E
+301531,Well,850D,Add,Cwm - Marine Street,200273,"6 Marine Street Cwm Gwent, Newport NP237ST",850D
+301541,Well,850C,Add,Brynmawr,200275,"Brynmawr Resource Centre, Brynmawr, NP23 4BR",850C
+301551,Well,856P,Add,Trethomas - The Bryn,200298,"The Bryn Trethomas, Newport, CF838GP",856P
+301561,Well,857A,Add,Bedwas - Church Street,200299,"26 Church Street, Bedwas, Newport, CF838EB",857A
+301571,Well,852N,Add,Risca - Tredegar Street,200329,"55 Tredegar Street, Newport, Gwent, NP116BW",852N
+301581,Well,855O,Add,Newport - Caerleon Road,200369,"175 Caerleon Road, Newport, South Wales, NP197FX",855O
+301591,Well,855P,Add,Rhymney - Integrated Resource Centre,200368,"Rhymney Integrated Resource Centre Rhymney, Tredegar, NP225PW",855P
+301601,Well,855N,Add,Rogerstone - Chapelwood Practice,200370,"Chapelwood, Rogerstone, Newport, NP10 9DU",855N
+301611,Well,857P,Add,Ebbw Vale - Bridge Street HC,200744,"Bridge Street Health Centre, Ebbw Vale, Gwent, NP236EY",857P
+301621,Well,853G,Add,Llanrumney - Countisbury Avenue,200264,"60 Countisbury Avenue, Llanrumney, Cardiff, CF35SP",853G
+301631,Well,853E,Add,Pentwyn - St Davids MC,200265,"St Davids Medical Centre, Pentwyn Drive, Cardiff, CF237EY",853E
+301641,Well,853F,Add,Grangetown - Holmesdale Street,200267,"100 Holmesdale Street, Grangetown, Cardiff, CF117BW",853F
+301651,Well,853H,Add,Rhiwbina - Heol Llanishen Fach,200268,"119 Heol Llanishen, Rhiwbina, Cardiff, CF146RE",853H
+301661,Well,853B,Add,Llantwit Major - Boverton Road,200270,"5 Boverton Road, Llantwit Major, Cardiff, CF611XZ",853B
+301671,Well,852E,Add,Roath - City Road,200301,"219-221 City Road, Roath, Cardiff, CF243JF",852E
+301691,Well,855M,Add,Butetown - Loudon Square,200304,"213 Bute Street, Butetown Cardiff CF105HR",855M
+301711,Well,853C,Add,Brackla - The Triangle,200317,"8 The Triangle, Brackla, Bridgend, CF312LL",853C
+301731,Well,852F,Add,Pontycymmer - Victoria Street,200323,"Victoria Street, Pontycymmer, CF328NN",852F
+301741,Well,852G,Add,Pyle - Pyle Industrial Estate,200324,"Well Pharmacy, Pyle Industrial Estate, Pyle, CF336BL",852G
+301751,Well,852I,Add,Radyr - Station Road,200325,"12 Station Road, Radyr, Cardiff, CF15 8AA",852I
+301761,Well,852H,Add,Roath - 180 City Road,200326,"180 City Road Roath Cardiff, CF243JF",852H
+301771,Well,852O,Add,Sarn - Tynycoed Surgery,200328,"Tynycoed Surgery 20 Merfield Close Bryncethin, Bridgend CF329SW",852O
+301781,Well,856C,Add,Grangetown - Clare Road,200371,"178 Clare Road, Grangetown, Cardiff, CF116YG",856C
+301791,Well,856L,Add,Roath - Upper Clifton Street,200372,"1-3 Upper Clifton Street, Roath, Cardiff, CF241PU",856L
+301801,Well,856M,Add,Trowbridge - Abergele Road,200383,"Unit 3, Trowbridge Local Centre Abergele Road Trowbridge, Rumney CF31RR",856M
+301811,Well,856N,Add,Rumney - Wentloog Road,200384,"106 Wentloog Road, Rumney, Cardiff, CF33EA",856N
+301821,Well,857E,Add,Aberkenfig - Bridgend Road,200385,"89 Bridgend Road, Aberkenfig, Mid Glamorgan, CF329BA",857E
+301831,Well,856O,Add,Cardiff - Caerphilly Road,200386,"Birchgrove Medical Centre, Caerphilly Road, Cardiff, CF144QF",856O
+301841,Well,857F,Add,Beddau - Common Approach,200226,"Unit 2, Common Approach Beddau Pontypridd CF382BL",857F
+301851,Well,857H,Add,Treherbert - Bute Street,200227,"167 Bute Street, Treherbert, Mid. Glamorgan, CF425PE",857H
+301861,Well,857G,Add,Tynewydd - William Street,200228,"William Street Tynewydd Treherbert, Treorchy CF425JJ",857G
+301871,Well,857B,Add,Brecon - The Bulwark,200297,"Beacon Pharmacy, 7 The Bulwark, Brecon, LD37LB",857B
+301881,Well,850H,Add,Maesteg - Llynfi Road,200306,"Unit 4, Llynfi Retail Park Llynfi Road Maesteg CF349DS",850H
+301891,Well,850J,Add,Merthyr Tydfil - 12-13 New Market Walk,200311,"12-13 New Market Walk, Merthyr, Tydfil Mid, Glamorgan, CF478EL",850J
+301901,Well,852K,Add,Tonypandy - De Winton Street,200312,"31 De Winton Street, (The Square), Tonypandy, CF402RA",852K
+301911,Well,850K,Add,Penygraig - Tylacelyn Road,200313,"62 Tylacelyn Road, Penygraig, Tonypandy, CF401JU",850K
+301921,Well,850I,Add,Tonyrefail - Mill Street,200315,"14 Mill Street, Tonyrefail, Mid Glamorgan, CF398AA",850I
+301931,Well,850G,Add,Gilfach Goch - Gelliarael Road HC,200316,"Cwm Gwyrdd Medical Centre, Swn Yr, Afon High Street, Gilfach Goch, CF398SX",850G
+301941,Well,850L,Add,Penygraig - Penygraig HC,200318,"Penygraig Surgery, George Street, Penygraig, CF401QN",850L
+301951,Well,850M,Add,Tonyrefail - Tonyrefail HC,200320,"Park Lane, Mill Street Tonyrefail Porth Mid Glamorgan CF398AF",850M
+301961,Well,852J,Add,Nantyffyllon - High Street,200327,"77a High Street, Nantyffyllon, Maesteg, CF340BT",852J
+301971,Well,856B,Add,Aberfan - Aberfan Road,200366,"8 Aberfan Road, Aberfan, Merthyr Tydfil, CF484QL",856B
+301981,Well,856A,Add,Troed-Y-Rhiw - Bridge Street,200367,"8 Bridge Street, Troed-Y-Rhiw, Mid Glamorgan, CF484JX",856A
+301991,Well,856K,Add,Hirwaun - High Street,200373,"37 High Street, Hirwaun, Mid Glamorgan, CF449SW",856K
+302001,Well,856J,Add,Hirwaun - The New Medical Centre,200374,"The New Medical Centre High Street, Hirwaun Aberdare CF449SL",856J
+302011,Well,857D,Add,Maesteg - Commercial Street,200375,"43 Commercial Street, Maesteg, Bridgend, CF349DH",857D
+302021,Well,857C,Add,Maesteg - Talbot Street,200376,"1 Talbot Street, Maesteg, Bridgend, CF349BT",857C
+302031,Well,856I,Add,Merthyr Tydfil - 18 Newmarket Walk,200377,"18 Newmarket Walk, Merthyr, Tydfil Mid, Glamorgan, CF478EL",856I
+302041,Well,856F,Add,Church Village - Main Road,200379,"1 Main Road, Church Village, Pontypridd, CF381PY",856F
+302051,Well,856G,Add,Tonteg - Church Road,200382,"Church Road, Tonteg, Pontypridd, CF381EG",856G
+302061,Well,854P,Add,Sketty Park - Parkway,200253,"2 Parkway Sketty Swansea, SA28JJ",854P
+302071,Well,855D,Add,Gendros - Fforestfach HC,200255,"118 Ravenhill Road Ravenhill, SA55AA",855D
+302081,Well,854N,Add,Clase - Rheidol Avenue,200256,"94 Rheidol Avenue, Clase SA67JS",854N
+302091,Well,856D,Add,Swansea - Beacon Centre For Health,200274,"The Beacon Centre for Health, Langdon Road, Swansea SA18QY",856D
+302101,Well,850N,Add,Port Talbot - Victoria Road,200307,"20a Victoria Road, Aberavon, Port Talbot, SA126AB",850N
+302111,Well,850O,Add,Caereithin - Ravenhill Road,200309,"147 Ravenhill Road, Caereithin, Swansea, SA55AH",850O
+302121,Well,850P,Add,Cwmllynfell - Gwilym Road,200310,"56 Gwilym Road, Cwmllynfell, West Glamorgan, SA92GN",850P
+302131,Well,852M,Add,Swansea - The Kingsway,200322,"38 The Kingsway, Swansea SA15LF",852M
+302141,Well,854M,Add,Townhill - Graiglwyd Road,200350,"9 Graiglwyd Road, Townhill, Swansea, SA20UY",854M
+302151,Well,854K,Add,Sketty - Dillwyn Road,200352,"5 Dillwyn Road, Sketty, Swansea, SA2 9AQ",854K
+302171,Well,854H,Add,Manselton - Manselton Road,200355,"72 Manselton Road, Manselton, Swansea, SA58PG",854H
+302181,Well,854F,Add,Uplands - Uplands Crescent,200357,"55-57 Uplands Crescent, Uplands, Swansea, SA20EZ",854F
+302191,Well,854D,Add,Morriston - Woodfield Street,200359,"103 Woodfield Street, Morriston, Swansea, SA68AS",854D
+302201,Well,854C,Add,Swansea - St Helens Road,200360,"165 St. Helens Road, Swansea, SA14DQ",854C
+302211,Well,854B,Add,Swansea - Greenhill MC,200361,"Greenhill Medical Centre, Greenhill Street, Dyfatty, SA11QW",854B
+302221,Well,854A,Add,Swansea - High Street,200362,"Unit 4 Urban Village, 215 High Street, Swansea, SA11NW",854A
+302231,Well,855E,Add,Skewen - New Road,200363,"37 New Rd, Skewen, Neath, SA10 6UT",855E
+314856,Well,FAP20,Add,well.co.uk,277360,"Healthcare Service Centre, Whittle Road, Meir Park, ST3 7UN",FAP20
+324124,Well,1752,Add,Pollok Health Centre,200769,"21 Cowglen Rd, Pollok, Glasgow, G53 6EQ",1752
+451532,Well,858A,Add,Treharris - Fox Street,200782,"Primary Care Centre, Fox Street, Treharris, CF46 5HE",858A
+460556,Well,604858H,Add,Hawarden,200804,"8 The Highway Hawarden Deeside, Flintshire CH53DH",604858H
+460559,Well,604858I,Add,Gresford,200807,15 Chester Road Gresford Wrexham LL12 8NB,604858I
+460562,Well,604858G,Add,Caergwrle,200806,38 High Street Caergwrle Wrexham LL12 9ET,604858G
+460565,Well,604858F,Add,Llay Main,200803,"The Square Llay Wrexham, Clwyd LL120SA",604858F
+115591,Well Annan - 37 High Street,7520,Add,,200860,"37 High Street, Annan DG12 6AD",7520
+40518,Well Bedale - 19 Firby Road,FQC37,Add,,200837,"Glebe House Surgery, 19 Glebe House, Firby Road, Bedale, DL8 2AT",FQC37
+37968,Well Birkenhead - 31 Laird Street,FKJ03,Add,,200831,"Miriam Medical Centre, 31 Laird Street, Birkenhead, CH41 8DB",FKJ03
+36731,Well Birstall - 74 Blackburn Road,FHA69,Add,5431,200824,"74 Blackburn Road, Birstall, Batley WF17 9PL",FHA69
+85651,Well Bishop Auckland - 172 - 174 Newgate Street,FH490,Add,,200823,"172-174, NEWGATE STREET, BISHOP AUCKLAND, DL14 7EJ",FH490
+39083,Well Bishop Auckland - 29A Escomb Road,FHV08,Add,,200826,"Station View Medical Centre, 29a Escomb Road, Bishop Auckland, Co Durham. DL14 6AB",FHV08
+42221,Well Blackhall Colliery - 51 Middle Street,FVH83,Add,,200845,"51 Middle Street, Blackhall Colliery, Hartlepool TS27 4EE",FVH83
+123411,Well Blantyre - Livingstone Boulevard,3389,Add,,200864,"Hamilton International Park, Livingstone Boulevard Road, Hamilton G72 0BP",3389
+87241,Well Brandon - Sawmills Lane,FRQ38,Add,,200839,"The Health Centre, Sawmills Lane, Meadowfield, County Durham, DH7 8NJ",FRQ38
+122191,Well Caol,7171,Add,Caol Shopping Centre,200870,"Caol Shopping Centre, Caol PH33 7DR",7171
+41375,Well Castletown,FRX14,Add,,200840,"2 Ethel Terrace, Castletown SR5 3BQ",FRX14
+41751,Well Eston - 135/145 High Street,FTM00,Add,,200843,"Unit 1B, 135/145 High Street, Eston, Middlesbrough, TS6 9JD",FTM00
+122001,Well Fort William,7172,Add,Fort William,200871,"52-56 High Street, Fort William PH33 6AH",7172
+120401,Well Glasgow,1762,Add,Alderman Road,200863,"263 Alderman Road, Glasgow G13 3AY",1762
+120631,Well Glasgow - Kilbowie Road,1763,Add,,200862,"391 Kilbowie Road, Clydebank G81 2TX",1763
+37620,Well Glastonbury - Feversham Lane,FTL70,Add,,200842,"Feversham Lane, Glastonbury BA6 9LP",FTL70
+34220,Well Irby,FCN12,Add,,200813,"39 Thingwall Road, Irby, Wirral CH61 3UE",FCN12
+116151,Well Kirckaldy,6268,Add,Viceroy Street,200868,"2 Viceroy Street, Kirkcaldy KY2 5HT",6268
+37115,Well Leasowe - 113D Reeds Lane,FJ202,Add,,200827,"113D Reeds Lane, Leasowe CH46 1QT",FJ202
+42174,Well Middlesbrough - 397 Linthorpe Road,FVE88,Add,,200844,"397 Linthorpe Road, Middlesborough TS5 6AE",FVE88
+36855,Well Middlesbrough - Martonside Way,FHH95,Add,,200825,"Martonside Way, Middlesborough TS4 3BU",FHH95
+41480,Well Middlesbrough - Ormesby Road,FT436,Add,,200841,"The Berwick Hills Centre, Ormesby Road, Middlesbrough TS3 7RP",FT436
+130291,Well Northampton - Ecton Brook Road,FA312,Add,,200808,"Ecton brook road, Ecton brook, Northampton, NN3 5EN",FA312
+36177,Well Phamacy,FG786,Add,Yelverton - Moorland Villas,200482,"8 Moorland Villas, Yelverton, Devon PL20 6DT",FG786
+770,Well Pharmacy,FJQ64,Add,Well Pharmacy - Marston,200789,"11 Old Marston Road, Marston, Oxfordshire, OX3 0JR",FJQ64
+33817,Well Pharmacy,FC007,Add,Wonford - Burnthouse Lane,200279,"Lidl, Burnthouse Lane, Wonford, Exeter, Devon EX2 6NF",FC007
+34059,Well Pharmacy,FCE79,Add,Teignmouth - Coombe Park,200620,"Unit 1, Coombe Park Road, Teignmouth, TQ14 9ER",FCE79
+34428,Well Pharmacy,FD185,Add,Bideford - High Street,200484,"Well Pharmacy, 9 High St, Bideford, Devon EX39 2AA",FD185
+36080,Well Pharmacy,FG337,Add,Alsager - Alsager HC,228510,"Cedars Medical Centre, 12 Sandbach Road South, Alsager ST7 2LU",FG337
+36350,Well Pharmacy,FHK73,Add,Perton - Anders Square,200796,"2-3 Anders Square, Perton, Wolverhampton WV6 7QH",FHK73
+37607,Well Pharmacy,FLV04,Add,Well Wakefield - Barnsley Road,200790,"213 Barnsley Road, Sandal, Wakefield WF1 5NU",FLV04
+38308,Well Pharmacy,FL686,Add,Well Hartlepool - Victoria Road,200770,"The Health Centre, Victoria Road, Hartlepool, TS26 8DB",FL686
+38386,Well Pharmacy,FJ026,Add,5678,200811,"Rutland Lodge, Scott Hall Road, Leeds, LS7 3RA",FJ026
+38655,Well Pharmacy,FLR00,Add,Teignmouth - Regent Street,200622,"Well Pharmacy, 9 Regent Street, Teignmouth, Devon TQ14 8SJ",FLR00
+38890,Well Pharmacy,FM705,Add,Kingskerswell - Health Centre,200621,"Well Pharmacy, The Health Centre, School Road, Kingskerswell, Newton Abbot, Devon TQ12 5DJ",FM705
+40476,Well Pharmacy,FVQ80,Add,Southwell - King Street,200795,"2-4 King Street, Southwell, Newark, Nottinghamshire, NG25 0EN",FVQ80
+42441,Well Pharmacy,FVX62,Add,Totnes - Fore Street,200287,"Well Pharmacy, 28 Fore Street, Totnes, Devon TQ9 5DX",FVX62
+451777,Well Pharmacy,602858B,Add,Well Coity - Ffordd Y Celyn,200784,"Ffordd-Y-Celyn, Parc Derwen, Bridgend CF35 6HB.",602858B
+457495,Well Pharmacy,8706,Add,Well Greenock - 10 Kilblain Street,200861,"10 Kilblain Street, Greenock PA15 1SR",8706
+46883426,Well Pharmacy,FWL03,Add,,200785,"Bridge Street, Newcastle Emlyn, SA389DX",FWL03
+769,Well Pharmacy - Banbury,FA663,Add,BANBURY - HARDWICK SHOPPING CENTRE,200788,"Hardwick Shopping Centre, Ferriston, Oxford OX16 1XE",FA663
+467387,Well Pharmacy Haverfordwest,FWE12,Add,Haverfordwest,200787,"2-3 St Thomas Green, Haverfordwest, Pembrokeshire, SA61 1QX",FWE12
+460553,Well Rhostyllen,604858E,Add,Trinity Street,200805,"TRINITY STREET, RHOSTYLLEN, WREXHAM, LL14 4AF",604858E
+35606,Well Rugby - 30/31 Sheep Street,FF601,Add,,200820,"30 Sheep Street, Rugby, CV21 3BX",FF601
+35316,Well Seaham - 1 The Avenue,FEM40,Add,,200819,"1 The Avenue, Deneside, Seaham SR7 8LQ",FEM40
+36093,Well Seaton Carew - 68A Elizabeth Way,FG416,Add,,200822,"T/A Pharmacy @ Seaton, 68a Elizabeth Way, Seaton Carew, Hartlepool, TS25 2AX",FG416
+35493,Well Shildon - 14 Church Street,FVW28,Add,,200846,"14 Church Street, Shildon, Co.Durham DL4 1DX",FVW28
+39928,Well South Shields - 10 Prince Edward Road,FP823,Add,,200836,"10 Prince Edward Road, South Shields, Tyne And Wear NE34 8PS",FP823
+39079,Well Springwell - 44-46 Sunningdale Road,FMJ33,Add,,200833,"44-46 Sunningdale Road, Sunderland, Tyne And Wear SR3 4ES",FMJ33
+37930,Well St. Johns Square - Seaham Primary Care Centre,FKG29,Add,,200830,"Seaham Primary Care Centre, St Johns Square, Seaham. SR7 7JE",FKG29
+116651,Well Stenhousemuir - Hallam Road,6730,Add,,200867,"Hallam Road, Stenhousemuir FK5 3BF",6730
+39045,Well Stockton-On-Tees - 161-162 High Street,FMH02,Add,,200832,"161-162 High Street, Stockton-On-Tees TS18 1PL",FMH02
+34466,Well Stockton-On-Tees - Farrer Street,FD394,Add,,200815,"Norchem Healthcare Pharmacy, Queens Park Medical Center, Farrer St, Stockton on Tees, TS18 2AW",FD394
+39760,Well Sunderland - Penny Well Shopping Centre,FNW79,Add,,200835,"Unit 9, Pennywell Shopping Centre, Pennywell, Sunderland SR4 9AS",FNW79
+34906,Well Swanage,FQ123,Add,40 Station Road,200772,"40 Station Road, Swanage BH19 1AF",FQ123
+35277,Well The Northway - 6 Alderwood Precinct,FEK60,Add,,200818,"6 Alderwood Precinct, The Northway, Sedgley, Dudley DY3 3QY",FEK60
+37223,Well Upper Gornal - 4 The Arcade,FJ704,Add,,200828,"4 The Arcade, Upper Gornal, Dudley DY3 2DA",FJ704
+39547,Well Wallsend - Hadrian Park Shopping Centr,FNG81,Add,,200834,"Unit 2 Hadrian Park Shopping Centre, Hadrian Park Estate, Wallsend NE28 9UY",FNG81
+116161,Well Whytemans Brae,6274,Add,Kirkcaldy Health Centre,200869,"Kirkcaldy, Health Centre, Whyteman's Brae, Kirkcaldy KY1 2NA",6274
+34300,Well Willaston - Neston Road,FCT37,Add,,200814,"The Pharmacy, Neston Road, Willaston CH64 2TL",FCT37
+122901,Well Wishaw - 156 Main Street,3390,Add,,200865,"156 Main Street, Wishaw ML2 7AB",3390
+122911,Well Wishaw - 80-82 Main Street,3391,Add,,200866,"80-82 Main Street, Wishaw ML2 7LU",3391

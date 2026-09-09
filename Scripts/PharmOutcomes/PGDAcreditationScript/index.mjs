@@ -22,7 +22,6 @@ export default async function run() {
         throw new Error("No CSV path provided (INPUT_CSV_PATH or CSV_PATH)");
       }
 
-      // ✅ Load CSV
       try {
         const raw = fs.readFileSync(inputCsvPath, "utf-8");
         customers = parseCSV(raw);
@@ -65,8 +64,14 @@ export default async function run() {
         periodDelay: "167126",
         pneumococcalVaccination: "167139",
         shinglesVaccination: "167027",
-        seasonalFluVaccination: "167598"
+        seasonalFluVaccination: "167598",
+        allergicRhinitisAzelastine: "167133",
+        allergicRhinitisDymista: "167606",
+        allergicRhinitisFexofenadine: "167620",
+        antimalariasMefloquine: "167656",
+        chickenpoxVaccination: "167577"
       };
+
 
       for (let i = 0; i < customers.length; i++) {
 
@@ -83,6 +88,11 @@ export default async function run() {
           periodDelay: getMappedValue(row, mappings, "periodDelay"),
           pneumococcalVaccination: getMappedValue(row, mappings, "pneumococcalVaccination"),
           shinglesVaccination: getMappedValue(row, mappings, "shinglesVaccination"),
+          allergicRhinitisAzelastine: getMappedValue(row, mappings, "allergicRhinitisAzelastine"),
+          allergicRhinitisDymista: getMappedValue(row, mappings, "allergicRhinitisDymista"),
+          allergicRhinitisFexofenadine: getMappedValue(row, mappings, "allergicRhinitisFexofenadine"),
+          antimalariasMefloquine: getMappedValue(row, mappings, "antimalariasMefloquine"),
+          chickenpoxVaccination: getMappedValue(row, mappings, "chickenpoxVaccination"),
           otherService: getMappedValue(row, mappings, "otherService"),
           pharmacistName: toTitleCase(getMappedValue(row, mappings, "pharmacistName")),
           telephoneNumber: getMappedValue(row, mappings, "telephoneNumber").replace(/[^\d+]/g, "").trim(),
@@ -90,7 +100,12 @@ export default async function run() {
           recordStatus: getMappedValue(row, mappings, "recordStatus")
         };
 
-        logger(`ROW ${i + 1}/${customers.length} : ${request.odsCode}`);
+
+        logger.rowStart(
+          i + 1,
+          customers.length,
+          request.odsCode
+        );
 
         const servicesToAccredit = [];
 
@@ -114,11 +129,16 @@ export default async function run() {
         });
 
         try {
-          await login(page, username, password, request.odsCode);
-          await editProvider(page, request.odsCode);
+          await login(page, username, password, logger);
+          const posToken = await page.evaluate(() => {
+            return SessionToken()
+              .match(/=([^&]+)/)?.[1];
+          });
+
+          await editProvider(page, request.odsCode, logger);
 
           if (servicesToAccredit.length > 0) {
-            await accredit(page, servicesToAccredit);
+            await accredit(page, servicesToAccredit, logger);
           }
           else {
             logger(`⚠️ No services selected for ${request.odsCode}`);
@@ -132,8 +152,17 @@ export default async function run() {
             "utf8"
           );
         } catch (err) {
-          logger(`❌ Failed for ${request.odsCode}: ${err?.message}`);
+
+          logger(
+            `❌ Failed for ${request.odsCode}: ${err?.message}`
+          );
+
+          logger(
+            err?.stack || String(err)
+          );
+
           failedCount++;
+
           const failedCsvLine = `"${request.odsCode}",${request.provisionDate},${err?.message}\n`;
           fs.appendFileSync(
             failedCsvPath,
