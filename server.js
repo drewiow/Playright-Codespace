@@ -204,6 +204,65 @@ app.get("/api/pinnacle/users/:uid", async (req, res) => {
     });
 });
 
+app.post("/api/pinnacle/users/:uid/reset-mfa", async (req, res) => {
+
+    const uid = req.params.uid;
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    let user = [];
+
+    await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await helpers.login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+            const plan = [
+                {
+                    action: "openUser",
+                    user: {
+                        uid
+                    }
+                },
+                {
+                    advancedAction: "reset-mfa"
+                }
+            ];
+
+            await executePlan(
+                page,
+                plan,
+                logger
+            );
+        }
+    });
+
+    res.json({
+        success: true,
+        uid,
+        user,
+        action: "reset-mfa"
+    });
+
+});
+
 app.get("/api/pinnacle/providers/:odsCode", async (req, res) => {
 
     const odsCode = req.params.odsCode;
@@ -242,6 +301,8 @@ app.get("/api/pinnacle/providers/:odsCode", async (req, res) => {
             );
 
             //scrape the screen
+            provider = await getProviderDetails(page);
+
         }
     });
 
@@ -250,6 +311,246 @@ app.get("/api/pinnacle/providers/:odsCode", async (req, res) => {
         provider
     });
 });
+
+export async function getProviderAdmins(page) {
+
+    const admins = await page.evaluate(() => {
+
+        const rows =
+            document.querySelectorAll(
+                "table tbody tr"
+            );
+
+        const results = [];
+
+        for (const row of rows) {
+
+            // Skip disabled users
+            if (
+                row.classList.contains("hilite4") ||
+                row.querySelector("strike")
+            ) {
+                continue;
+            }
+
+            const nameCell =
+                row.querySelector("td");
+
+            if (!nameCell) {
+                continue;
+            }
+
+            // Admin icons
+            const adminIcons =
+                row.querySelectorAll(
+                    '[title="User Admin: YES"]'
+                );
+
+            if (!adminIcons.length) {
+                continue;
+            }
+
+            const name =
+                nameCell.childNodes[0]
+                    ?.textContent
+                    ?.trim();
+
+            const username =
+                nameCell.querySelector("span")
+                    ?.textContent
+                    ?.replace(/[()]/g, "")
+                    ?.trim();
+
+            const showInfoLink =
+                row.querySelector(
+                    '[data-inlinestats="UserLastLoginInfo"]'
+                );
+
+            if (!showInfoLink) {
+                continue;
+            }
+
+            const params =
+                JSON.parse(
+                    showInfoLink.dataset
+                        .inlinestatsParams
+                );
+
+            results.push({
+                name,
+                username,
+                userId: params.lUserID
+            });
+        }
+
+        return results;
+    });
+
+    return admins;
+}
+
+
+export async function getAdminDetails(page) {
+
+    await page.waitForSelector("#inKnownName");
+
+    return await page.evaluate(() => ({
+
+        fullName:
+            document
+                .querySelector("#inKnownName")
+                ?.value
+                ?.trim(),
+
+        email:
+            document
+                .querySelector("#inContactEmail")
+                ?.value
+                ?.trim(),
+
+        phone:
+            document
+                .querySelector("#inContactPhone")
+                ?.value
+                ?.trim(),
+
+        jobTitle:
+            document
+                .querySelector("#inJobTitle")
+                ?.value
+                ?.trim(),
+
+        lastActive: (() => {
+
+            const text = document.body.innerText;
+
+            const match = text.match(
+                /Last Login:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})/
+            );
+
+            return match
+                ? match[1]
+                : "";
+
+        })()
+
+    }));
+}
+
+export async function getAdminsOrderedByLastLogin(
+    page,
+    logger = console.log
+) {
+
+    const admins =
+        await getProviderAdmins(page);
+
+    logger(
+        `Found ${admins.length} admins`
+    );
+
+    const adminsWithDetails = [];
+
+    for (const admin of admins) {
+
+        logger(`Loading ${admin.name}`);
+
+        await helpers.openUser(
+            page,
+            admin.userId,
+            logger
+        );
+
+        adminsWithDetails.push(
+            await getAdminDetails(page)
+        );
+    }
+
+    adminsWithDetails.sort((a, b) => {
+
+        const dateA =
+            a.lastActive
+                ? new Date(a.lastActive)
+                : new Date(0);
+
+        const dateB =
+            b.lastActive
+                ? new Date(b.lastActive)
+                : new Date(0);
+
+        return dateB - dateA;
+    });
+
+    return adminsWithDetails;
+}
+
+app.get("/api/pinnacle/providers/:odsCode/admins", async (req, res) => {
+
+
+    console.log("Getting admins for provider", req.params.odsCode);
+
+    const odsCode = req.params.odsCode;
+
+    process.env.ENV_ENC_PATH =
+        currentContext.envEncPath;
+
+    process.env.ENV_PASSPHRASE =
+        currentContext.passphrase;
+
+    let admins = [];
+
+    await runScript({
+
+        logger: console.log,
+
+        main: async ({
+            page,
+            logger,
+            username: loginUsername,
+            password
+        }) => {
+
+            await helpers.login(
+                page,
+                loginUsername,
+                password,
+                logger
+            );
+
+
+            await helpers.editProvider(
+                page,
+                odsCode,
+                logger
+            );
+
+            await page.waitForSelector(
+                "legend"
+            );
+
+            await page.waitForFunction(() => {
+
+                return document.body.innerText
+                    .includes("Users at this provider");
+
+            });
+
+            admins =
+                await getAdminsOrderedByLastLogin(
+                    page,
+                    logger
+                );
+
+
+        }
+    });
+
+    res.json({
+        success: true,
+        admins
+    });
+});
+
 
 app.post("/api/pinnacle/plan",
     async (req, res) => {

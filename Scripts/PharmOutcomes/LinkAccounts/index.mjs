@@ -1,5 +1,5 @@
 import { runScript } from "../../common/runScript.mjs";
-import { login, editProvider, editViewer } from "../helpers.mjs";
+import { login, editProvider } from "../../pharmoutcomes/helpers.mjs";
 import { logAction, getMappedValue, parseCSV } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";

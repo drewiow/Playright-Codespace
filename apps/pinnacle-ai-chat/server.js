@@ -46,17 +46,6 @@ app.get(
     }
 );
 
-
-
-
-
-
-
-
-
-
-
-
 app.post("/api/chat", async (req, res) => {
     const { message } = req.body;
     const generatedPlan =
