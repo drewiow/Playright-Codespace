@@ -102,6 +102,16 @@
             "key": "recordStatus",
             "label": "Record / Claim Status",
             "required": false
+        },
+        {
+            "key": "mounjaroWegovyInitialSupply",
+            "label": "Mounjaro / Wegovy Initial Supply",
+            "required": false
+        },
+        {
+            "key": "mounjaroWegovySubsequentSupplies",
+            "label": "Mounjaro / Wegovy Subsequent Supplies",
+            "required": false
         }
     ]
 }

@@ -1331,7 +1331,9 @@ click #saveMigration`
             "otheremail",
             "secondaryemail",
             "alternateemail"
-        ]
+        ],
+        mounjaroWegovyInitialSupply: ["Mounjaro / Wegovy Initial Supply"],
+        mounjaroWegovySubsequentSupplies: ["Mounjaro / Wegovy Subsequent Supplies"]
     };
 
 

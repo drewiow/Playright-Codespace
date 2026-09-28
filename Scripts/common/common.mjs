@@ -229,7 +229,7 @@ export async function createBrowserContext(options = {}) {
     if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
     const browser = await chromium.launch({
-        headless: headless,
+        headless: true,
         devtools: devtools,
         executablePath: "C:\\Users\\Drew.Clarke\\AppData\\Local\\ms-playwright\\chromium_1150\\chrome-win\\chrome.exe"
     });
@@ -242,12 +242,25 @@ export async function createBrowserContext(options = {}) {
 
     const context = await browser.newContext({
         baseURL: 'https://pharmoutcomes.org/pharmoutcomes/',
-        recordVideo: recordVideo ? { dir: videoDir, size: { width: 1280, height: 720 } } : undefined
+        recordVideo: recordVideo ? { dir: videoDir, size: { width: 1280, height: 720 } } : undefined,
+        ignoreHTTPSErrors: true,
+        userAgent:
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+        viewport: {
+            width: 1920,
+            height: 1080
+        }
     });
 
     const page = await context.newPage();
     context.setDefaultTimeout(60000);
     page.setDefaultTimeout(60000);
+
+    console.log(await page.evaluate(() => ({
+        userAgent: navigator.userAgent,
+        webdriver: navigator.webdriver
+    })));
+
 
     page.complete = async (selector, value) => {
         await page.waitForSelector(selector, { timeout: 15000 });

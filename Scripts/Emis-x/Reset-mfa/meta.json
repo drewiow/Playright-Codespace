@@ -1,0 +1,13 @@
+{
+    "name": "",
+    "description": "",
+    "inputs": [
+        {
+            "key": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true,
+            "placeholder": "e.g. user@example.com"
+        }
+    ]
+}

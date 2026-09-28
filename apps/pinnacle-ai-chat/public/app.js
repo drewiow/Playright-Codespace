@@ -66,7 +66,7 @@ async function loadEnvironment() {
     formData.append("passphrase", passphrase);
     const res =
         await fetch(
-            "http://localhost:3000/api/pinnacle/load-environment",
+            "http://localhost:3000/api/pharmoutcomes/load-environment",
             {
                 method: "POST",
                 body: formData
@@ -114,7 +114,7 @@ document
 
 async function loadEnvironmentContext() {
 
-    const res = await fetch("http://localhost:3000/api/pinnacle/context");
+    const res = await fetch("http://localhost:3000/api/pharmoutcomes/context");
     const context = await res.json();
     return context;
 }

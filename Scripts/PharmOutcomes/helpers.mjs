@@ -87,6 +87,14 @@ export async function login(page, username, password, logger) {
     throw new Error("SECRET_KEY missing from environment");
   }
 
+  console.log("URL:", page.url());
+  console.log("Title:", await page.title());
+
+  await page.screenshot({
+    path: "before-login.png",
+    fullPage: true
+  });
+
   const token = authenticator.generate(secret);
   await page.fill("#login_name", username);
   await page.fill("#login_pwd", password);
@@ -545,15 +553,14 @@ export async function getUserDetails(page) {
       ? await page.locator('#inUserType').inputValue()
       : "";
 
-  const mfaText = await page
-    .locator('body')
-    .textContent();
+  const mfaText = await page.locator('body').textContent();
+  const hasMfa = mfaText.includes("MFA Secret is set");
+  const hasPasscode = mfaText.includes("Valid security word in use");
 
-  const hasMfa =
-    mfaText.includes("MFA Secret is set");
-
-  const hasPasscode =
-    mfaText.includes("Valid security word in use");
+  const lastActive =
+    mfaText.match(
+      /Last Login:\s*(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})/
+    )?.[1] || "";
 
   let roles = [];
 
@@ -569,31 +576,46 @@ export async function getUserDetails(page) {
     );
   }
 
-  const permissions = await page.locator(
-    '#fieldsetpermissions input[type="checkbox"]:checked'
-  ).evaluateAll(
-    checkboxes => {
 
-      return checkboxes
-        .map(cb => {
+  const auditLink = page.locator('a[onclick*="User Audit History"]');
+  await auditLink.waitFor();
+  await auditLink.click();
 
-          const label =
-            cb.parentElement.querySelector(
-              "label"
-            );
+  await page.waitForSelector(".alertify-inner");
+  const auditEntries = await page.evaluate(() => {
 
-          return label
-            ? label.textContent.trim()
-            : null;
+    const rows = Array.from(
+      document.querySelectorAll(
+        ".alertify-inner table tbody tr"
+      )
+    ).slice(1);
 
-        })
-        .filter(Boolean);
+    return rows.map(row => {
 
-    }
-  );
+      const cells =
+        row.querySelectorAll("td");
+
+      return {
+        date:
+          cells[0]?.querySelector("a")
+            ?.getAttribute("title"),
+
+        user:
+          cells[1]?.innerText.trim(),
+
+        action:
+          cells[2]?.innerText.trim()
+      };
+
+    });
+
+  });
+
+  await page.locator("#alertify-ok").click();
 
   return {
-    uid: await value('input[name="id"]'),
+    uid: new URL(page.url()).searchParams.get("edit") ||
+      await value('input[name="id"]'),
     username: await value('#inUserName'),
     fullName: await value('#inKnownName'),
     email: await value('#inContactEmail'),
@@ -602,18 +624,97 @@ export async function getUserDetails(page) {
     jobTitle: await value('#inJobTitle'),
     userType,
     organisation,
+    lastActive,
     hasMfa,
     hasPasscode,
     roles,
-    permissions
-
+    auditEntries
   };
+}
+
+export function assessAccountTrust(auditEntries, trustedAdmins) {
+
+  const isSecurityAction = (action) => {
+    const a = action.toLowerCase();
+
+    return (
+      a.includes('reset this user\'s password') ||
+      a.includes('set this user\'s password') ||
+      a.includes('reset by admin this user\'s mfa') ||
+      a.includes('set this user\'s security word') ||
+      a.includes('reset this user\'s security word')
+    );
+  };
+
+  const isValidationAction = (action) => {
+    const a = action.toLowerCase();
+
+    return (
+      a.includes('registered through pharmoutcomes') ||
+      a.includes('changed their password')
+    );
+  };
+
+  // Audit entries are newest first
+  for (const entry of auditEntries) {
+
+    // User has successfully authenticated after a reset
+    if (isValidationAction(entry.action)) {
+      return {
+        result: 'GREEN',
+        confidence: 100,
+        reason: `${entry.user} successfully authenticated after the last reset.`
+      };
+    }
+
+    // Trusted admin activity after a reset
+    if (trustedAdmins.includes(entry.user)) {
+      return {
+        result: 'GREEN',
+        confidence: 90,
+        reason: `Trusted admin '${entry.user}' has interacted with the account since the last reset.`
+      };
+    }
+
+    // We reached the most recent reset without seeing any validation
+    if (isSecurityAction(entry.action)) {
+      return {
+        result: 'RED',
+        confidence: 25,
+        reason: 'Most recent security change has not been validated.'
+      };
+    }
+  }
+
+  return {
+    result: 'RED',
+    confidence: 0,
+    reason: 'No validation activity found.'
+  };
+}
+
+export async function getCommissionerDetails(page) {
+
+  const publicContact =
+    await page.locator("#inPublicContact")
+      .inputValue();
+
+  return {
+    publicContact
+  };
+
 }
 
 export async function openUser(page, uid, logger) {
   logger(`👤 Opening user ${uid}`);
   await page.goto(`/pharmoutcomes/admin/users?edit=${uid}`);
   return getUserDetails(page);
+}
+
+export async function openCommissioner(page, uid, logger) {
+  logger(`👤 Opening commissioner ${uid}`);
+  await page.goto(`/pharmoutcomes/admin/commissioners?id=${uid}`);
+  return getCommissionerDetails(page);
 }
 
 export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
@@ -653,6 +754,67 @@ export async function securityWord(page, passcode = process.env.SECURITY_WORD) {
   }
 
   await page.click('[type="submit"][value="Submit"]');
+}
+
+export async function verifySecurityWord(
+  page,
+  letter1,
+  letter2,
+  logger = console.log
+) {
+
+  await page.fill(
+    "#verify1",
+    letter1
+  );
+
+  await page.fill(
+    "#verify2",
+    letter2
+  );
+
+  await page.click(
+    "#verifyUserPasscodeButton"
+  );
+
+  await page.waitForFunction(() => {
+
+    const result =
+      document.querySelector(
+        "#verificationResult"
+      );
+
+    return (
+      result?.classList.contains(
+        "verificationSuccess"
+      )
+      ||
+      result?.classList.contains(
+        "verificationFailed"
+      )
+    );
+
+  });
+
+  const result =
+    await page.locator(
+      "#verificationResult"
+    ).textContent();
+
+  const success =
+    result?.includes(
+      "Successful Verification"
+    );
+
+  logger(
+    `Verification Result: ${result}`
+  );
+
+  return {
+    success,
+    result
+  };
+
 }
 
 export async function addAudit(page, caseRef) {

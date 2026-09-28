@@ -1,0 +1,22 @@
+{
+    "id": "EMIS-X",
+    "title": "EMIS-X",
+    "description": "Automation scripts for EMIS-X.",
+    "logo": "/images/emis-x-logo.png",
+    "scripts": [
+        {
+            "id": "Reset-mfa",
+            "title": "Reset MFA",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": false,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Resets MFA for a user",
+            "icon": "👤",
+            "animation": "pulse",
+            "advanced": false
+        }
+    ]
+}

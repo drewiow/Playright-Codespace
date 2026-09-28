@@ -1,6 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
-import { login, editProvider, accredit } from "../pharmoutcomes/helpers.mjs";
-import { logAction, getMappedValue, toTitleCase, parseCSV } from "../../common/common.mjs";
+import { login, editProvider, accredit } from "../../pharmoutcomes/helpers.mjs";
+import { getMappedValue, toTitleCase, parseCSV } from "../../common/common.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -57,7 +57,6 @@ export default async function run() {
 
       logger("🔧 BEGIN CUSTOMER CREATION LOOP");
 
-      const commissionerID = "46871614";
       const SERVICE_IDS = {
         covidVaccination: "167009",
         meningitisBVaccination: "166874",
@@ -69,9 +68,11 @@ export default async function run() {
         allergicRhinitisDymista: "167606",
         allergicRhinitisFexofenadine: "167620",
         antimalariasMefloquine: "167656",
-        chickenpoxVaccination: "167577"
-      };
+        chickenpoxVaccination: "167577",
+        mounjaroWegovyInitialSupply: "166865",
+        mounjaroWegovySubsequentSupplies: "167051"
 
+      };
 
       for (let i = 0; i < customers.length; i++) {
 
@@ -93,6 +94,8 @@ export default async function run() {
           allergicRhinitisFexofenadine: getMappedValue(row, mappings, "allergicRhinitisFexofenadine"),
           antimalariasMefloquine: getMappedValue(row, mappings, "antimalariasMefloquine"),
           chickenpoxVaccination: getMappedValue(row, mappings, "chickenpoxVaccination"),
+          mounjaroWegovyInitialSupply: getMappedValue(row, mappings, "mounjaroWegovyInitialSupply"),
+          mounjaroWegovySubsequentSupplies: getMappedValue(row, mappings, "mounjaroWegovySubsequentSupplies"),
           otherService: getMappedValue(row, mappings, "otherService"),
           pharmacistName: toTitleCase(getMappedValue(row, mappings, "pharmacistName")),
           telephoneNumber: getMappedValue(row, mappings, "telephoneNumber").replace(/[^\d+]/g, "").trim(),

@@ -1,6 +1,6 @@
 import { runScript } from "../../common/runScript.mjs";
 import { formatDateToUKDisplay } from "../../common/dateUtils.mjs";
-import { login } from "../helpers.mjs";
+import { login } from "../../pharmOutcomes/helpers.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "url";

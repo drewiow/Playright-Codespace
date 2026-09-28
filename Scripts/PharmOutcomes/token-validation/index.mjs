@@ -20,7 +20,7 @@ export default async function run() {
 
       test.step("Loggin into PharmOutcomes");
       await logAction("Login", () =>
-        helpers.login(page, username, password, "PRIM"),
+        helpers.login(page, username, password),
         logger
       );
 
