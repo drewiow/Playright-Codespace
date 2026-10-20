@@ -11,12 +11,12 @@
         {
             "key": "sysId",
             "label": "Sys ID",
-            "required": true
+            "required": false
         },
         {
             "key": "provisionDate",
             "label": "Provision Date",
-            "required": true
+            "required": false
         },
         {
             "key": "provider",

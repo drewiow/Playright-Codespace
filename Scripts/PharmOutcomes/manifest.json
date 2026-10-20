@@ -27,6 +27,20 @@
             "advanced": false
         },
         {
+            "id": "UnlockNHSMail",
+            "title": "Unlock NHS Mail",
+            "requiresCsv": false,
+            "requiresPassword": true,
+            "showOptionsPanel": false,
+            "descriptionFile": "description.md",
+            "requiresEnvFile": true,
+            "optionalEnvFile": true,
+            "description": "Unlocks NHS Mail for the specified account",
+            "icon": "👤",
+            "animation": "pulse",
+            "advanced": false
+        },
+        {
             "id": "AddUsers",
             "title": "Add Users",
             "requiresCsv": true,

@@ -1,49 +1,34 @@
 import { runScript } from "../../common/runScript.mjs";
-
-import {
-  login,
-  editProvider,
-  editCommissioner,
-  editViewer,
-  openOrganisation
-} from "../helpers.mjs";
-
+import { getMappedValue } from "../../common/common.mjs";
+import { login, editProvider, editCommissioner, editViewer, openOrganisation } from "../../pharmoutcomes/helpers.mjs";
 
 export default async function run() {
   await runScript({
     async main({ page, rows, logger, username, password, runAdvanced }) {
 
+      await login(page, username, password);
+
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        const odsCode = row.odscode;
-
-        logger(`ROW ${i + 1}/${rows.length}`);
+        const mappings = JSON.parse(process.env.COLUMN_MAPPINGS || "{}");
+        const odsCode = getMappedValue(row, mappings, "odsCode");
 
         if (!odsCode) {
           logger("⚠️ Missing ODS code, skipping row");
           continue;
         }
 
+        logger(`ROW ${i + 1}/${rows.length}`);
         logger(`🔄 Processing ODS: ${odsCode}`);
 
         try {
-
-          // ✅ HARD RESET
-          await page.goto("/", {
-            waitUntil: "networkidle"
-          });
-
-          await login(page, username, password, odsCode);
-          const type = await openOrganisation(
+          await openOrganisation(
             page,
             odsCode,
-            { editProvider, editViewer, editCommissioner }
+            { editProvider, editViewer, editCommissioner }, logger
           );
 
-          // ✅ advanced feature (centralised)
           await runAdvanced(row, i + 1);
-
-          await page.click('[value="Exit"]');
 
           logger(`✅ Completed: ${odsCode}`);
 
@@ -51,7 +36,10 @@ export default async function run() {
           logger(`❌ Failed for ${odsCode}: ${err?.message}`);
           continue;
         }
+
+
       }
+      await page.click('[value="Exit"]');
     }
   });
 }

@@ -14,9 +14,7 @@ export default async function run() {
         fs.mkdirSync(runDir, { recursive: true });
       }
 
-      const inputCsvPath =
-        process.env.INPUT_CSV_PATH ||
-        process.env.CSV_PATH;
+      const inputCsvPath = process.env.INPUT_CSV_PATH || process.env.CSV_PATH;
 
       if (!inputCsvPath) {
         throw new Error("No CSV path provided (INPUT_CSV_PATH or CSV_PATH)");
@@ -58,7 +56,7 @@ export default async function run() {
       logger("🔧 BEGIN CUSTOMER CREATION LOOP");
 
       const SERVICE_IDS = {
-        covidVaccination: "167009",
+        covidVaccination: "167009,167758",
         meningitisBVaccination: "166874",
         periodDelay: "167126",
         pneumococcalVaccination: "167139",
@@ -71,8 +69,9 @@ export default async function run() {
         chickenpoxVaccination: "167577",
         mounjaroWegovyInitialSupply: "166865",
         mounjaroWegovySubsequentSupplies: "167051"
-
       };
+
+      await login(page, username, password, logger);
 
       for (let i = 0; i < customers.length; i++) {
 
@@ -104,11 +103,7 @@ export default async function run() {
         };
 
 
-        logger.rowStart(
-          i + 1,
-          customers.length,
-          request.odsCode
-        );
+        logger.rowStart(i + 1, customers.length, request.odsCode);
 
         const servicesToAccredit = [];
 
@@ -127,16 +122,15 @@ export default async function run() {
               );
 
           if (selected) {
-            servicesToAccredit.push(serviceId);
+            serviceId
+              .split(",")
+              .map(id => id.trim())
+              .filter(Boolean)
+              .forEach(id => servicesToAccredit.push(id));
           }
         });
 
         try {
-          await login(page, username, password, logger);
-          const posToken = await page.evaluate(() => {
-            return SessionToken()
-              .match(/=([^&]+)/)?.[1];
-          });
 
           await editProvider(page, request.odsCode, logger);
 
@@ -146,7 +140,7 @@ export default async function run() {
           else {
             logger(`⚠️ No services selected for ${request.odsCode}`);
           }
-          await page.click('[value="Exit"]');
+
           successCount++;
           const CsvLine = `"${request.odsCode}",${request.provisionDate},${Date.now()}\n`;
           fs.appendFileSync(
@@ -154,15 +148,11 @@ export default async function run() {
             CsvLine,
             "utf8"
           );
+
         } catch (err) {
 
-          logger(
-            `❌ Failed for ${request.odsCode}: ${err?.message}`
-          );
-
-          logger(
-            err?.stack || String(err)
-          );
+          logger(`❌ Failed for ${request.odsCode}: ${err?.message}`);
+          logger(err?.stack || String(err));
 
           failedCount++;
 
@@ -174,7 +164,10 @@ export default async function run() {
           );
           continue;
         }
+
       }
+
+      await page.click('[value="Exit"]');
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
       logger(`⏱️ Script completed in ${duration} seconds`);

@@ -276,7 +276,7 @@ function areInputsValid() {
         const isValid = isCheckbox
             ? (!input.required || el.checked)
             : (!input.required || value !== "");
-        console.log(`Input ${input.key}: value="${value}", required=${input.required}, valid=${isValid}`);
+
         if (!isValid) {
             valid = false;
             el.classList.add("input-error");
@@ -293,9 +293,6 @@ function areInputsValid() {
     }
 
     wizardData.inputs = values;
-    //saveColumnMappings();
-
-    console.log(values);
 
     statusEl.innerHTML = `
         ✅ Step complete<br>
@@ -1080,7 +1077,6 @@ click #saveMigration`
 
 
     function renderTokenPanel(headers) {
-        console.log("[Tokens] rendering", headers);
 
         const tokenListEl = document.getElementById("advancedTokenList");
         if (!tokenListEl) return;
@@ -1200,16 +1196,17 @@ click #saveMigration`
         if (synonyms) {
 
             const synonymMatch = headers.find(header => {
+                const headerName = normaliseName(header);
 
-                const headerName =
-                    normaliseName(header);
+                return synonyms.some(synonym => {
+                    const synonymName = normaliseName(synonym);
 
-                return synonyms.some(synonym =>
-                    headerName === synonym ||
-                    headerName.includes(synonym) ||
-                    synonym.includes(headerName)
-                );
-
+                    return (
+                        headerName === synonymName ||
+                        headerName.includes(synonymName) ||
+                        synonymName.includes(headerName)
+                    );
+                });
             });
 
             if (synonymMatch) {
@@ -1271,6 +1268,8 @@ click #saveMigration`
         allergicRhinitisAzelastine: ["Azelastine"],
         allergicRhinitisDymista: ["Dymista"],
         allergicRhinitisFexofenadine: ["Fexofenadine"],
+        mounjarowegovyinitialsupply: ["weightmanagementmounjarowegovy"],
+        mounjarowegovysubsequentsupplies: ["weightmanagementmounjarowegovy"],
 
         notificationstatus: [
             "notificationstatus",
@@ -1331,35 +1330,24 @@ click #saveMigration`
             "otheremail",
             "secondaryemail",
             "alternateemail"
-        ],
-        mounjaroWegovyInitialSupply: ["Mounjaro / Wegovy Initial Supply"],
-        mounjaroWegovySubsequentSupplies: ["Mounjaro / Wegovy Subsequent Supplies"]
+        ]
     };
 
 
     function populateColumnMappings(rows) {
 
-        console.log("populateColumnMappings called");
-
-        const container =
-            document.getElementById("columnMappingsContainer");
-
-        console.log("container", container);
+        const container = document.getElementById("columnMappingsContainer");
 
         if (!container) return;
 
         container.innerHTML = "";
 
-        const required =
-            window.currentScriptMeta?.requiredColumns;
-
-        console.log("requiredColumns", required);
+        const required = window.currentScriptMeta?.requiredColumns;
 
         if (!required?.length) return;
 
         const headers = Object.keys(rows[0]);
         let autoMapped = 0;
-
 
         required.forEach(field => {
 
@@ -1518,44 +1506,20 @@ click #saveMigration`
     textarea.addEventListener("input", updateHighlight);
 
     function updateHighlight() {
-        function updateHighlight() {
-            console.log("[Highlight] update called");
 
-            if (!highlight) {
-                console.log("[Highlight] ❌ highlight missing");
-                return;
-            }
-
-            if (!textarea) {
-                console.log("[Highlight] ❌ textarea missing");
-                return;
-            }
-
-            console.log("[Highlight] raw value:", textarea.value);
-
-            const raw = textarea.value;
-
-            const escaped = raw
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
-
-            console.log("[Highlight] escaped:", escaped);
-
-            const highlighted = buildHighlightedText(escaped, csvHeaders);
-
-            console.log("[Highlight] result:", highlighted);
-
-            highlight.innerHTML = highlighted + "\n";
+        if (!highlight || !textarea) {
+            return;
         }
-    }
 
-    function positionNear(anchorEl, popupEl) {
-        const rect = anchorEl.getBoundingClientRect();
+        const raw = textarea.value;
 
-        popupEl.style.position = "absolute";
-        popupEl.style.left = rect.left + window.scrollX + "px";
-        popupEl.style.top = rect.bottom + window.scrollY + 6 + "px";
+        const escaped = raw
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        const highlighted = buildHighlightedText(escaped, csvHeaders);
+
+        highlight.innerHTML = highlighted + "\n";
     }
 
     let activeTokenPicker = null;
@@ -1577,9 +1541,6 @@ click #saveMigration`
 
         const picker = document.createElement("div");
         picker.className = "token-picker";
-
-        console.log("Picker appended", picker);
-
 
         csvHeaders.forEach(header => {
             const btn = document.createElement("button");
@@ -1623,8 +1584,6 @@ click #saveMigration`
         updateHighlight();
         textarea.focus();
     }
-
-
 
     function parseCsvHeaders(csvText) {
         const firstLine = csvText.split(/\r?\n/)[0];
@@ -1956,12 +1915,10 @@ async function startRun(product, script, formData) {
 }
 
 function enterExecutionMode() {
-    console.log("Entering execution mode");
 
     const root = document.getElementById("runnerRoot");
     const wizard = document.getElementById("wizardContainer");
     const execution = document.getElementById("executionContainer");
-
 
     updateStatus("Starting...");
     updateCurrentOds("—");
@@ -2057,17 +2014,8 @@ function setupRunForm(product, script) {
 
         const formData = new FormData();
 
-        console.log(
-            "Submitting mappings:",
-            JSON.stringify(
-                wizardData.columnMappings,
-                null,
-                2
-            )
-        );
-
         formData.append("columnMappings", JSON.stringify(wizardData.columnMappings));
-        console.log("FormData columnMappings:", wizardData.columnMappings);
+
         if (script.advanced && advancedStepsEl?.value.trim()) {
             formData.append("advancedSteps", advancedStepsEl.value.trim());
         }

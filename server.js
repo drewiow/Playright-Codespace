@@ -12,7 +12,6 @@ import cookieParser from "cookie-parser";
 import { parseAdvancedSteps } from "./scripts/advanced/parseAdvancedSteps.mjs";
 import expressLayouts from "express-ejs-layouts";
 import pharmoutcomesRouter from "./scripts/routes/pharmoutcomes.js";
-import emisxRouter from "./scripts/routes/emisx.js";
 
 
 // Memory session store
@@ -61,11 +60,6 @@ const uploadMemory = multerMemory({
 app.use(
     "/api/pharmoutcomes",
     pharmoutcomesRouter
-);
-
-app.use(
-    "/api/emis-x",
-    emisxRouter
 );
 
 

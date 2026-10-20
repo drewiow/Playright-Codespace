@@ -924,6 +924,7 @@ router.post("/providers/:odsCode/users", async (req, res) => {
                 console.log("Admins ordered by last login:", admins);
             }
 
+            console.log("CurrentUsername", currentUsername);
             if (currentUsername && currentUsername != "") {
 
                 console.log("Filtering users for username:", currentUsername);
@@ -950,6 +951,10 @@ router.post("/providers/:odsCode/users", async (req, res) => {
     });
 
     const adminNames = (admins || []).map(a => a.fullName);
+
+    console.log("Current user:", currentUser);
+    console.log("Admin names:", adminNames);
+    console.log("Audit entries:", currentUser.auditEntries);
 
     let confidence = assessAccountTrust(currentUser.auditEntries, adminNames);
     currentUser.confidence = confidence;

@@ -229,7 +229,7 @@ export async function createBrowserContext(options = {}) {
     if (!fs.existsSync(videoDir)) fs.mkdirSync(videoDir, { recursive: true });
 
     const browser = await chromium.launch({
-        headless: true,
+        headless: false,
         devtools: devtools,
         executablePath: "C:\\Users\\Drew.Clarke\\AppData\\Local\\ms-playwright\\chromium_1150\\chrome-win\\chrome.exe"
     });

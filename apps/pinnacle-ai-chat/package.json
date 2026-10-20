@@ -1,7 +1,0 @@
-{
-  "name": "pinnacleai-assistant",
-  "type": "module",
-  "dependencies": {
-    "express": "^5.1.0"
-  }
-}

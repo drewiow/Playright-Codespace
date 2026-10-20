@@ -1,5 +1,12 @@
 {
     "name": "",
     "description": "",
-    "inputs": []
+    "inputs": [],
+    "requiredColumns": [
+        {
+            "key": "odsCode",
+            "label": "ODS Code",
+            "required": true
+        }
+    ]
 }
